@@ -34,11 +34,11 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ currentView, o
           <span>Home</span>
         </button>
         <button
-          onClick={() => onNavigate('how-it-works')}
-          className={`flex flex-col items-center gap-1 ${currentView === 'how-it-works' ? 'text-emerald-700 font-bold' : ''}`}
+          onClick={() => onNavigate('market-rates')}
+          className={`flex flex-col items-center gap-1 ${currentView === 'market-rates' ? 'text-emerald-700 font-bold' : ''}`}
         >
-          <Layers className="w-5 h-5" />
-          <span>How It Works</span>
+          <TrendingUp className="w-5 h-5" />
+          <span>Rates (விலை)</span>
         </button>
         <button
           onClick={() => onNavigate('for-farmers')}

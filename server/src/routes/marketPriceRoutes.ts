@@ -11,11 +11,15 @@ router.get('/daily', async (req: Request, res: Response) => {
   try {
     const district = (req.query.district as string) || 'Salem';
     const mandiId = req.query.mandiId as string | undefined;
+    const category = (req.query.category as string)?.toUpperCase().trim();
     const search = (req.query.search as string)?.toLowerCase().trim();
 
     const summary = await marketPriceService.getDailyRates(district, mandiId);
 
     let rates = summary.rates;
+    if (category && category !== 'ALL') {
+      rates = rates.filter((r) => r.category === category);
+    }
     if (search) {
       rates = rates.filter(
         (r) =>

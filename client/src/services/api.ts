@@ -354,11 +354,13 @@ class ApiService {
   public async getDailyMarketPrices(params?: {
     district?: string;
     mandiId?: string;
+    category?: string;
     search?: string;
   }): Promise<{ availableMandis: MandiInfo[]; summary: MandiMarketSummary }> {
     const query = new URLSearchParams();
     if (params?.district) query.set('district', params.district);
     if (params?.mandiId) query.set('mandiId', params.mandiId);
+    if (params?.category) query.set('category', params.category);
     if (params?.search) query.set('search', params.search);
     const qs = query.toString() ? `?${query.toString()}` : '';
     return this.request<{ availableMandis: MandiInfo[]; summary: MandiMarketSummary }>(

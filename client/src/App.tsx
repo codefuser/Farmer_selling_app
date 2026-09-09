@@ -15,6 +15,7 @@ import ForBuyersPage from './features/public/ForBuyersPage';
 import ImpactPage from './features/public/ImpactPage';
 import LoginPage from './features/public/LoginPage';
 import RegisterPage from './features/public/RegisterPage';
+import MarketRatesPage from './features/public/MarketRatesPage';
 
 // Farmer Pages
 import FarmerDashboard from './features/farmer/FarmerDashboard';
@@ -94,6 +95,8 @@ const AppContent: React.FC = () => {
         return <LandingPage onNavigate={navigate} onOpenVoiceModal={() => setVoiceModalOpen(true)} />;
       case 'how-it-works':
         return <HowItWorksPage onNavigate={navigate} />;
+      case 'market-rates':
+        return <MarketRatesPage onNavigate={navigate} />;
       case 'for-farmers':
         return <ForFarmersPage onNavigate={navigate} onOpenVoiceModal={() => setVoiceModalOpen(true)} />;
       case 'for-buyers':

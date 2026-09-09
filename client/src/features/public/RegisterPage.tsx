@@ -86,33 +86,47 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
       </div>
 
       {/* Role Selection Tabs */}
-      <div className="grid grid-cols-3 gap-2 bg-slate-200/70 p-1.5 rounded-2xl text-xs font-bold">
+      <div className="grid grid-cols-3 gap-2 bg-slate-100 p-1.5 rounded-2xl">
         <button
           type="button"
           onClick={() => setRole('FARMER')}
-          className={`py-2 rounded-xl transition ${
-            role === 'FARMER' ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+          className={`flex flex-col items-center justify-center py-2.5 px-1 rounded-xl transition ${
+            role === 'FARMER'
+              ? 'bg-white text-emerald-900 font-extrabold shadow-sm border border-emerald-200/80'
+              : 'text-slate-600 hover:text-slate-900 font-medium'
           }`}
         >
-          🌾 Farmer (விவசாயி)
+          <span className="text-base leading-none">🌾</span>
+          <span className="text-xs mt-1">Farmer</span>
+          <span className="text-[10px] text-slate-500 font-normal">விவசாயி</span>
         </button>
+
         <button
           type="button"
           onClick={() => setRole('BUYER')}
-          className={`py-2 rounded-xl transition ${
-            role === 'BUYER' ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+          className={`flex flex-col items-center justify-center py-2.5 px-1 rounded-xl transition ${
+            role === 'BUYER'
+              ? 'bg-white text-emerald-900 font-extrabold shadow-sm border border-emerald-200/80'
+              : 'text-slate-600 hover:text-slate-900 font-medium'
           }`}
         >
-          🏨 Buyer (வணிகர்)
+          <span className="text-base leading-none">🏨</span>
+          <span className="text-xs mt-1">Buyer</span>
+          <span className="text-[10px] text-slate-500 font-normal">வணிகர்</span>
         </button>
+
         <button
           type="button"
           onClick={() => setRole('COORDINATOR')}
-          className={`py-2 rounded-xl transition ${
-            role === 'COORDINATOR' ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+          className={`flex flex-col items-center justify-center py-2.5 px-1 rounded-xl transition ${
+            role === 'COORDINATOR'
+              ? 'bg-white text-emerald-900 font-extrabold shadow-sm border border-emerald-200/80'
+              : 'text-slate-600 hover:text-slate-900 font-medium'
           }`}
         >
-          🤝 Coordinator (ஒருங்கிணைப்பாளர்)
+          <span className="text-base leading-none">🤝</span>
+          <span className="text-xs mt-1">Coordinator</span>
+          <span className="text-[10px] text-slate-500 font-normal">ஒருங்கிணைப்பு</span>
         </button>
       </div>
 

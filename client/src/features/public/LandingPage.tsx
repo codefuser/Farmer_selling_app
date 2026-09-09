@@ -101,43 +101,43 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onOpenVoic
           </p>
 
           {/* Clean High-Contrast Action CTAs */}
-          <div className="mt-8 flex flex-wrap justify-center items-center gap-3">
+          <div className="mt-8 flex flex-col sm:flex-row justify-center items-center gap-2.5 max-w-xl mx-auto">
             <button
               onClick={() => onNavigate('register')}
-              className="px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm transition shadow-sm flex items-center gap-2"
+              className="w-full sm:w-auto px-5 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm transition shadow-sm flex items-center justify-center gap-2"
             >
-              <span>Join as Farmer</span>
+              <span>{language === 'ta' ? 'விவசாயியாக இணைய (Sell)' : 'Sell as Farmer'}</span>
               <ArrowRight className="w-4 h-4 text-slate-400" />
             </button>
 
             <button
-              onClick={() => onNavigate('buyer-marketplace')}
-              className="px-6 py-3 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-semibold text-sm border border-slate-300 transition flex items-center gap-2"
+              onClick={() => onNavigate('market-rates')}
+              className="w-full sm:w-auto px-5 py-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs sm:text-sm transition shadow-sm flex items-center justify-center gap-2"
             >
-              <span>Browse Produce</span>
+              <span>{language === 'ta' ? 'இன்றைய மண்டி விலை' : 'View Mandi Rates'}</span>
             </button>
 
             <button
-              onClick={() => onNavigate('buyer-post-demand')}
-              className="px-6 py-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-semibold text-sm transition"
+              onClick={() => onNavigate('buyer-marketplace')}
+              className="w-full sm:w-auto px-5 py-3 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs sm:text-sm border border-slate-300 transition flex items-center justify-center gap-2"
             >
-              <span>Post Requirement</span>
+              <span>{language === 'ta' ? 'காய்கறி வாங்க (Buy)' : 'Buy Produce'}</span>
             </button>
           </div>
 
           {/* Voice Listing Tool for Farmers */}
-          <div className="mt-6">
+          <div className="mt-4">
             <button
               onClick={onOpenVoiceModal}
-              className="inline-flex items-center gap-2 text-xs font-medium text-slate-500 hover:text-emerald-700 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 rounded-lg px-3 py-1.5 transition"
+              className="inline-flex items-center gap-2 text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 rounded-full px-4 py-1.5 transition shadow-sm"
             >
               <Mic className="w-3.5 h-3.5 text-emerald-600" />
-              <span>குரல் வழியே பதிவு செய்ய (Tamil Voice Listing Simulator)</span>
+              <span>குரல் வழியே விற்க (Tamil Voice Listing Simulator)</span>
             </button>
           </div>
 
           {/* 3 Core Trust Markers */}
-          <div className="mt-12 pt-8 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-6 text-left max-w-3xl mx-auto">
+          <div className="mt-10 pt-8 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-4 text-left max-w-3xl mx-auto">
             <div className="flex items-start gap-3">
               <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
                 <CheckCircle2 className="w-4 h-4" />

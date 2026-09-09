@@ -66,13 +66,15 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   const getNavLinks = () => {
+    const marketRatesLabel = language === 'ta' ? 'மண்டி விலை' : 'Market Rates';
+
     if (!user) {
       return [
-        { id: 'landing', label: 'Home' },
-        { id: 'how-it-works', label: 'How It Works' },
-        { id: 'for-farmers', label: 'For Farmers' },
-        { id: 'for-buyers', label: 'For Buyers' },
-        { id: 'impact', label: 'Impact' },
+        { id: 'landing', label: language === 'ta' ? 'முகப்பு' : 'Home' },
+        { id: 'market-rates', label: marketRatesLabel },
+        { id: 'how-it-works', label: language === 'ta' ? 'எப்படி இயங்குகிறது' : 'How It Works' },
+        { id: 'for-farmers', label: language === 'ta' ? 'விவசாயிகளுக்கு' : 'For Farmers' },
+        { id: 'for-buyers', label: language === 'ta' ? 'வணிகர்களுக்கு' : 'For Buyers' },
       ];
     }
 
@@ -80,6 +82,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       case 'FARMER':
         return [
           { id: 'farmer-dashboard', label: t('dashboard') },
+          { id: 'market-rates', label: marketRatesLabel },
           { id: 'farmer-produce', label: t('myProduce') },
           { id: 'farmer-add-produce', label: t('addProduce') },
           { id: 'farmer-offers', label: t('buyerOffers') },
@@ -90,6 +93,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       case 'BUYER':
         return [
           { id: 'buyer-dashboard', label: 'Dashboard' },
+          { id: 'market-rates', label: marketRatesLabel },
           { id: 'buyer-marketplace', label: 'Marketplace' },
           { id: 'buyer-post-demand', label: 'Post Demand' },
           { id: 'buyer-smart-matches', label: 'Smart Matches' },
@@ -99,6 +103,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       case 'COORDINATOR':
         return [
           { id: 'coordinator-dashboard', label: 'Village Hub' },
+          { id: 'market-rates', label: marketRatesLabel },
           { id: 'coordinator-register', label: 'Register Farmer' },
           { id: 'coordinator-create-batch', label: 'Add Batch for Farmer' },
         ];
@@ -110,6 +115,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       case 'ADMIN':
         return [
           { id: 'admin-dashboard', label: 'Platform Analytics' },
+          { id: 'market-rates', label: marketRatesLabel },
           { id: 'admin-disputes', label: 'Dispute Arbitration' },
           { id: 'impact', label: 'Impact Metrics' },
         ];
@@ -122,15 +128,21 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-sm">
-      {/* Sleek Minimal Live Vegetable Mandi Ticker */}
-      <div className="bg-slate-900 text-slate-300 text-[11px] py-1.5 px-4 border-b border-slate-800">
+      {/* Sleek Minimal Live Vegetable Mandi Ticker (Clickable to open all towns page) */}
+      <div
+        onClick={() => onNavigate('market-rates')}
+        className="bg-slate-900 text-slate-300 text-[11px] py-1.5 px-4 border-b border-slate-800 cursor-pointer hover:bg-slate-800/90 transition-colors"
+        title="Click to view live vegetable rates across all Tamil Nadu towns"
+      >
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 overflow-hidden">
           <div className="flex items-center gap-2 shrink-0">
             <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
             <span className="font-bold text-white uppercase tracking-wider text-[10px]">
               Daily Mandi Rates
             </span>
-            <span className="text-slate-500 hidden sm:inline">| Salem APMC</span>
+            <span className="text-emerald-400 font-semibold hidden sm:inline text-[10px] bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/30">
+              All Towns (அனைத்து ஊர்கள்) →
+            </span>
           </div>
 
           {/* Running Rates Strip */}

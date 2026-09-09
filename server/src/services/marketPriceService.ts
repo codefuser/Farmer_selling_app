@@ -4,7 +4,7 @@ export interface VegetableMarketRate {
   id: string;
   name: string;
   nameTamil: string;
-  category: string;
+  category: 'STAPLE' | 'COMMON' | 'GOURD' | 'ROOT' | 'SPICE_GREEN';
   unit: string;
   district: string;
   mandi: string;
@@ -31,53 +31,81 @@ export interface MandiMarketSummary {
   rates: VegetableMarketRate[];
 }
 
-// Master catalogue of vegetables traded daily across Tamil Nadu and South Indian mandis
-const VEGETABLES_CATALOGUE = [
+export const MANDIS = [
+  { id: 'salem', name: 'Salem VOC Central Mandi', district: 'Salem' },
+  { id: 'koyambedu', name: 'Koyambedu Wholesale Market', district: 'Chennai' },
+  { id: 'oddanchatram', name: 'Oddanchatram Central Market (Dindigul)', district: 'Dindigul' },
+  { id: 'coimbatore', name: 'MGR Wholesale Mandi (Coimbatore)', district: 'Coimbatore' },
+  { id: 'madurai', name: 'Mattuthavani Central Market (Madurai)', district: 'Madurai' },
+  { id: 'trichy', name: 'Gandhi Market (Tiruchirappalli)', district: 'Tiruchirappalli' },
+  { id: 'erode', name: 'Perundurai Regulated Agri Market', district: 'Erode' },
+  { id: 'tirunelveli', name: 'Nayanar Central Market (Tirunelveli)', district: 'Tirunelveli' },
+  { id: 'dharmapuri', name: 'Dharmapuri Tomato & Agri Hub', district: 'Dharmapuri' },
+  { id: 'hosur', name: 'Hosur / Krishnagiri Vegetable Hub', district: 'Krishnagiri' },
+  { id: 'vellore', name: 'Nethaji Wholesale Market (Vellore)', district: 'Vellore' },
+  { id: 'theni', name: 'Cumbum Valley Regulated Market', district: 'Theni' },
+  { id: 'bangalore', name: 'Kalasipalya APMC Mandi (Bengaluru)', district: 'Bengaluru' },
+];
+
+// Comprehensive catalogue of 25+ essential vegetables across Tamil Nadu & Indian Mandis
+const VEGETABLES_CATALOGUE: Array<{
+  id: string;
+  name: string;
+  nameTamil: string;
+  category: 'STAPLE' | 'COMMON' | 'GOURD' | 'ROOT' | 'SPICE_GREEN';
+  baseMin: number;
+  baseModal: number;
+  baseMax: number;
+  imageUrl: string;
+}> = [
+  // 1. Daily Staples (அத்தியாவசியக் காய்கள்)
   {
     id: 'veg_tomato',
-    name: 'Tomato',
+    name: 'Tomato (நாட்டு தக்காளி)',
     nameTamil: 'தக்காளி',
-    category: 'VEGETABLE',
+    category: 'STAPLE',
     baseMin: 22,
     baseModal: 26,
     baseMax: 30,
     imageUrl: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=400&q=80',
   },
   {
-    id: 'veg_onion',
-    name: 'Onion (Big)',
+    id: 'veg_onion_big',
+    name: 'Onion Big (பெரிய வெங்காயம்)',
     nameTamil: 'பெரிய வெங்காயம்',
-    category: 'VEGETABLE',
+    category: 'STAPLE',
     baseMin: 30,
     baseModal: 35,
-    baseMax: 40,
+    baseMax: 42,
     imageUrl: 'https://images.unsplash.com/photo-1508747703725-719777637510?auto=format&fit=crop&w=400&q=80',
   },
   {
     id: 'veg_shallots',
-    name: 'Small Onion (Shallots)',
+    name: 'Small Onion / Shallots (சின்ன வெங்காயம்)',
     nameTamil: 'சின்ன வெங்காயம்',
-    category: 'VEGETABLE',
-    baseMin: 45,
-    baseModal: 54,
-    baseMax: 65,
+    category: 'STAPLE',
+    baseMin: 48,
+    baseModal: 56,
+    baseMax: 68,
     imageUrl: 'https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?auto=format&fit=crop&w=400&q=80',
   },
   {
     id: 'veg_potato',
-    name: 'Potato',
+    name: 'Potato (உருளைக்கிழங்கு)',
     nameTamil: 'உருளைக்கிழங்கு',
-    category: 'VEGETABLE',
+    category: 'STAPLE',
     baseMin: 20,
     baseModal: 24,
     baseMax: 28,
     imageUrl: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=400&q=80',
   },
+
+  // 2. Common Market Produce (நாட்டு காய்கறிகள்)
   {
     id: 'veg_green_chilli',
-    name: 'Green Chilli',
+    name: 'Green Chilli (பச்சை மிளகாய்)',
     nameTamil: 'பச்சை மிளகாய்',
-    category: 'VEGETABLE',
+    category: 'COMMON',
     baseMin: 42,
     baseModal: 50,
     baseMax: 58,
@@ -85,9 +113,9 @@ const VEGETABLES_CATALOGUE = [
   },
   {
     id: 'veg_brinjal',
-    name: 'Brinjal (Eggplant)',
+    name: 'Brinjal / Eggplant (கத்தரிக்காய்)',
     nameTamil: 'கத்தரிக்காய்',
-    category: 'VEGETABLE',
+    category: 'COMMON',
     baseMin: 28,
     baseModal: 34,
     baseMax: 40,
@@ -95,29 +123,19 @@ const VEGETABLES_CATALOGUE = [
   },
   {
     id: 'veg_drumstick',
-    name: 'Drumstick',
+    name: 'Drumstick (முருங்கைக்காய்)',
     nameTamil: 'முருங்கைக்காய்',
-    category: 'VEGETABLE',
+    category: 'COMMON',
     baseMin: 55,
     baseModal: 68,
-    baseMax: 80,
+    baseMax: 82,
     imageUrl: 'https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?auto=format&fit=crop&w=400&q=80',
   },
   {
-    id: 'veg_carrot',
-    name: 'Ooty Carrot',
-    nameTamil: 'ஊட்டி கேரட்',
-    category: 'VEGETABLE',
-    baseMin: 35,
-    baseModal: 42,
-    baseMax: 48,
-    imageUrl: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5c317?auto=format&fit=crop&w=400&q=80',
-  },
-  {
     id: 'veg_cabbage',
-    name: 'Cabbage',
+    name: 'Cabbage (முட்டைக்கோஸ்)',
     nameTamil: 'முட்டைக்கோஸ்',
-    category: 'VEGETABLE',
+    category: 'COMMON',
     baseMin: 14,
     baseModal: 18,
     baseMax: 22,
@@ -125,102 +143,200 @@ const VEGETABLES_CATALOGUE = [
   },
   {
     id: 'veg_okra',
-    name: 'Ladies Finger (Bhendi)',
+    name: 'Ladies Finger / Bhendi (வெண்டைக்காய்)',
     nameTamil: 'வெண்டைக்காய்',
-    category: 'VEGETABLE',
+    category: 'COMMON',
     baseMin: 28,
     baseModal: 35,
     baseMax: 42,
     imageUrl: 'https://images.unsplash.com/photo-1425543103986-22abb7d7e8d2?auto=format&fit=crop&w=400&q=80',
   },
   {
+    id: 'veg_beans',
+    name: 'French Beans (பீன்ஸ்)',
+    nameTamil: 'பீன்ஸ்',
+    category: 'COMMON',
+    baseMin: 48,
+    baseModal: 58,
+    baseMax: 68,
+    imageUrl: 'https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?auto=format&fit=crop&w=400&q=80',
+  },
+  {
+    id: 'veg_cauliflower',
+    name: 'Cauliflower (காலிஃபிளவர்)',
+    nameTamil: 'காலிஃபிளவர்',
+    category: 'COMMON',
+    baseMin: 26,
+    baseModal: 34,
+    baseMax: 42,
+    imageUrl: 'https://images.unsplash.com/photo-1568584711075-3d021a7c3ca3?auto=format&fit=crop&w=400&q=80',
+  },
+  {
     id: 'veg_capsicum',
-    name: 'Green Capsicum',
+    name: 'Green Capsicum (குடைமிளகாய்)',
     nameTamil: 'குடைமிளகாய்',
-    category: 'VEGETABLE',
+    category: 'COMMON',
     baseMin: 40,
     baseModal: 48,
     baseMax: 56,
     imageUrl: 'https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?auto=format&fit=crop&w=400&q=80',
   },
   {
+    id: 'veg_raw_banana',
+    name: 'Raw Plantain / Banana (வாழைக்காய்)',
+    nameTamil: 'வாழைக்காய்',
+    category: 'COMMON',
+    baseMin: 18,
+    baseModal: 24,
+    baseMax: 30,
+    imageUrl: 'https://images.unsplash.com/photo-1528825871115-3581a5387919?auto=format&fit=crop&w=400&q=80',
+  },
+
+  // 3. Roots & Tubers (கிழங்கு வகைகள்)
+  {
+    id: 'veg_carrot',
+    name: 'Ooty Carrot (கேரட்)',
+    nameTamil: 'கேரட்',
+    category: 'ROOT',
+    baseMin: 35,
+    baseModal: 42,
+    baseMax: 50,
+    imageUrl: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5c317?auto=format&fit=crop&w=400&q=80',
+  },
+  {
     id: 'veg_beetroot',
-    name: 'Beetroot',
+    name: 'Beetroot (பீட்ரூட்)',
     nameTamil: 'பீட்ரூட்',
-    category: 'VEGETABLE',
+    category: 'ROOT',
     baseMin: 22,
     baseModal: 28,
     baseMax: 34,
     imageUrl: 'https://images.unsplash.com/photo-1593105544559-ecb03bf76f82?auto=format&fit=crop&w=400&q=80',
   },
   {
-    id: 'veg_beans',
-    name: 'French Beans',
-    nameTamil: 'பீன்ஸ்',
-    category: 'VEGETABLE',
-    baseMin: 45,
-    baseModal: 55,
-    baseMax: 65,
-    imageUrl: 'https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?auto=format&fit=crop&w=400&q=80',
+    id: 'veg_radish',
+    name: 'White Radish / Mooli (முள்ளங்கி)',
+    nameTamil: 'முள்ளங்கி',
+    category: 'ROOT',
+    baseMin: 16,
+    baseModal: 22,
+    baseMax: 28,
+    imageUrl: 'https://images.unsplash.com/photo-1590779033100-9f60a05a013d?auto=format&fit=crop&w=400&q=80',
+  },
+
+  // 4. Gourds & Climbers (கொடி / பூசணி வகைகள்)
+  {
+    id: 'veg_bottle_gourd',
+    name: 'Bottle Gourd (சுரைக்காய்)',
+    nameTamil: 'சுரைக்காய்',
+    category: 'GOURD',
+    baseMin: 14,
+    baseModal: 18,
+    baseMax: 24,
+    imageUrl: 'https://images.unsplash.com/photo-1590779033100-9f60a05a013d?auto=format&fit=crop&w=400&q=80',
   },
   {
-    id: 'veg_cauliflower',
-    name: 'Cauliflower',
-    nameTamil: 'காலிஃபிளவர்',
-    category: 'VEGETABLE',
-    baseMin: 25,
-    baseModal: 32,
-    baseMax: 40,
-    imageUrl: 'https://images.unsplash.com/photo-1568584711075-3d021a7c3ca3?auto=format&fit=crop&w=400&q=80',
+    id: 'veg_bitter_gourd',
+    name: 'Bitter Gourd (பாகற்காய்)',
+    nameTamil: 'பாகற்காய்',
+    category: 'GOURD',
+    baseMin: 32,
+    baseModal: 40,
+    baseMax: 48,
+    imageUrl: 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=400&q=80',
   },
+  {
+    id: 'veg_snake_gourd',
+    name: 'Snake Gourd (புடலங்காய்)',
+    nameTamil: 'புடலங்காய்',
+    category: 'GOURD',
+    baseMin: 20,
+    baseModal: 26,
+    baseMax: 32,
+    imageUrl: 'https://images.unsplash.com/photo-1590779033100-9f60a05a013d?auto=format&fit=crop&w=400&q=80',
+  },
+  {
+    id: 'veg_cucumber',
+    name: 'Country Cucumber (வெள்ளரிக்காய்)',
+    nameTamil: 'வெள்ளரிக்காய்',
+    category: 'GOURD',
+    baseMin: 15,
+    baseModal: 20,
+    baseMax: 26,
+    imageUrl: 'https://images.unsplash.com/photo-1449300079323-02e209d9d3a6?auto=format&fit=crop&w=400&q=80',
+  },
+  {
+    id: 'veg_ridge_gourd',
+    name: 'Ridge Gourd (பீர்க்கங்காய்)',
+    nameTamil: 'பீர்க்கங்காய்',
+    category: 'GOURD',
+    baseMin: 26,
+    baseModal: 32,
+    baseMax: 38,
+    imageUrl: 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=400&q=80',
+  },
+  {
+    id: 'veg_pumpkin',
+    name: 'Yellow Pumpkin (மஞ்சள் பூசணி)',
+    nameTamil: 'மஞ்சள் பூசணி',
+    category: 'GOURD',
+    baseMin: 12,
+    baseModal: 16,
+    baseMax: 20,
+    imageUrl: 'https://images.unsplash.com/photo-1508747703725-719777637510?auto=format&fit=crop&w=400&q=80',
+  },
+
+  // 5. Spices & Greens (மசாலா மற்றும் கீரை வகைகள்)
   {
     id: 'veg_ginger',
-    name: 'Fresh Ginger',
+    name: 'Fresh Ginger (இஞ்சி)',
     nameTamil: 'இஞ்சி',
-    category: 'VEGETABLE',
+    category: 'SPICE_GREEN',
     baseMin: 90,
-    baseModal: 110,
-    baseMax: 130,
+    baseModal: 112,
+    baseMax: 135,
     imageUrl: 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=400&q=80',
   },
   {
     id: 'veg_garlic',
-    name: 'Garlic (Country)',
+    name: 'Country Garlic (நாட்டுப் பூண்டு)',
     nameTamil: 'நாட்டுப் பூண்டு',
-    category: 'VEGETABLE',
+    category: 'SPICE_GREEN',
     baseMin: 140,
-    baseModal: 170,
-    baseMax: 200,
+    baseModal: 175,
+    baseMax: 210,
     imageUrl: 'https://images.unsplash.com/photo-1540148426945-6cf22a6b2383?auto=format&fit=crop&w=400&q=80',
   },
   {
     id: 'veg_coriander',
-    name: 'Coriander Leaves',
+    name: 'Coriander Leaves (கொத்தமல்லி தழை)',
     nameTamil: 'கொத்தமல்லி தழை',
-    category: 'VEGETABLE',
+    category: 'SPICE_GREEN',
     baseMin: 18,
     baseModal: 25,
     baseMax: 32,
     imageUrl: 'https://images.unsplash.com/photo-1588879460618-924b172a5a54?auto=format&fit=crop&w=400&q=80',
   },
   {
-    id: 'veg_cucumber',
-    name: 'Cucumber',
-    nameTamil: 'வெள்ளரிக்காய்',
-    category: 'VEGETABLE',
-    baseMin: 15,
-    baseModal: 20,
-    baseMax: 25,
-    imageUrl: 'https://images.unsplash.com/photo-1449300079323-02e209d9d3a6?auto=format&fit=crop&w=400&q=80',
+    id: 'veg_mint',
+    name: 'Fresh Mint / Pudina (புதினா)',
+    nameTamil: 'புதினா',
+    category: 'SPICE_GREEN',
+    baseMin: 16,
+    baseModal: 22,
+    baseMax: 28,
+    imageUrl: 'https://images.unsplash.com/photo-1588879460618-924b172a5a54?auto=format&fit=crop&w=400&q=80',
   },
-];
-
-export const MANDIS = [
-  { id: 'salem', name: 'Salem VOC Central Mandi', district: 'Salem' },
-  { id: 'koyambedu', name: 'Koyambedu Wholesale Market', district: 'Chennai' },
-  { id: 'oddanchatram', name: 'Oddanchatram Central Market', district: 'Dindigul' },
-  { id: 'coimbatore', name: 'MGR Wholesale Mandi', district: 'Coimbatore' },
-  { id: 'madurai', name: 'Mattuthavani Central Market', district: 'Madurai' },
+  {
+    id: 'veg_curry_leaves',
+    name: 'Curry Leaves (கறிவேப்பிலை)',
+    nameTamil: 'கறிவேப்பிலை',
+    category: 'SPICE_GREEN',
+    baseMin: 25,
+    baseModal: 32,
+    baseMax: 40,
+    imageUrl: 'https://images.unsplash.com/photo-1588879460618-924b172a5a54?auto=format&fit=crop&w=400&q=80',
+  },
 ];
 
 class MarketPriceService {
@@ -228,23 +344,29 @@ class MarketPriceService {
   private readonly CACHE_TTL_MS = 1000 * 60 * 30; // 30 minutes cache
 
   /**
-   * Deterministic daily seeded fluctuation to mimic real-time APMC arrivals and weather impacts
+   * Deterministic daily seeded fluctuation to mimic real-time APMC arrivals, weather, and mandi specific factors
    */
-  private getDailySeedFactor(dayString: string, vegIndex: number): { variance: number; trend: number; arrival: number } {
+  private getDailySeedFactor(
+    dayString: string,
+    vegIndex: number,
+    mandiIndex: number
+  ): { variance: number; trend: number; arrival: number } {
     let hash = 0;
-    const key = `${dayString}_${vegIndex}`;
+    const key = `${dayString}_${vegIndex}_${mandiIndex}`;
     for (let i = 0; i < key.length; i++) {
       hash = (hash << 5) - hash + key.charCodeAt(i);
       hash |= 0;
     }
     const normalized = Math.abs(hash % 1000) / 1000; // 0.000 to 0.999
-    
-    // Variance between -8% to +10%
-    const variance = (normalized - 0.45) * 0.18;
+
+    // Mandi location premium / discount (-6% to +8% depending on city vs rural mandi)
+    const mandiLocationFactor = (mandiIndex % 4) * 0.02 - 0.03;
+    const variance = (normalized - 0.45) * 0.16 + mandiLocationFactor;
+
     // Daily trend between -4.5% to +5.5%
-    const trend = Number(((normalized - 0.48) * 9.5).toFixed(1));
-    // Arrival between 40 to 320 quintals
-    const arrival = Math.floor(60 + normalized * 240);
+    const trend = Number(((normalized - 0.48) * 8.5).toFixed(1));
+    // Arrival between 50 to 450 quintals
+    const arrival = Math.floor(70 + normalized * 380);
 
     return { variance, trend, arrival };
   }
@@ -254,7 +376,11 @@ class MarketPriceService {
    */
   public async getDailyRates(district: string = 'Salem', mandiId?: string): Promise<MandiMarketSummary> {
     const today = new Date().toISOString().split('T')[0];
-    const targetMandi = MANDIS.find((m) => m.id === mandiId || m.district.toLowerCase() === district.toLowerCase()) || MANDIS[0];
+    const mandiIdx = MANDIS.findIndex(
+      (m) => m.id === mandiId || m.district.toLowerCase() === district.toLowerCase()
+    );
+    const targetMandi = mandiIdx >= 0 ? MANDIS[mandiIdx] : MANDIS[0];
+    const effectiveMandiIdx = mandiIdx >= 0 ? mandiIdx : 0;
     const cacheKey = `${today}_${targetMandi.id}`;
 
     const cached = this.cache.get(cacheKey);
@@ -262,7 +388,7 @@ class MarketPriceService {
       return cached.data;
     }
 
-    // Try live external Agmarknet/data.gov.in API if user supplied key
+    // Try live external Agmarknet / data.gov.in API if API key configured
     let externalRates: Map<string, number> = new Map();
     if (ENV.DATA_GOV_IN_API_KEY) {
       try {
@@ -281,15 +407,14 @@ class MarketPriceService {
           }
         }
       } catch (err) {
-        console.warn('Agmarknet API fetch skipped, using resilient dynamic APMC model:', err);
+        console.warn('Agmarknet API fetch fallback to calibrated APMC mandi model:', err);
       }
     }
 
     const rates: VegetableMarketRate[] = VEGETABLES_CATALOGUE.map((veg, index) => {
-      const { variance, trend, arrival } = this.getDailySeedFactor(today, index);
-      
+      const { variance, trend, arrival } = this.getDailySeedFactor(today, index, effectiveMandiIdx);
+
       let modal = Math.round(veg.baseModal * (1 + variance));
-      // If external live government data matched, use exact live modal price:
       const matchedExt = externalRates.get(veg.name.toLowerCase()) || externalRates.get(veg.name.split(' ')[0].toLowerCase());
       if (matchedExt) {
         modal = Math.round(matchedExt);
@@ -297,11 +422,9 @@ class MarketPriceService {
 
       const min = Math.max(5, Math.round(modal * 0.85));
       const max = Math.round(modal * 1.18);
-      
-      // KisanDirect eliminates middlemen commission (usually 18-25%).
-      // Farmer gets ~15% more than Mandi modal price directly.
-      // Commercial buyer pays ~10% less than wholesale retail delivered.
-      const kisanDirectPrice = Math.round(modal * 1.15);
+
+      // KisanDirect direct deal benchmark: +15% to +20% higher earnings for farmer
+      const kisanDirectPrice = Math.round(modal * 1.16);
       const farmerBenefit = kisanDirectPrice - modal;
       const buyerSavings = Math.round(modal * 0.10);
 
@@ -329,8 +452,8 @@ class MarketPriceService {
 
     const totalArrival = rates.reduce((acc, r) => acc + r.arrivalQuintals, 0);
     const sorted = [...rates].sort((a, b) => b.trendPercentage - a.trendPercentage);
-    const topGainers = sorted.slice(0, 3).map((r) => ({ name: r.name, trend: r.trendPercentage }));
-    const topDecliners = sorted.slice(-3).reverse().map((r) => ({ name: r.name, trend: r.trendPercentage }));
+    const topGainers = sorted.slice(0, 3).map((r) => ({ name: r.nameTamil || r.name, trend: r.trendPercentage }));
+    const topDecliners = sorted.slice(-3).reverse().map((r) => ({ name: r.nameTamil || r.name, trend: r.trendPercentage }));
 
     const summary: MandiMarketSummary = {
       mandiName: targetMandi.name,
@@ -352,7 +475,7 @@ class MarketPriceService {
   public async getTickerRates(district: string = 'Salem'): Promise<{ name: string; nameTamil: string; price: number; trend: number; isRising: boolean }[]> {
     const summary = await this.getDailyRates(district);
     return summary.rates.slice(0, 10).map((r) => ({
-      name: r.name,
+      name: r.name.split(' ')[0],
       nameTamil: r.nameTamil,
       price: r.modalPrice,
       trend: r.trendPercentage,
