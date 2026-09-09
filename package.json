@@ -1,0 +1,30 @@
+{
+  "name": "kisandirect-platform",
+  "version": "1.0.0",
+  "description": "KisanDirect - Community-Powered Direct Agricultural Marketplace (SIH 2026)",
+  "private": true,
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "install:all": "npm install --workspace=server && npm install --workspace=client",
+    "dev:server": "npm run dev --workspace=server",
+    "dev:client": "npm run dev --workspace=client",
+    "build:server": "npm run build --workspace=server",
+    "build:client": "npm run build --workspace=client",
+    "db:generate": "npm run prisma:generate --workspace=server",
+    "db:push": "npm run prisma:push --workspace=server",
+    "db:seed": "npm run prisma:seed --workspace=server"
+  },
+  "keywords": [
+    "agriculture",
+    "marketplace",
+    "sih2026",
+    "farmer",
+    "direct-selling",
+    "collective-pooling"
+  ],
+  "author": "Smart India Hackathon Team",
+  "license": "MIT"
+}
