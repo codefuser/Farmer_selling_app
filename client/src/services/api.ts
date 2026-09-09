@@ -8,6 +8,9 @@ import {
   NotificationItem,
   MatchedBatch,
   CollectiveMatchGroup,
+  VegetableMarketRate,
+  MandiMarketSummary,
+  MandiInfo,
 } from '../types';
 
 const API_BASE = import.meta.env.VITE_API_URL
@@ -345,6 +348,32 @@ class ApiService {
       method: 'POST',
       body: JSON.stringify({ batchId }),
     });
+  }
+
+  // Daily Live Vegetable Market Prices APIs
+  public async getDailyMarketPrices(params?: {
+    district?: string;
+    mandiId?: string;
+    search?: string;
+  }): Promise<{ availableMandis: MandiInfo[]; summary: MandiMarketSummary }> {
+    const query = new URLSearchParams();
+    if (params?.district) query.set('district', params.district);
+    if (params?.mandiId) query.set('mandiId', params.mandiId);
+    if (params?.search) query.set('search', params.search);
+    const qs = query.toString() ? `?${query.toString()}` : '';
+    return this.request<{ availableMandis: MandiInfo[]; summary: MandiMarketSummary }>(
+      `/market-prices/daily${qs}`
+    );
+  }
+
+  public async getMarketTicker(district: string = 'Salem'): Promise<{ ticker: Array<{ name: string; nameTamil: string; price: number; trend: number; isRising: boolean }> }> {
+    return this.request<{ ticker: Array<{ name: string; nameTamil: string; price: number; trend: number; isRising: boolean }> }>(
+      `/market-prices/ticker?district=${encodeURIComponent(district)}`
+    );
+  }
+
+  public async getAvailableMandis(): Promise<{ mandis: MandiInfo[] }> {
+    return this.request<{ mandis: MandiInfo[] }>('/market-prices/mandis');
   }
 }
 

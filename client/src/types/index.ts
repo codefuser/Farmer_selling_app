@@ -278,3 +278,41 @@ export interface NotificationItem {
   createdAt: string;
   metadataJson?: string;
 }
+
+export interface VegetableMarketRate {
+  id: string;
+  name: string;
+  nameTamil: string;
+  category: string;
+  unit: string;
+  district: string;
+  mandi: string;
+  date: string;
+  minPrice: number;
+  modalPrice: number;
+  maxPrice: number;
+  trendPercentage: number;
+  isRising: boolean;
+  arrivalQuintals: number;
+  kisanDirectPrice: number;
+  farmerBenefitPerKg: number;
+  buyerSavingsPerKg: number;
+  imageUrl: string;
+}
+
+export interface MandiMarketSummary {
+  mandiName: string;
+  district: string;
+  date: string;
+  totalArrivalQuintals: number;
+  topGainers: { name: string; trend: number }[];
+  topDecliners: { name: string; trend: number }[];
+  rates: VegetableMarketRate[];
+}
+
+export interface MandiInfo {
+  id: string;
+  name: string;
+  district: string;
+}
+

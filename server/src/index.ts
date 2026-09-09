@@ -13,6 +13,7 @@ import coordinatorRoutes from './routes/coordinatorRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import demoRoutes from './routes/demoRoutes.js';
+import marketPriceRoutes from './routes/marketPriceRoutes.js';
 
 const app = express();
 
@@ -36,6 +37,7 @@ app.use('/api/coordinator', coordinatorRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/demo', demoRoutes);
+app.use('/api/market-prices', marketPriceRoutes);
 
 // Health Check
 app.get('/api/health', (req, res) => {

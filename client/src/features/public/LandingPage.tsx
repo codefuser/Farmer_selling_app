@@ -1,20 +1,23 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ArrowRight,
   ShieldCheck,
   TrendingUp,
-  Clock,
-  Users,
-  Layers,
-  Sparkles,
-  Truck,
+  TrendingDown,
+  Search,
+  Filter,
   CheckCircle2,
   Mic,
-  ChevronRight,
-  Award,
-  Zap,
+  Truck,
+  Layers,
+  MapPin,
+  RefreshCw,
+  Building2,
+  Users,
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import api from '../../services/api';
+import { VegetableMarketRate, MandiMarketSummary, MandiInfo } from '../../types';
 
 interface LandingPageProps {
   onNavigate: (view: string) => void;
@@ -22,207 +25,396 @@ interface LandingPageProps {
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onOpenVoiceModal }) => {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
+
+  const [mandis, setMandis] = useState<MandiInfo[]>([
+    { id: 'salem', name: 'Salem VOC Central Mandi', district: 'Salem' },
+    { id: 'koyambedu', name: 'Koyambedu Wholesale Market', district: 'Chennai' },
+    { id: 'oddanchatram', name: 'Oddanchatram Central Market', district: 'Dindigul' },
+    { id: 'coimbatore', name: 'MGR Wholesale Mandi', district: 'Coimbatore' },
+  ]);
+  const [selectedMandiId, setSelectedMandiId] = useState<string>('salem');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [ratesData, setRatesData] = useState<VegetableMarketRate[]>([]);
+  const [summaryMeta, setSummaryMeta] = useState<{
+    mandiName: string;
+    totalArrival: number;
+    date: string;
+  } | null>(null);
+  const [loadingRates, setLoadingRates] = useState<boolean>(true);
+
+  // Fetch live market vegetable rates
+  const fetchMarketRates = async (mandiId: string, search: string = '') => {
+    setLoadingRates(true);
+    try {
+      const selected = mandis.find((m) => m.id === mandiId) || mandis[0];
+      const res = await api.getDailyMarketPrices({
+        district: selected.district,
+        mandiId,
+        search,
+      });
+
+      if (res?.summary?.rates) {
+        setRatesData(res.summary.rates);
+        setSummaryMeta({
+          mandiName: res.summary.mandiName,
+          totalArrival: res.summary.totalArrivalQuintals,
+          date: res.summary.date,
+        });
+      }
+      if (res?.availableMandis) {
+        setMandis(res.availableMandis);
+      }
+    } catch (err) {
+      console.error('Failed to load market rates:', err);
+    } finally {
+      setLoadingRates(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMarketRates(selectedMandiId, searchQuery);
+  }, [selectedMandiId]);
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    fetchMarketRates(selectedMandiId, searchQuery);
+  };
 
   return (
-    <div className="space-y-16 pb-20">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden pt-12 pb-16 md:pt-20 md:pb-24 bg-gradient-to-b from-emerald-950 via-emerald-900 to-emerald-950 text-white rounded-b-[40px] shadow-2xl">
-        {/* Subtle Decorative Glows */}
-        <div className="absolute -top-24 -left-24 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-1/2 -right-24 w-96 h-96 bg-teal-500/20 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-          {/* SIH Badge */}
-          <div className="inline-flex items-center gap-2 bg-emerald-500/20 border border-emerald-400/30 rounded-full px-4 py-1.5 text-xs font-semibold text-emerald-300 mb-6 backdrop-blur-md">
-            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Smart India Hackathon 2026 · Problem Statement ID: SIH26033</span>
+    <div className="space-y-16 pb-16 bg-[#fcfdfc]">
+      {/* 1. MINIMAL HERO SECTION */}
+      <section className="pt-12 pb-14 md:pt-16 md:pb-20 border-b border-slate-200/80 bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          {/* Subtle Institutional Tag */}
+          <div className="inline-flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-full px-3.5 py-1 text-xs font-medium text-slate-700 mb-6">
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            <span>Direct Agricultural Marketplace · Eliminating Commission Intermediaries</span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight max-w-4xl mx-auto leading-tight md:leading-none">
-            From Harvest to Buyer,
-            <span className="block mt-2 bg-gradient-to-r from-emerald-300 via-teal-200 to-white bg-clip-text text-transparent">
-              Without Unnecessary Intermediaries.
-            </span>
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-slate-900 max-w-4xl mx-auto leading-tight">
+            Connecting Farmers Directly with Commercial Buyers.
           </h1>
 
-          <p className="mt-6 text-base sm:text-lg md:text-xl text-emerald-100/90 max-w-3xl mx-auto font-normal leading-relaxed">
-            Connect farmers directly with verified commercial demand, combine small farm quantities into bulk orders, negotiate transparent fair prices, and move fresh produce before it degrades.
+          <p className="mt-5 text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
+            Move fresh produce directly from farm harvest to hotels, caterers, and retailers. Combined bulk pooling, transparent APMC benchmark pricing, and guaranteed same-day escrow settlements.
           </p>
 
-          {/* Action CTAs */}
-          <div className="mt-10 flex flex-wrap justify-center items-center gap-3">
+          {/* Clean High-Contrast Action CTAs */}
+          <div className="mt-8 flex flex-wrap justify-center items-center gap-3">
             <button
               onClick={() => onNavigate('register')}
-              className="px-7 py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-sm sm:text-base shadow-xl shadow-emerald-500/30 transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
+              className="px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm transition shadow-sm flex items-center gap-2"
             >
-              <span>Sell Your Produce</span>
-              <ArrowRight className="w-4 h-4" />
+              <span>Join as Farmer</span>
+              <ArrowRight className="w-4 h-4 text-slate-400" />
             </button>
 
             <button
               onClick={() => onNavigate('buyer-marketplace')}
-              className="px-7 py-3.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-sm sm:text-base border border-white/20 backdrop-blur-md transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
+              className="px-6 py-3 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-semibold text-sm border border-slate-300 transition flex items-center gap-2"
             >
-              <span>Find Fresh Produce</span>
+              <span>Browse Produce</span>
             </button>
 
             <button
               onClick={() => onNavigate('buyer-post-demand')}
-              className="px-7 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-sm sm:text-base shadow-lg transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
+              className="px-6 py-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-semibold text-sm transition"
             >
-              <span>Post a Requirement</span>
+              <span>Post Requirement</span>
             </button>
           </div>
 
-          {/* Voice Assistant Shortcut */}
-          <div className="mt-8">
+          {/* Voice Listing Tool for Farmers */}
+          <div className="mt-6">
             <button
               onClick={onOpenVoiceModal}
-              className="inline-flex items-center gap-2 bg-white/5 hover:bg-white/15 border border-white/20 rounded-full px-4 py-2 text-xs font-semibold text-emerald-200 backdrop-blur-md transition"
+              className="inline-flex items-center gap-2 text-xs font-medium text-slate-500 hover:text-emerald-700 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 rounded-lg px-3 py-1.5 transition"
             >
-              <Mic className="w-4 h-4 text-emerald-400 animate-pulse" />
-              <span>குரல் வழியே விற்க (Try Voice Listing Simulation)</span>
-              <ChevronRight className="w-3.5 h-3.5 opacity-70" />
+              <Mic className="w-3.5 h-3.5 text-emerald-600" />
+              <span>குரல் வழியே பதிவு செய்ய (Tamil Voice Listing Simulator)</span>
             </button>
+          </div>
+
+          {/* 3 Core Trust Markers */}
+          <div className="mt-12 pt-8 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-6 text-left max-w-3xl mx-auto">
+            <div className="flex items-start gap-3">
+              <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
+                <CheckCircle2 className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-slate-900">Zero Middlemen Margins</h4>
+                <p className="text-[11px] text-slate-500 mt-0.5">Farmers retain 15-20% higher earnings compared to conventional auction commissions.</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 mt-0.5">
+                <ShieldCheck className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-slate-900">Escrow Secured Payments</h4>
+                <p className="text-[11px] text-slate-500 mt-0.5">Buyer payments are pre-authorized and released directly to farmers upon quality verification.</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 mt-0.5">
+                <Truck className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-slate-900">Village Hub Aggregation</h4>
+                <p className="text-[11px] text-slate-500 mt-0.5">Local coordinators weigh, grade, and combine small farmer lots into full truckloads.</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Visual Supply Chain Paradigm Flow */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* 2. DAILY LIVE VEGETABLE MARKET RATES WIDGET */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 sm:p-8">
+          {/* Header & Controls */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">
+                  Real-time APMC Mandi Index
+                </span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mt-1">
+                Daily Live Vegetable Market Rates
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Updated today · Official APMC mandi benchmark vs KisanDirect direct fair payout
+              </p>
+            </div>
+
+            {/* Filter Controls */}
+            <div className="flex flex-wrap items-center gap-2.5">
+              {/* Mandi Selector */}
+              <div className="relative">
+                <select
+                  value={selectedMandiId}
+                  onChange={(e) => setSelectedMandiId(e.target.value)}
+                  className="bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-semibold px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                >
+                  {mandis.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Search Bar */}
+              <form onSubmit={handleSearchSubmit} className="relative">
+                <input
+                  type="text"
+                  placeholder="Search vegetable / காய்..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="bg-slate-50 text-slate-800 text-xs px-3 py-2 pl-8 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500 w-44 sm:w-56"
+                />
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+              </form>
+
+              <button
+                onClick={() => fetchMarketRates(selectedMandiId, searchQuery)}
+                className="w-8 h-8 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-600 transition"
+                title="Refresh Rates"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${loadingRates ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
+          </div>
+
+          {/* Mandi Summary Strip */}
+          {summaryMeta && (
+            <div className="py-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 bg-slate-50/60 px-4 rounded-xl mt-4">
+              <div>
+                Market: <strong className="text-slate-800">{summaryMeta.mandiName}</strong> · Date: <span className="text-slate-700">{summaryMeta.date}</span>
+              </div>
+              <div>
+                Total Traded Volume: <strong className="text-slate-800">{summaryMeta.totalArrival.toLocaleString()} Quintals</strong>
+              </div>
+            </div>
+          )}
+
+          {/* Rates Table / Grid */}
+          <div className="mt-6 overflow-x-auto">
+            {loadingRates && ratesData.length === 0 ? (
+              <div className="py-12 text-center text-slate-400 text-xs">
+                Loading live APMC vegetable rates...
+              </div>
+            ) : ratesData.length === 0 ? (
+              <div className="py-12 text-center text-slate-400 text-xs">
+                No vegetables found matching "{searchQuery}".
+              </div>
+            ) : (
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                    <th className="py-3 px-3">Produce / Commodity</th>
+                    <th className="py-3 px-3">Mandi Benchmark</th>
+                    <th className="py-3 px-3">Price Range (Min - Max)</th>
+                    <th className="py-3 px-3">24h Trend</th>
+                    <th className="py-3 px-3 bg-emerald-50/40 rounded-t-lg">
+                      <span className="text-emerald-900 font-bold">KisanDirect Fair Price</span>
+                    </th>
+                    <th className="py-3 px-3 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
+                  {ratesData.map((item) => (
+                    <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
+                      {/* Commodity Name & Image */}
+                      <td className="py-3.5 px-3">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={item.imageUrl}
+                            alt={item.name}
+                            className="w-10 h-10 rounded-lg object-cover border border-slate-200 shrink-0"
+                            loading="lazy"
+                          />
+                          <div>
+                            <div className="font-bold text-slate-900 text-sm">
+                              {language === 'ta' ? item.nameTamil : item.name}
+                            </div>
+                            <div className="text-[11px] text-slate-500">
+                              {language === 'ta' ? item.name : item.nameTamil}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Official Modal Price */}
+                      <td className="py-3.5 px-3">
+                        <div className="font-bold text-slate-900 text-sm">₹{item.modalPrice} <span className="text-[10px] font-normal text-slate-500">/ kg</span></div>
+                        <div className="text-[10px] text-slate-400">APMC Modal</div>
+                      </td>
+
+                      {/* Min - Max */}
+                      <td className="py-3.5 px-3 text-slate-600 font-medium">
+                        ₹{item.minPrice} - ₹{item.maxPrice} / kg
+                      </td>
+
+                      {/* Trend */}
+                      <td className="py-3.5 px-3">
+                        <span
+                          className={`inline-flex items-center gap-1 font-semibold text-xs px-2 py-0.5 rounded-md ${
+                            item.isRising
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                              : 'bg-rose-50 text-rose-700 border border-rose-100'
+                          }`}
+                        >
+                          {item.isRising ? (
+                            <TrendingUp className="w-3 h-3" />
+                          ) : (
+                            <TrendingDown className="w-3 h-3" />
+                          )}
+                          {item.trendPercentage > 0 ? `+${item.trendPercentage}%` : `${item.trendPercentage}%`}
+                        </span>
+                      </td>
+
+                      {/* KisanDirect Fair Deal Price */}
+                      <td className="py-3.5 px-3 bg-emerald-50/30">
+                        <div className="font-bold text-emerald-800 text-sm">
+                          ₹{item.kisanDirectPrice} <span className="text-[10px] font-normal text-emerald-700">/ kg</span>
+                        </div>
+                        <div className="text-[10px] text-emerald-600 font-medium">
+                          +₹{item.farmerBenefitPerKg}/kg direct to farmer
+                        </div>
+                      </td>
+
+                      {/* Action CTA */}
+                      <td className="py-3.5 px-3 text-right">
+                        <button
+                          onClick={() => onNavigate('register')}
+                          className="bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] font-semibold px-3 py-1.5 rounded-lg transition"
+                        >
+                          Trade at this rate
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* 3. REVERSE DEMAND MODEL - 4 CLEAN STEPS */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-10">
-          <span className="text-xs uppercase font-bold tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
-            The KisanDirect Reverse-Demand Model
+          <span className="text-xs uppercase font-bold tracking-wider text-slate-500">
+            How The Ecosystem Works
           </span>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-3">
-            How Community Direct Selling Works
+          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mt-2">
+            The Reverse-Demand Marketplace Flow
           </h2>
-          <p className="text-slate-600 text-sm mt-2">
-            Eliminating 3-4 commission middlemen by shifting from traditional speculative push selling to transparent demand-driven collective pooling.
+          <p className="text-slate-600 text-xs sm:text-sm mt-1.5 leading-relaxed">
+            Replacing speculative auction mandi pushing with verified commercial purchase orders and organized village pooling.
           </p>
         </div>
 
-        {/* 5-Step Visual Flow Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div className="glass-card rounded-2xl p-5 text-center relative border-emerald-100">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-800 font-extrabold flex items-center justify-center mx-auto mb-3 text-sm">
-              1
-            </div>
-            <h3 className="font-bold text-sm text-slate-900">Buyer Demand</h3>
-            <p className="text-xs text-slate-500 mt-1">
-              Hotels & retailers post verified quantity needs (e.g. 500kg Tomato before 10 AM).
+        {/* 4 Minimal Step Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-sm">
+            <span className="text-xs font-bold text-slate-400 block mb-2">01</span>
+            <h3 className="font-bold text-sm text-slate-900">Commercial Demand</h3>
+            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+              Hotels, canteens, and retailers submit confirmed bulk requirements with target delivery times and grades.
             </p>
           </div>
 
-          <div className="glass-card rounded-2xl p-5 text-center relative border-emerald-100">
-            <div className="w-10 h-10 rounded-2xl bg-teal-100 text-teal-800 font-extrabold flex items-center justify-center mx-auto mb-3 text-sm">
-              2
-            </div>
-            <h3 className="font-bold text-sm text-slate-900">Smart Matching</h3>
-            <p className="text-xs text-slate-500 mt-1">
-              Engine calculates distance, price, grade, freshness, and farmer ratings.
+          <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-sm">
+            <span className="text-xs font-bold text-slate-400 block mb-2">02</span>
+            <h3 className="font-bold text-sm text-slate-900">Collective Supply Pool</h3>
+            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+              Multiple smallholder farmers combine 100kg + 150kg lots into one cohesive bulk fulfillment lot.
             </p>
           </div>
 
-          <div className="glass-card rounded-2xl p-5 text-center relative border-emerald-100">
-            <div className="w-10 h-10 rounded-2xl bg-indigo-100 text-indigo-800 font-extrabold flex items-center justify-center mx-auto mb-3 text-sm">
-              3
-            </div>
-            <h3 className="font-bold text-sm text-slate-900">Collective Supply</h3>
-            <p className="text-xs text-slate-500 mt-1">
-              Multiple small farmers combine 100kg + 150kg lots into one bulk order.
+          <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-sm">
+            <span className="text-xs font-bold text-slate-400 block mb-2">03</span>
+            <h3 className="font-bold text-sm text-slate-900">Village Hub QC</h3>
+            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+              Local village coordinators weigh, grade, and issue digital receipts before loading onto consolidated transport.
             </p>
           </div>
 
-          <div className="glass-card rounded-2xl p-5 text-center relative border-emerald-100">
-            <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 font-extrabold flex items-center justify-center mx-auto mb-3 text-sm">
-              4
-            </div>
-            <h3 className="font-bold text-sm text-slate-900">Collection & QC</h3>
-            <p className="text-xs text-slate-500 mt-1">
-              Weighed and quality-graded at village hub; damage deductions recorded.
-            </p>
-          </div>
-
-          <div className="glass-card rounded-2xl p-5 text-center relative border-emerald-100">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white font-extrabold flex items-center justify-center mx-auto mb-3 text-sm">
-              5
-            </div>
-            <h3 className="font-bold text-sm text-slate-900">Direct Payment</h3>
-            <p className="text-xs text-slate-500 mt-1">
-              Escrow funds released directly to farmers' bank accounts upon delivery.
+          <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-sm">
+            <span className="text-xs font-bold text-slate-400 block mb-2">04</span>
+            <h3 className="font-bold text-sm text-slate-900">Instant Escrow Payout</h3>
+            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+              Upon delivery confirmation, escrow funds are automatically disbursed directly to farmers' bank accounts.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Core Innovation Pillars */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="glass-card rounded-3xl p-6 border-slate-200">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center mb-4">
-              <Layers className="w-6 h-6" />
-            </div>
-            <h3 className="text-base font-bold text-slate-900">Collective Pooling (கூட்டு விற்பனை)</h3>
-            <p className="text-xs text-slate-600 mt-2 leading-relaxed">
-              Small marginal farmers can never individually supply large hotels or supermarket chains. KisanDirect aggregates small harvests into certified bulk shipments without middlemen cuts.
-            </p>
-          </div>
-
-          <div className="glass-card rounded-3xl p-6 border-slate-200">
-            <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center mb-4">
-              <Clock className="w-6 h-6" />
-            </div>
-            <h3 className="text-base font-bold text-slate-900">Freshness Engine & Urgent Sale</h3>
-            <p className="text-xs text-slate-600 mt-2 leading-relaxed">
-              Perishables degrade every hour. The platform automatically tracks freshness timers, transitioning aging lots to Urgent Sale mode with local discounts before expiry to eliminate agricultural waste.
-            </p>
-          </div>
-
-          <div className="glass-card rounded-3xl p-6 border-slate-200">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-700 flex items-center justify-center mb-4">
-              <Users className="w-6 h-6" />
-            </div>
-            <h3 className="text-base font-bold text-slate-900">Village Hub & Digital Inclusion</h3>
-            <p className="text-xs text-slate-600 mt-2 leading-relaxed">
-              Farmers with low digital literacy are supported by local Village Coordinators and bilingual voice-assisted listing in தமிழ் and English. The farmer retains 100% price control.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Impact Numbers Banner */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-slate-900 text-white rounded-3xl p-8 sm:p-12 shadow-xl flex flex-col md:flex-row justify-between items-center gap-8 border border-slate-800">
-          <div className="max-w-md">
-            <span className="text-emerald-400 font-bold text-xs uppercase tracking-wider">
-              Measurable Prototype Impact
-            </span>
-            <h3 className="text-2xl sm:text-3xl font-extrabold mt-1">
-              Restoring Fair Value to Indian Agriculture
-            </h3>
-            <p className="text-slate-400 text-xs mt-2">
-              Demonstrating transparent price discovery and eliminating unnecessary commissions.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
+      {/* 4. CLEAN METRICS / IMPACT BANNER */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-slate-900 text-white rounded-2xl p-8 sm:p-10">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-center md:text-left">
             <div>
-              <div className="text-2xl sm:text-3xl font-extrabold text-emerald-400">+22.4%</div>
-              <div className="text-[11px] text-slate-400 mt-1">Farmer Income Rise</div>
+              <div className="text-3xl sm:text-4xl font-extrabold text-emerald-400">+22.4%</div>
+              <div className="text-xs text-slate-400 mt-1">Average Farmer Realization over Mandi Auction</div>
             </div>
             <div>
-              <div className="text-2xl sm:text-3xl font-extrabold text-emerald-400">18%</div>
-              <div className="text-[11px] text-slate-400 mt-1">Middlemen Margin Saved</div>
+              <div className="text-3xl sm:text-4xl font-extrabold text-white">&lt; 18 hrs</div>
+              <div className="text-xs text-slate-400 mt-1">Average Harvest-to-Buyer Kitchen Delivery Time</div>
             </div>
             <div>
-              <div className="text-2xl sm:text-3xl font-extrabold text-emerald-400">4,800+ kg</div>
-              <div className="text-[11px] text-slate-400 mt-1">Waste Prevented</div>
+              <div className="text-3xl sm:text-4xl font-extrabold text-emerald-400">₹0</div>
+              <div className="text-xs text-slate-400 mt-1">Auction Middlemen Commissions Deducted</div>
             </div>
             <div>
-              <div className="text-2xl sm:text-3xl font-extrabold text-emerald-400">100%</div>
-              <div className="text-[11px] text-slate-400 mt-1">Escrow Protected</div>
+              <div className="text-3xl sm:text-4xl font-extrabold text-white">100%</div>
+              <div className="text-xs text-slate-400 mt-1">Pre-authorized Escrow Backed Commitments</div>
             </div>
           </div>
         </div>
