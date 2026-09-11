@@ -78,3 +78,8 @@ Thumbs.db
 client/.vite/
 tmp/
 temp/
+
+# ========================================================
+# AI Reports & Context (Local Only - Never Commit)
+# ========================================================
+report/
