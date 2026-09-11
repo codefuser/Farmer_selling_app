@@ -1,7 +1,13 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DIRECT_URL || process.env.DATABASE_URL,
+    },
+  },
+});
 
 async function main() {
   console.log('🌱 Starting comprehensive database seed for KisanDirect...');
@@ -22,6 +28,9 @@ async function main() {
   await prisma.offerHistory.deleteMany();
   await prisma.offer.deleteMany();
   await prisma.buyerDemand.deleteMany();
+  await prisma.cartItem.deleteMany();
+  await prisma.cart.deleteMany();
+  await prisma.productImage.deleteMany();
   await prisma.produceBatch.deleteMany();
   await prisma.freshnessRule.deleteMany();
   await prisma.marketPrice.deleteMany();

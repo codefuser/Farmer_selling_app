@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { LanguageProvider, useLanguage } from './context/LanguageContext';
+import { LanguageProvider } from './context/LanguageContext';
+import { CartProvider, useCart } from './context/CartContext';
 import Navbar from './components/common/Navbar';
 import MobileBottomNav from './components/common/MobileBottomNav';
 import DemoScenarioBar from './components/common/DemoScenarioBar';
 import VoiceListingModal from './components/common/VoiceListingModal';
+import SplashScreen from './components/common/SplashScreen';
+import OnboardingView from './components/common/OnboardingView';
+import CartDrawer from './features/buyer/CartDrawer';
+import CheckoutModal from './features/buyer/CheckoutModal';
 import api from './services/api';
 
 // Public Pages
@@ -16,6 +21,7 @@ import ImpactPage from './features/public/ImpactPage';
 import LoginPage from './features/public/LoginPage';
 import RegisterPage from './features/public/RegisterPage';
 import MarketRatesPage from './features/public/MarketRatesPage';
+import ProfilePage from './features/public/ProfilePage';
 
 // Farmer Pages
 import FarmerDashboard from './features/farmer/FarmerDashboard';
@@ -43,6 +49,15 @@ const AppContent: React.FC = () => {
   const [currentView, setCurrentView] = useState<string>('landing');
   const [viewParams, setViewParams] = useState<any>(null);
   const [voiceModalOpen, setVoiceModalOpen] = useState(false);
+
+  // Splash & Onboarding state
+  const [showSplash, setShowSplash] = useState(true);
+  const [hasOnboarded, setHasOnboarded] = useState<boolean>(() => {
+    return !!localStorage.getItem('kisandirect_onboarded');
+  });
+
+  // Global Checkout Modal state from CartDrawer
+  const [isGlobalCheckoutOpen, setIsGlobalCheckoutOpen] = useState(false);
 
   // Sync initial view to role if authenticated
   useEffect(() => {
@@ -88,6 +103,15 @@ const AppContent: React.FC = () => {
     setVoiceModalOpen(true);
   };
 
+  // Onboarding completion
+  const handleOnboardingComplete = async (selectedRole?: string) => {
+    setHasOnboarded(true);
+    localStorage.setItem('kisandirect_onboarded', 'true');
+    if (selectedRole) {
+      await demoSwitch(selectedRole);
+    }
+  };
+
   const renderView = () => {
     switch (currentView) {
       // Public Views
@@ -107,6 +131,8 @@ const AppContent: React.FC = () => {
         return <LoginPage onNavigate={navigate} />;
       case 'register':
         return <RegisterPage onNavigate={navigate} />;
+      case 'profile':
+        return <ProfilePage onNavigate={navigate} />;
 
       // Farmer Views
       case 'farmer-dashboard':
@@ -132,16 +158,22 @@ const AppContent: React.FC = () => {
       case 'buyer-post-demand':
         return <PostDemand onNavigate={navigate} />;
       case 'buyer-smart-matches':
+      case 'buyer-matches':
         return <SmartMatches demandId={viewParams?.demandId} onNavigate={navigate} />;
       case 'buyer-orders':
-        return <BuyerOrders highlightOrderId={viewParams?.highlightOrderId} onNavigate={navigate} />;
+        return <BuyerOrders highlightOrderId={viewParams?.highlightOrderId || viewParams?.orderId} onNavigate={navigate} />;
 
       // Other Role Views
       case 'coordinator-dashboard':
+      case 'coordinator-farmers':
+      case 'coordinator-voice':
         return <CoordinatorDashboard />;
       case 'logistics-dashboard':
+      case 'logistics-pickups':
+      case 'logistics-tracking':
         return <LogisticsDashboard />;
       case 'admin-dashboard':
+      case 'admin-users':
       case 'admin-disputes':
         return <AdminDashboard />;
 
@@ -152,6 +184,14 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f8faf9] text-slate-800">
+      {/* Splash Screen */}
+      {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
+
+      {/* Onboarding View (first time visitors who haven't completed onboarding) */}
+      {!showSplash && !hasOnboarded && !user && (
+        <OnboardingView onComplete={handleOnboardingComplete} />
+      )}
+
       {/* Top Demo Presentation Bar */}
       <DemoScenarioBar
         onTriggerScenario1={handleTriggerScenario1}
@@ -168,6 +208,24 @@ const AppContent: React.FC = () => {
 
       {/* Main Page Content */}
       <main className="flex-1 pb-16 md:pb-8">{renderView()}</main>
+
+      {/* Cart Slide-Over Drawer */}
+      <CartDrawer
+        onProceedToCheckout={() => setIsGlobalCheckoutOpen(true)}
+        onExplore={() => navigate('buyer-marketplace')}
+      />
+
+      {/* Global Checkout Modal */}
+      {isGlobalCheckoutOpen && (
+        <CheckoutModal
+          isOpen={isGlobalCheckoutOpen}
+          onClose={() => setIsGlobalCheckoutOpen(false)}
+          onOrderSuccess={(orderId) => {
+            setIsGlobalCheckoutOpen(false);
+            navigate('buyer-orders', { highlightOrderId: orderId });
+          }}
+        />
+      )}
 
       {/* Mobile Bottom Navigation */}
       <MobileBottomNav currentView={currentView} onNavigate={navigate} />
@@ -204,7 +262,9 @@ export const App: React.FC = () => {
   return (
     <LanguageProvider>
       <AuthProvider>
-        <AppContent />
+        <CartProvider>
+          <AppContent />
+        </CartProvider>
       </AuthProvider>
     </LanguageProvider>
   );

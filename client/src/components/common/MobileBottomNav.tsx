@@ -1,17 +1,22 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { useCart } from '../../context/CartContext';
 import {
   Home,
   Package,
   Inbox,
   ShoppingBag,
-  TrendingUp,
   Store,
-  FileText,
-  Layers,
   Truck,
   User,
+  Users,
+  Mic,
+  ShieldCheck,
+  BarChart3,
+  Search,
+  ShoppingCart,
+  TrendingUp,
 } from 'lucide-react';
 
 interface MobileBottomNavProps {
@@ -21,128 +26,128 @@ interface MobileBottomNavProps {
 
 export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ currentView, onNavigate }) => {
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const { cartCount, openCart } = useCart();
 
-  if (!user) {
-    return (
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 py-2 px-3 z-40 flex justify-around items-center text-[10px] font-semibold text-slate-600 shadow-lg">
-        <button
-          onClick={() => onNavigate('landing')}
-          className={`flex flex-col items-center gap-1 ${currentView === 'landing' ? 'text-emerald-700 font-bold' : ''}`}
-        >
-          <Home className="w-5 h-5" />
-          <span>Home</span>
-        </button>
-        <button
-          onClick={() => onNavigate('market-rates')}
-          className={`flex flex-col items-center gap-1 ${currentView === 'market-rates' ? 'text-emerald-700 font-bold' : ''}`}
-        >
-          <TrendingUp className="w-5 h-5" />
-          <span>Rates (விலை)</span>
-        </button>
-        <button
-          onClick={() => onNavigate('for-farmers')}
-          className={`flex flex-col items-center gap-1 ${currentView === 'for-farmers' ? 'text-emerald-700 font-bold' : ''}`}
-        >
-          <Package className="w-5 h-5" />
-          <span>For Farmers</span>
-        </button>
-        <button
-          onClick={() => onNavigate('login')}
-          className={`flex flex-col items-center gap-1 ${currentView === 'login' ? 'text-emerald-700 font-bold' : ''}`}
-        >
-          <User className="w-5 h-5" />
-          <span>Login</span>
-        </button>
+  // Navigation items by role
+  const getNavItems = () => {
+    if (!user) {
+      return [
+        { id: 'landing', label: t('home'), icon: Home },
+        { id: 'market-rates', label: language === 'ta' ? 'மண்டி விலை' : 'Mandi Rates', icon: TrendingUp },
+        { id: 'buyer-marketplace', label: t('marketplace'), icon: Store },
+        { id: 'login', label: t('login'), icon: User },
+      ];
+    }
+
+    switch (user.role) {
+      case 'FARMER':
+        return [
+          { id: 'farmer-dashboard', label: t('home'), icon: Home },
+          { id: 'farmer-produce', label: language === 'ta' ? 'பொருட்கள்' : 'Produce', icon: Package },
+          { id: 'farmer-offers', label: language === 'ta' ? 'வாய்ப்புகள்' : 'Offers', icon: Inbox },
+          { id: 'farmer-orders', label: language === 'ta' ? 'ஆர்டர்கள்' : 'Orders', icon: ShoppingBag },
+          { id: 'profile', label: t('profile'), icon: User },
+        ];
+
+      case 'BUYER':
+        return [
+          { id: 'buyer-dashboard', label: t('home'), icon: Home },
+          { id: 'buyer-marketplace', label: language === 'ta' ? 'சந்தை' : 'Explore', icon: Store },
+          { id: 'buyer-orders', label: language === 'ta' ? 'ஆர்டர்கள்' : 'Orders', icon: ShoppingBag },
+          {
+            id: 'cart',
+            label: t('cart'),
+            icon: ShoppingCart,
+            badge: cartCount,
+            onClick: () => openCart(),
+          },
+          { id: 'profile', label: t('profile'), icon: User },
+        ];
+
+      case 'COORDINATOR':
+        return [
+          { id: 'coordinator-dashboard', label: t('home'), icon: Home },
+          { id: 'coordinator-farmers', label: language === 'ta' ? 'விவசாயிகள்' : 'Farmers', icon: Users },
+          { id: 'coordinator-voice', label: language === 'ta' ? 'குரல் உதவி' : 'Voice', icon: Mic },
+          { id: 'profile', label: t('profile'), icon: User },
+        ];
+
+      case 'LOGISTICS':
+        return [
+          { id: 'logistics-dashboard', label: t('home'), icon: Home },
+          { id: 'logistics-pickups', label: language === 'ta' ? 'சேகரிப்பு' : 'Pickups', icon: Package },
+          { id: 'logistics-tracking', label: language === 'ta' ? 'வழியில்' : 'Tracking', icon: Truck },
+          { id: 'profile', label: t('profile'), icon: User },
+        ];
+
+      case 'ADMIN':
+        return [
+          { id: 'admin-dashboard', label: t('home'), icon: Home },
+          { id: 'admin-users', label: language === 'ta' ? 'பயனர்கள்' : 'Users', icon: Users },
+          { id: 'admin-disputes', label: language === 'ta' ? 'பிணக்குகள்' : 'Disputes', icon: ShieldCheck },
+          { id: 'profile', label: t('profile'), icon: User },
+        ];
+
+      default:
+        return [];
+    }
+  };
+
+  const navItems = getNavItems();
+  if (navItems.length === 0) return null;
+
+  return (
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-lg border-t border-slate-200/90 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+      <div className="flex items-center justify-around h-14 px-2">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = currentView === item.id;
+
+          return (
+            <button
+              key={item.id}
+              onClick={() => {
+                if (item.onClick) {
+                  item.onClick();
+                } else {
+                  onNavigate(item.id);
+                }
+              }}
+              className={`flex-1 flex flex-col items-center justify-center py-1 relative min-h-[48px] rounded-xl transition-all duration-200 ${
+                isActive
+                  ? 'text-emerald-700 font-bold'
+                  : 'text-slate-500 hover:text-slate-800 font-medium'
+              }`}
+            >
+              {/* Icon Container with active indicator pill */}
+              <div className="relative flex items-center justify-center">
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                    isActive ? 'bg-emerald-50 text-emerald-700 scale-105' : ''
+                  }`}
+                >
+                  <Icon className={`w-5 h-5 ${isActive ? 'stroke-[2.4]' : 'stroke-[1.8]'}`} />
+                </div>
+
+                {/* Badge if item has count (e.g. Cart) */}
+                {item.badge !== undefined && item.badge > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-600 text-white text-[10px] font-bold flex items-center justify-center border-2 border-white shadow-sm">
+                    {item.badge}
+                  </span>
+                )}
+              </div>
+
+              {/* Short localized label */}
+              <span className="text-[10px] tracking-tight truncate max-w-[64px] mt-0.5 leading-none">
+                {item.label}
+              </span>
+            </button>
+          );
+        })}
       </div>
-    );
-  }
-
-  if (user.role === 'FARMER') {
-    return (
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 py-2 px-2 z-40 flex justify-around items-center text-[10px] font-semibold text-slate-600 shadow-lg">
-        <button
-          onClick={() => onNavigate('farmer-dashboard')}
-          className={`flex flex-col items-center gap-1 ${currentView === 'farmer-dashboard' ? 'text-emerald-700 font-bold' : ''}`}
-        >
-          <Home className="w-5 h-5" />
-          <span>{t('dashboard')}</span>
-        </button>
-        <button
-          onClick={() => onNavigate('farmer-produce')}
-          className={`flex flex-col items-center gap-1 ${currentView === 'farmer-produce' ? 'text-emerald-700 font-bold' : ''}`}
-        >
-          <Package className="w-5 h-5" />
-          <span>{t('myProduce')}</span>
-        </button>
-        <button
-          onClick={() => onNavigate('farmer-offers')}
-          className={`flex flex-col items-center gap-1 ${currentView === 'farmer-offers' ? 'text-emerald-700 font-bold' : ''}`}
-        >
-          <Inbox className="w-5 h-5" />
-          <span>Offers</span>
-        </button>
-        <button
-          onClick={() => onNavigate('farmer-orders')}
-          className={`flex flex-col items-center gap-1 ${currentView === 'farmer-orders' ? 'text-emerald-700 font-bold' : ''}`}
-        >
-          <ShoppingBag className="w-5 h-5" />
-          <span>Orders</span>
-        </button>
-        <button
-          onClick={() => onNavigate('farmer-earnings')}
-          className={`flex flex-col items-center gap-1 ${currentView === 'farmer-earnings' ? 'text-emerald-700 font-bold' : ''}`}
-        >
-          <TrendingUp className="w-5 h-5" />
-          <span>Earnings</span>
-        </button>
-      </div>
-    );
-  }
-
-  if (user.role === 'BUYER') {
-    return (
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 py-2 px-2 z-40 flex justify-around items-center text-[10px] font-semibold text-slate-600 shadow-lg">
-        <button
-          onClick={() => onNavigate('buyer-dashboard')}
-          className={`flex flex-col items-center gap-1 ${currentView === 'buyer-dashboard' ? 'text-emerald-700 font-bold' : ''}`}
-        >
-          <Home className="w-5 h-5" />
-          <span>Home</span>
-        </button>
-        <button
-          onClick={() => onNavigate('buyer-marketplace')}
-          className={`flex flex-col items-center gap-1 ${currentView === 'buyer-marketplace' ? 'text-emerald-700 font-bold' : ''}`}
-        >
-          <Store className="w-5 h-5" />
-          <span>Market</span>
-        </button>
-        <button
-          onClick={() => onNavigate('buyer-post-demand')}
-          className={`flex flex-col items-center gap-1 ${currentView === 'buyer-post-demand' ? 'text-emerald-700 font-bold' : ''}`}
-        >
-          <FileText className="w-5 h-5" />
-          <span>Post Demand</span>
-        </button>
-        <button
-          onClick={() => onNavigate('buyer-smart-matches')}
-          className={`flex flex-col items-center gap-1 ${currentView === 'buyer-smart-matches' ? 'text-emerald-700 font-bold' : ''}`}
-        >
-          <Layers className="w-5 h-5" />
-          <span>Matches</span>
-        </button>
-        <button
-          onClick={() => onNavigate('buyer-orders')}
-          className={`flex flex-col items-center gap-1 ${currentView === 'buyer-orders' ? 'text-emerald-700 font-bold' : ''}`}
-        >
-          <Truck className="w-5 h-5" />
-          <span>Orders</span>
-        </button>
-      </div>
-    );
-  }
-
-  return null;
+    </nav>
+  );
 };
 
 export default MobileBottomNav;

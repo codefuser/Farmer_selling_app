@@ -361,4 +361,418 @@ router.get('/orders', async (req: AuthenticatedRequest, res: Response): Promise<
   }
 });
 
+// ==========================================
+// CART & DIRECT CHECKOUT ENDPOINTS (Mode 1)
+// ==========================================
+
+// Get or Create Buyer Cart
+router.get('/cart', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    let cart = await prisma.cart.findUnique({
+      where: { userId },
+      include: {
+        items: {
+          include: {
+            batch: {
+              include: {
+                product: { include: { freshnessRules: true } },
+                farmer: { include: { user: true } },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!cart) {
+      cart = await prisma.cart.create({
+        data: { userId },
+        include: {
+          items: {
+            include: {
+              batch: {
+                include: {
+                  product: { include: { freshnessRules: true } },
+                  farmer: { include: { user: true } },
+                },
+              },
+            },
+          },
+        },
+      });
+    }
+
+    // Format items with live freshness calculations
+    const items = cart.items.map((item) => {
+      const freshness = FreshnessService.calculateFreshness(
+        item.batch.harvestedAt,
+        item.batch.sellBy,
+        item.batch.product.freshnessRules[0]
+      );
+      return {
+        id: item.id,
+        batchId: item.batchId,
+        quantity: item.quantity,
+        batch: {
+          ...item.batch,
+          freshness,
+        },
+      };
+    });
+
+    const subtotal = items.reduce((sum, i) => sum + i.quantity * i.batch.pricePerKg, 0);
+    const deliveryFee = items.length > 0 ? 40 : 0;
+    const total = subtotal + deliveryFee;
+
+    res.json({
+      cartId: cart.id,
+      items,
+      itemCount: items.length,
+      subtotal,
+      deliveryFee,
+      total,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Add Item to Cart
+router.post('/cart/items', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const { batchId, quantity = 1 } = req.body;
+
+    if (!batchId || quantity <= 0) {
+      res.status(400).json({ error: 'Valid batchId and quantity are required' });
+      return;
+    }
+
+    const batch = await prisma.produceBatch.findUnique({
+      where: { id: batchId },
+      include: { product: { include: { freshnessRules: true } } },
+    });
+
+    if (!batch || batch.status !== 'ACTIVE' || batch.quantity <= 0) {
+      res.status(400).json({ error: 'This produce batch is currently unavailable or sold out' });
+      return;
+    }
+
+    const freshness = FreshnessService.calculateFreshness(
+      batch.harvestedAt,
+      batch.sellBy,
+      batch.product.freshnessRules[0]
+    );
+
+    if (freshness.status === 'EXPIRED') {
+      res.status(400).json({ error: 'This batch has passed its shelf-life expiry' });
+      return;
+    }
+
+    let cart = await prisma.cart.findUnique({ where: { userId } });
+    if (!cart) {
+      cart = await prisma.cart.create({ data: { userId } });
+    }
+
+    const requestedQty = parseFloat(String(quantity));
+    if (requestedQty > batch.quantity) {
+      res.status(400).json({ error: `Requested quantity (${requestedQty} kg) exceeds available stock (${batch.quantity} kg)` });
+      return;
+    }
+
+    const existingItem = await prisma.cartItem.findUnique({
+      where: {
+        cartId_batchId: {
+          cartId: cart.id,
+          batchId,
+        },
+      },
+    });
+
+    let cartItem;
+    if (existingItem) {
+      const newTotalQty = Math.min(batch.quantity, existingItem.quantity + requestedQty);
+      cartItem = await prisma.cartItem.update({
+        where: { id: existingItem.id },
+        data: { quantity: newTotalQty },
+      });
+    } else {
+      cartItem = await prisma.cartItem.create({
+        data: {
+          cartId: cart.id,
+          batchId,
+          quantity: requestedQty,
+        },
+      });
+    }
+
+    res.status(201).json({ message: 'Item added to cart', cartItem });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update Cart Item Quantity
+router.patch('/cart/items/:id', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { quantity } = req.body;
+    const newQty = parseFloat(String(quantity));
+
+    if (newQty <= 0) {
+      await prisma.cartItem.delete({ where: { id } });
+      res.json({ message: 'Item removed from cart' });
+      return;
+    }
+
+    const cartItem = await prisma.cartItem.findUnique({
+      where: { id },
+      include: { batch: true },
+    });
+
+    if (!cartItem) {
+      res.status(404).json({ error: 'Cart item not found' });
+      return;
+    }
+
+    if (newQty > cartItem.batch.quantity) {
+      res.status(400).json({ error: `Cannot exceed available stock of ${cartItem.batch.quantity} kg` });
+      return;
+    }
+
+    const updated = await prisma.cartItem.update({
+      where: { id },
+      data: { quantity: newQty },
+    });
+
+    res.json({ message: 'Cart item updated', cartItem: updated });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete Item from Cart
+router.delete('/cart/items/:id', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    await prisma.cartItem.delete({ where: { id } });
+    res.json({ message: 'Item removed from cart' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Clear Entire Cart
+router.delete('/cart', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const cart = await prisma.cart.findUnique({ where: { userId } });
+    if (cart) {
+      await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
+    }
+    res.json({ message: 'Cart cleared successfully' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Direct Checkout (Mode 1: Single/Multi-Item Purchase)
+router.post('/checkout', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const buyer = await getBuyerProfile(req.user!.id);
+    if (!buyer) {
+      res.status(404).json({ error: 'Buyer profile not found' });
+      return;
+    }
+
+    const { items, deliveryAddress, paymentMethod = 'MOCK_UPI', notes } = req.body;
+
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      res.status(400).json({ error: 'No items provided for checkout' });
+      return;
+    }
+
+    // Execute safe transaction
+    const orderResult = await prisma.$transaction(async (tx) => {
+      let totalAmount = 0;
+      let totalQuantity = 0;
+      const orderItemsToCreate: Array<{
+        farmerId: string;
+        batchId: string;
+        quantity: number;
+        pricePerKg: number;
+        total: number;
+      }> = [];
+
+      for (const item of items) {
+        const batch = await tx.produceBatch.findUnique({
+          where: { id: item.batchId },
+          include: { product: { include: { freshnessRules: true } }, farmer: true },
+        });
+
+        if (!batch) {
+          throw new Error(`Produce batch ${item.batchId} not found`);
+        }
+
+        if (batch.status !== 'ACTIVE' || batch.quantity <= 0) {
+          throw new Error(`Batch ${batch.batchCode} is sold out or inactive`);
+        }
+
+        const orderQty = parseFloat(String(item.quantity));
+        if (orderQty > batch.quantity) {
+          throw new Error(`Ordered quantity (${orderQty} kg) exceeds available stock (${batch.quantity} kg) for ${batch.batchCode}`);
+        }
+
+        const itemTotal = orderQty * batch.pricePerKg;
+        totalAmount += itemTotal;
+        totalQuantity += orderQty;
+
+        orderItemsToCreate.push({
+          farmerId: batch.farmerId,
+          batchId: batch.id,
+          quantity: orderQty,
+          pricePerKg: batch.pricePerKg,
+          total: itemTotal,
+        });
+
+        // Decrement batch quantity safely
+        const remainingQty = batch.quantity - orderQty;
+        await tx.produceBatch.update({
+          where: { id: batch.id },
+          data: {
+            quantity: remainingQty,
+            status: remainingQty === 0 ? 'SOLD_OUT' : 'ACTIVE',
+          },
+        });
+      }
+
+      // 2% platform fee, 98% farmer payout
+      const platformFee = Math.round(totalAmount * 0.02 * 100) / 100;
+      const farmerPayout = Math.round((totalAmount - platformFee) * 100) / 100;
+
+      const orderCount = await tx.order.count();
+      const orderCode = `ORD-${Date.now().toString().slice(-4)}${String(orderCount + 1).padStart(3, '0')}`;
+
+      // Create Order
+      const newOrder = await tx.order.create({
+        data: {
+          orderCode,
+          buyerId: buyer.id,
+          totalQuantity,
+          totalAmount,
+          platformFee,
+          farmerPayout,
+          status: 'ORDERED',
+          deliveryAddress: deliveryAddress || buyer.address,
+          scheduledPickupTime: new Date(Date.now() + 2 * 3600 * 1000), // 2 hours from now
+        },
+      });
+
+      // Create Order Items
+      for (const orderItem of orderItemsToCreate) {
+        await tx.orderItem.create({
+          data: {
+            orderId: newOrder.id,
+            farmerId: orderItem.farmerId,
+            batchId: orderItem.batchId,
+            quantity: orderItem.quantity,
+            pricePerKg: orderItem.pricePerKg,
+            total: orderItem.total,
+          },
+        });
+      }
+
+      // Create Escrow Payment record
+      const paymentCode = `PAY-${Date.now().toString().slice(-6)}`;
+      await tx.payment.create({
+        data: {
+          paymentCode,
+          orderId: newOrder.id,
+          buyerId: buyer.id,
+          amount: totalAmount,
+          platformFee,
+          status: 'AUTHORIZED', // Held in escrow until verified delivery
+          paymentMethod,
+          transactionRef: `TXN-${Date.now().toString().slice(-8)}`,
+        },
+      });
+
+      // Create initial Delivery tracking record
+      await tx.delivery.create({
+        data: {
+          orderId: newOrder.id,
+          status: 'ASSIGNED',
+          currentLat: buyer.latitude || 11.6643,
+          currentLng: buyer.longitude || 78.1460,
+          estimatedArrival: new Date(Date.now() + 4 * 3600 * 1000),
+        },
+      });
+
+      return {
+        order: newOrder,
+        orderItemsToCreate,
+        totalQuantity,
+        totalAmount,
+      };
+    }, { maxWait: 10000, timeout: 25000 });
+
+    const { order: newOrder, orderItemsToCreate, totalQuantity, totalAmount } = orderResult;
+
+    // Asynchronously clear purchased items from cart and create notifications
+    (async () => {
+      try {
+        const cart = await prisma.cart.findUnique({ where: { userId: req.user!.id } });
+        if (cart) {
+          const batchIds = items.map((i: any) => i.batchId);
+          await prisma.cartItem.deleteMany({
+            where: {
+              cartId: cart.id,
+              batchId: { in: batchIds },
+            },
+          });
+        }
+
+        // Notification for Buyer
+        await prisma.notification.create({
+          data: {
+            userId: buyer.userId,
+            title: `Order ${newOrder.orderCode} Placed!`,
+            message: `Your order for ${totalQuantity} kg (₹${totalAmount}) has been placed. Payment is securely held in escrow.`,
+            type: 'ORDER_CONFIRMED',
+            metadataJson: JSON.stringify({ orderId: newOrder.id }),
+          },
+        });
+
+        // Notifications for Farmers
+        for (const orderItem of orderItemsToCreate) {
+          const farmer = await prisma.farmerProfile.findUnique({
+            where: { id: orderItem.farmerId },
+          });
+          if (farmer) {
+            await prisma.notification.create({
+              data: {
+                userId: farmer.userId,
+                title: 'New Direct Order Received!',
+                message: `${buyer.businessName} purchased ${orderItem.quantity} kg of your produce for ₹${orderItem.total}.`,
+                type: 'ORDER_CONFIRMED',
+                metadataJson: JSON.stringify({ orderId: newOrder.id, quantity: orderItem.quantity }),
+              },
+            });
+          }
+        }
+      } catch (postErr) {
+        console.warn('Post-checkout background tasks warning:', postErr);
+      }
+    })();
+
+    res.status(201).json({
+      message: 'Checkout completed successfully! Order placed.',
+      order: newOrder,
+    });
+  } catch (err: any) {
+    res.status(400).json({ error: err.message || 'Checkout failed' });
+  }
+});
+
 export default router;

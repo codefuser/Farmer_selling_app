@@ -12,6 +12,7 @@ import {
   RefreshCw,
   Search,
   Filter,
+  Mic,
 } from 'lucide-react';
 
 interface MyProduceProps {
@@ -20,7 +21,7 @@ interface MyProduceProps {
 }
 
 export const MyProduce: React.FC<MyProduceProps> = ({ onNavigate, onOpenVoiceModal }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [batches, setBatches] = useState<ProduceBatch[]>([]);
   const [filter, setFilter] = useState<string>('ALL');
   const [loading, setLoading] = useState(true);
@@ -51,49 +52,45 @@ export const MyProduce: React.FC<MyProduceProps> = ({ onNavigate, onOpenVoiceMod
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="max-w-md sm:max-w-3xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4">
+      {/* Top Header & Quick Add */}
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900">{t('myProduce')}</h1>
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900">
+            {t('myProduce')}
+          </h1>
           <p className="text-xs text-slate-500">
-            Real-time freshness monitoring and marketplace listing inventory
+            {language === 'ta'
+              ? 'உங்கள் விளைபொருட்களின் தற்போதைய நிலை'
+              : 'Real-time inventory and perishable countdown'}
           </p>
         </div>
 
-        <div className="flex gap-2">
-          <button
-            onClick={loadBatches}
-            className="p-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 transition"
-            title="Refresh"
-          >
-            <RefreshCw className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => onNavigate('farmer-add-produce')}
-            className="px-4 py-2 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold shadow flex items-center gap-1.5 transition"
-          >
-            <PlusCircle className="w-4 h-4" />
-            <span>{t('addProduce')}</span>
-          </button>
-        </div>
+        <button
+          onClick={() => onNavigate('farmer-add-produce')}
+          className="h-10 px-3.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition active:scale-95"
+        >
+          <PlusCircle className="w-4 h-4" />
+          <span>{language === 'ta' ? 'சேர்' : 'Add'}</span>
+        </button>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-2 text-xs font-bold text-slate-600">
+      {/* Filter Tabs (Horizontal Scroll on Mobile) */}
+      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 text-xs">
         {[
-          { id: 'ALL', label: 'All Batches (அனைத்தும்)' },
-          { id: 'FRESH', label: 'Fresh (புதியது)' },
-          { id: 'AGING', label: 'Aging (முதிர்வு)' },
-          { id: 'URGENT', label: 'Urgent Sale 🔥 (உடனடி)' },
-          { id: 'EXPIRED', label: 'Expired (காலாவதியானது)' },
+          { id: 'ALL', label: language === 'ta' ? 'அனைத்தும்' : 'All' },
+          { id: 'FRESH', label: t('fresh') },
+          { id: 'AGING', label: t('aging') },
+          { id: 'URGENT', label: t('urgentSale') },
+          { id: 'EXPIRED', label: t('expired') },
         ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => setFilter(tab.id)}
-            className={`px-3 py-1.5 rounded-xl border transition whitespace-nowrap ${
+            className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition ${
               filter === tab.id
-                ? 'bg-emerald-700 text-white border-emerald-700 shadow-sm'
-                : 'bg-white border-slate-200 hover:border-slate-300'
+                ? 'bg-emerald-700 text-white shadow-xs'
+                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
             }`}
           >
             {tab.label}
@@ -101,89 +98,104 @@ export const MyProduce: React.FC<MyProduceProps> = ({ onNavigate, onOpenVoiceMod
         ))}
       </div>
 
-      {/* Batches Grid */}
+      {/* Produce List */}
       {loading ? (
-        <div className="py-12 text-center text-xs text-slate-400">Loading batches...</div>
+        <div className="py-16 text-center text-slate-500">
+          <div className="w-8 h-8 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-xs font-semibold">
+            {language === 'ta' ? 'விவரங்கள் பதிவேற்றப்படுகின்றன...' : 'Loading your produce...'}
+          </p>
+        </div>
       ) : filteredBatches.length === 0 ? (
-        <div className="glass-card rounded-3xl p-12 text-center text-slate-500 border-slate-200">
+        <div className="bg-white rounded-3xl p-8 border border-slate-200 text-center text-slate-500">
           <Package className="w-12 h-12 mx-auto mb-3 text-slate-300" />
-          <h3 className="font-bold text-slate-800 text-sm">No produce batches found</h3>
-          <p className="text-xs text-slate-500 mt-1">Add your harvested crops to start matching with buyers.</p>
+          <h2 className="text-sm font-bold text-slate-800 mb-1">
+            {language === 'ta' ? 'விளைபொருட்கள் எதுவும் இல்லை' : 'No produce found in this tab'}
+          </h2>
+          <p className="text-xs text-slate-500 mb-4">
+            {language === 'ta'
+              ? 'புதிய அறுவடையை சந்தையில் எளிதாக பதிவிடுங்கள்'
+              : 'List your fresh harvest to start receiving commercial buyer offers'}
+          </p>
+          <div className="flex justify-center gap-2">
+            <button
+              onClick={() => onNavigate('farmer-add-produce')}
+              className="px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-xs"
+            >
+              + {t('addProduce')}
+            </button>
+            <button
+              onClick={onOpenVoiceModal}
+              className="px-4 py-2.5 bg-white border border-emerald-300 text-emerald-800 text-xs font-bold rounded-xl"
+            >
+              🎤 {t('voiceListing')}
+            </button>
+          </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="space-y-3">
           {filteredBatches.map((batch) => (
             <div
               key={batch.id}
-              className="glass-card rounded-3xl p-5 border-slate-200 hover:border-emerald-300 transition shadow-sm flex flex-col justify-between"
+              className="bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200/90 shadow-xs space-y-3"
             >
-              <div>
-                <div className="flex items-start justify-between gap-2 mb-3">
-                  <span className="font-mono text-xs font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-lg border">
-                    {batch.batchCode}
-                  </span>
-                  <FreshnessBadge
-                    status={batch.freshnessStatus}
-                    remainingText={batch.freshness?.formattedRemaining}
-                  />
-                </div>
-
-                <div className="flex items-center gap-3 mb-3">
-                  <img
-                    src={batch.imageUrl || 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=200'}
-                    alt={batch.product?.name}
-                    className="w-16 h-16 rounded-2xl object-cover border border-slate-100"
-                  />
-                  <div>
-                    <h3 className="font-extrabold text-sm text-slate-900">
-                      {batch.product?.name} · {batch.product?.nameTamil}
-                    </h3>
-                    <div className="text-xs text-slate-600 mt-0.5">
-                      கையிருப்பு: <strong className="text-slate-900">{batch.quantity} kg</strong>
-                    </div>
-                    <div className="text-xs font-black text-emerald-700 mt-0.5">
-                      ₹{batch.pricePerKg} / kg <span className="text-[10px] text-slate-400 font-normal">(Grade {batch.qualityGrade})</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Freshness Countdown Meter */}
-                <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-100 text-[11px] text-slate-600 space-y-1">
-                  <div className="flex justify-between font-semibold">
-                    <span>Freshness Life</span>
-                    <span className="text-emerald-700">{batch.freshness?.percentRemaining || 0}%</span>
-                  </div>
-                  <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all duration-500 ${
-                        batch.freshnessStatus === 'FRESH'
-                          ? 'bg-emerald-500'
-                          : batch.freshnessStatus === 'AGING'
-                          ? 'bg-amber-500'
-                          : batch.freshnessStatus === 'URGENT'
-                          ? 'bg-orange-500'
-                          : 'bg-rose-500'
-                      }`}
-                      style={{ width: `${batch.freshness?.percentRemaining || 0}%` }}
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-100">
+                    <img
+                      src={batch.imageUrl || batch.product?.imageUrl}
+                      alt={batch.product?.name}
+                      className="w-full h-full object-cover"
+                      onError={(e: any) => {
+                        e.target.src = 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=200&q=80';
+                      }}
                     />
                   </div>
-                  <div className="flex justify-between text-[10px] text-slate-400 pt-0.5">
-                    <span>அறுவடை: {new Date(batch.harvestedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                    <span>Sell by: {new Date(batch.sellBy).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+
+                  <div className="min-w-0">
+                    <span className="text-[10px] font-mono font-bold text-slate-400 block uppercase">
+                      {batch.batchCode}
+                    </span>
+                    <h3 className="font-black text-sm text-slate-900 truncate">
+                      {language === 'ta' ? batch.product?.nameTamil : batch.product?.name}
+                    </h3>
+                    <div className="flex items-center gap-1.5 text-xs mt-0.5">
+                      <span className="font-black text-emerald-700">₹{batch.pricePerKg}/kg</span>
+                      <span className="text-slate-400">·</span>
+                      <span className="font-bold text-slate-700">{batch.quantity} kg</span>
+                      <span className="text-slate-400">·</span>
+                      <span className="bg-slate-100 px-1.5 py-0.2 rounded text-[10px] font-bold text-slate-600">
+                        {language === 'ta' ? `தரம் ${batch.qualityGrade}` : `Grade ${batch.qualityGrade}`}
+                      </span>
+                    </div>
                   </div>
+                </div>
+
+                <div className="shrink-0 text-right">
+                  <FreshnessBadge
+                    status={batch.freshnessStatus}
+                    hoursRemaining={batch.freshness?.hoursRemaining}
+                    minutesRemaining={batch.freshness?.minutesRemaining}
+                  />
                 </div>
               </div>
 
-              <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span className="text-[10px] font-semibold text-slate-500">
-                  Status: <strong className="text-slate-800">{batch.status}</strong>
+              {/* Status and Payout Summary */}
+              <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
+                <div>
+                  <span className="text-slate-500 text-[11px] block">
+                    {language === 'ta' ? 'எதிர்பார்க்கும் வருமானம்' : 'Estimated Value'}
+                  </span>
+                  <span className="font-black text-slate-900">
+                    ₹{(batch.quantity * batch.pricePerKg).toLocaleString()}
+                  </span>
+                </div>
+
+                <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
+                  {batch.status === 'ACTIVE'
+                    ? (language === 'ta' ? 'சந்தையில் நேரலையில்' : 'Active on Market')
+                    : batch.status}
                 </span>
-                <button
-                  onClick={() => onNavigate('farmer-offers')}
-                  className="font-bold text-emerald-700 hover:underline"
-                >
-                  Offers பார் &rarr;
-                </button>
               </div>
             </div>
           ))}

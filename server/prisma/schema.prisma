@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -26,6 +27,7 @@ model User {
   ratingsGiven      Rating[]           @relation("RatingsGiven")
   ratingsReceived   Rating[]           @relation("RatingsReceived")
   disputesRaised    Dispute[]          @relation("DisputesRaised")
+  cart              Cart?
 }
 
 model FarmerProfile {
@@ -153,6 +155,8 @@ model ProduceBatch {
   collectiveMembers CollectiveOrderMember[]
   orderItems      OrderItem[]
   qualityChecks   QualityCheck[]
+  images          ProductImage[]
+  cartItems       CartItem[]
 }
 
 model BuyerDemand {
@@ -432,4 +436,38 @@ model Dispute {
 
   order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   raisedByUser    User     @relation("DisputesRaised", fields: [raisedByUserId], references: [id], onDelete: Cascade)
+}
+
+model ProductImage {
+  id        String       @id @default(cuid())
+  batchId   String
+  imageUrl  String
+  isPrimary Boolean      @default(false)
+  createdAt DateTime     @default(now())
+
+  batch     ProduceBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+}
+
+model CartItem {
+  id        String       @id @default(cuid())
+  cartId    String
+  batchId   String
+  quantity  Float
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  cart      Cart         @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  batch     ProduceBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, batchId])
 }

@@ -377,6 +377,69 @@ class ApiService {
   public async getAvailableMandis(): Promise<{ mandis: MandiInfo[] }> {
     return this.request<{ mandis: MandiInfo[] }>('/market-prices/mandis');
   }
+
+  // Photo Upload API
+  public async uploadImage(imageBase64: string, filename?: string): Promise<{ url: string; filename: string }> {
+    return this.request<{ url: string; filename: string }>('/upload', {
+      method: 'POST',
+      body: JSON.stringify({ imageBase64, filename }),
+    });
+  }
+
+  // Cart & Checkout APIs (Mode 1: Direct Purchase)
+  public async getCart(): Promise<{
+    cartId: string;
+    items: Array<{
+      id: string;
+      batchId: string;
+      quantity: number;
+      batch: any;
+    }>;
+    itemCount: number;
+    subtotal: number;
+    deliveryFee: number;
+    total: number;
+  }> {
+    return this.request<any>('/buyers/cart');
+  }
+
+  public async addToCart(batchId: string, quantity: number = 1): Promise<{ message: string; cartItem: any }> {
+    return this.request<any>('/buyers/cart/items', {
+      method: 'POST',
+      body: JSON.stringify({ batchId, quantity }),
+    });
+  }
+
+  public async updateCartItem(cartItemId: string, quantity: number): Promise<{ message: string; cartItem?: any }> {
+    return this.request<any>(`/buyers/cart/items/${cartItemId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ quantity }),
+    });
+  }
+
+  public async removeFromCart(cartItemId: string): Promise<{ message: string }> {
+    return this.request<any>(`/buyers/cart/items/${cartItemId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  public async clearCart(): Promise<{ message: string }> {
+    return this.request<any>('/buyers/cart', {
+      method: 'DELETE',
+    });
+  }
+
+  public async checkout(data: {
+    items: Array<{ batchId: string; quantity: number }>;
+    deliveryAddress?: string;
+    paymentMethod?: string;
+    notes?: string;
+  }): Promise<{ message: string; order: Order }> {
+    return this.request<any>('/buyers/checkout', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
 }
 
 export const api = new ApiService();

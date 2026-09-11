@@ -14,6 +14,8 @@ import adminRoutes from './routes/adminRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import demoRoutes from './routes/demoRoutes.js';
 import marketPriceRoutes from './routes/marketPriceRoutes.js';
+import uploadRoutes from './routes/uploadRoutes.js';
+import path from 'path';
 
 const app = express();
 
@@ -22,10 +24,15 @@ app.use(cors({
   origin: '*', // allow development frontend
   credentials: true,
 }));
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Static uploads directory
+app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/upload', uploadRoutes);
 app.use('/api/farmers', farmerRoutes);
 app.use('/api/buyers', buyerRoutes);
 app.use('/api/orders', orderRoutes);

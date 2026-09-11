@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { Sprout, ShieldCheck, CheckCircle2, AlertCircle, ArrowRight } from 'lucide-react';
+import { Sprout, ArrowRight, ArrowLeft, Check, AlertCircle, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import api from '../../services/api';
 
 interface RegisterPageProps {
@@ -10,347 +10,457 @@ interface RegisterPageProps {
 
 export const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
   const { register } = useAuth();
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
 
+  const [currentStep, setCurrentStep] = useState(1);
   const [role, setRole] = useState<'FARMER' | 'BUYER' | 'COORDINATOR'>('FARMER');
+
+  // Step 2: Basic Details
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
   const [mobile, setMobile] = useState('');
   const [password, setPassword] = useState('Password@123');
+
+  // Step 3: Specific Profile Details
   const [village, setVillage] = useState('Thalaivasal');
   const [district, setDistrict] = useState('Salem');
+  const [landSize, setLandSize] = useState('2.5');
   const [businessName, setBusinessName] = useState('');
   const [businessType, setBusinessType] = useState('HOTEL');
-  const [landSize, setLandSize] = useState('2.5');
-  const [preferredLang, setPreferredLang] = useState('ta');
 
-  // OTP Modal State
-  const [showOtpModal, setShowOtpModal] = useState(false);
+  // Step 4: OTP Verification
   const [otpInput, setOtpInput] = useState('1234');
-  const [otpVerified, setOtpVerified] = useState(false);
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
 
-  const handleInitialSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name || !mobile || !email) {
-      setError('Please fill in required fields');
+  const handleStep1Next = () => {
+    setCurrentStep(2);
+  };
+
+  const handleStep2Next = () => {
+    if (!name.trim() || !mobile.trim()) {
+      setError(
+        language === 'ta'
+          ? 'பெயர் மற்றும் கைபேசி எண்ணை உள்ளிடவும்'
+          : 'Please enter your name and mobile number'
+      );
       return;
     }
     setError(null);
-    setShowOtpModal(true);
+    setCurrentStep(3);
   };
 
-  const handleVerifyOtpAndRegister = async () => {
+  const handleStep3Next = () => {
+    if (role === 'BUYER' && !businessName.trim()) {
+      setError(
+        language === 'ta'
+          ? 'வணிகத்தின் பெயரை உள்ளிடவும்'
+          : 'Please enter your business/hotel name'
+      );
+      return;
+    }
+    setError(null);
+    setCurrentStep(4);
+  };
+
+  const handleFinalSubmit = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Verify OTP simulation
-      await api.verifyOtp(mobile, otpInput);
-      setOtpVerified(true);
-      setShowOtpModal(false);
+      const generatedEmail = `${mobile.replace(/\D/g, '')}@kisandirect.local`;
 
-      // Submit registration
       await register({
         name,
-        email,
-        mobile,
+        email: generatedEmail,
+        mobile: mobile.startsWith('+91') ? mobile : `+91${mobile}`,
         password,
         role,
-        preferredLanguage: preferredLang,
-        village,
+        village: role === 'FARMER' || role === 'COORDINATOR' ? village : undefined,
         district,
-        state: 'Tamil Nadu',
-        landSize,
-        businessName,
-        businessType,
-        address: `${village}, ${district}`,
+        businessName: role === 'BUYER' ? businessName : undefined,
+        businessType: role === 'BUYER' ? businessType : undefined,
+        landSize: role === 'FARMER' ? parseFloat(landSize) || 1.0 : undefined,
+        preferredLanguage: language,
       });
+
+      setIsSuccess(true);
     } catch (err: any) {
-      setError(err.message || 'Registration failed');
+      setError(err.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
+  if (isSuccess) {
+    return (
+      <div className="min-h-[calc(100vh-8rem)] flex flex-col justify-center px-4 py-8 max-w-md mx-auto w-full text-center">
+        <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto mb-4 animate-in zoom-in-95">
+          <CheckCircle2 className="w-9 h-9" />
+        </div>
+        <h2 className="text-xl font-black text-slate-900 mb-1">
+          {language === 'ta' ? 'பதிவு வெற்றிகரமாக முடிந்தது!' : 'Registration Complete!'}
+        </h2>
+        <p className="text-xs text-slate-600 mb-6 max-w-xs mx-auto">
+          {language === 'ta'
+            ? 'உங்கள் கணக்கு உருவாக்கப்பட்டது. நீங்கள் இப்போது KisanDirect-ல் வர்த்தகம் செய்யலாம்.'
+            : 'Your account is ready. You are now logged in.'}
+        </p>
+        <button
+          onClick={() => onNavigate(role === 'FARMER' ? 'farmer-dashboard' : role === 'BUYER' ? 'buyer-dashboard' : 'coordinator-dashboard')}
+          className="w-full h-12 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-2"
+        >
+          <span>{language === 'ta' ? 'முகப்பிற்கு செல்க' : 'Go to Dashboard'}</span>
+          <ArrowRight className="w-4 h-4" />
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-xl mx-auto px-4 py-12 space-y-6">
-      <div className="text-center">
-        <div className="w-12 h-12 rounded-2xl bg-emerald-700 text-white flex items-center justify-center mx-auto mb-3 shadow-lg shadow-emerald-700/20">
-          <Sprout className="w-6 h-6" />
+    <div className="min-h-[calc(100vh-8rem)] flex flex-col justify-center px-4 py-6 max-w-md mx-auto w-full">
+      {/* Brand Header */}
+      <div className="text-center mb-5">
+        <div className="w-12 h-12 rounded-2xl bg-emerald-700 text-white flex items-center justify-center mx-auto mb-2 shadow-sm">
+          <Sprout className="w-6 h-6 text-emerald-100" />
         </div>
-        <h2 className="text-2xl font-extrabold text-slate-900">Create Your KisanDirect Account</h2>
-        <p className="text-xs text-slate-500 mt-1">Direct Farmer to Buyer Agricultural Marketplace</p>
+        <h1 className="text-xl font-black text-slate-900 tracking-tight">
+          {t('register')}
+        </h1>
+        <p className="text-xs text-slate-500">
+          {language === 'ta'
+            ? `படி ${currentStep} / 4: ${currentStep === 1 ? 'கணக்கு வகை' : currentStep === 2 ? 'அடிப்படை விவரங்கள்' : currentStep === 3 ? 'இருப்பிடம்' : 'சரிபார்ப்பு'}`
+            : `Step ${currentStep} of 4: ${currentStep === 1 ? 'Account Role' : currentStep === 2 ? 'Basic Details' : currentStep === 3 ? 'Location & Profile' : 'Verification'}`}
+        </p>
       </div>
 
-      {/* Role Selection Tabs */}
-      <div className="grid grid-cols-3 gap-2 bg-slate-100 p-1.5 rounded-2xl">
-        <button
-          type="button"
-          onClick={() => setRole('FARMER')}
-          className={`flex flex-col items-center justify-center py-2.5 px-1 rounded-xl transition ${
-            role === 'FARMER'
-              ? 'bg-white text-emerald-900 font-extrabold shadow-sm border border-emerald-200/80'
-              : 'text-slate-600 hover:text-slate-900 font-medium'
-          }`}
-        >
-          <span className="text-base leading-none">🌾</span>
-          <span className="text-xs mt-1">Farmer</span>
-          <span className="text-[10px] text-slate-500 font-normal">விவசாயி</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setRole('BUYER')}
-          className={`flex flex-col items-center justify-center py-2.5 px-1 rounded-xl transition ${
-            role === 'BUYER'
-              ? 'bg-white text-emerald-900 font-extrabold shadow-sm border border-emerald-200/80'
-              : 'text-slate-600 hover:text-slate-900 font-medium'
-          }`}
-        >
-          <span className="text-base leading-none">🏨</span>
-          <span className="text-xs mt-1">Buyer</span>
-          <span className="text-[10px] text-slate-500 font-normal">வணிகர்</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setRole('COORDINATOR')}
-          className={`flex flex-col items-center justify-center py-2.5 px-1 rounded-xl transition ${
-            role === 'COORDINATOR'
-              ? 'bg-white text-emerald-900 font-extrabold shadow-sm border border-emerald-200/80'
-              : 'text-slate-600 hover:text-slate-900 font-medium'
-          }`}
-        >
-          <span className="text-base leading-none">🤝</span>
-          <span className="text-xs mt-1">Coordinator</span>
-          <span className="text-[10px] text-slate-500 font-normal">ஒருங்கிணைப்பு</span>
-        </button>
+      {/* Progress Bar */}
+      <div className="w-full bg-slate-200 h-1.5 rounded-full mb-5 overflow-hidden">
+        <div
+          className="bg-emerald-600 h-full rounded-full transition-all duration-300"
+          style={{ width: `${(currentStep / 4) * 100}%` }}
+        />
       </div>
 
-      <form onSubmit={handleInitialSubmit} className="glass-card rounded-3xl p-6 sm:p-8 space-y-4 border-slate-200">
-        {error && (
-          <div className="bg-rose-50 border border-rose-200 text-rose-700 p-3 rounded-2xl text-xs flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{error}</span>
+      {/* Clean Form Surface */}
+      <div className="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-6 shadow-sm">
+        {/* Step 1: Role Selection */}
+        {currentStep === 1 && (
+          <div className="space-y-3 animate-in fade-in duration-150">
+            <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+              {language === 'ta' ? 'கணக்கு வகையை தேர்வு செய்க' : 'Select Account Type'}
+            </h2>
+
+            {[
+              {
+                roleId: 'FARMER',
+                icon: '🌾',
+                title: t('iAmFarmer'),
+                desc: t('farmerRoleDesc'),
+              },
+              {
+                roleId: 'BUYER',
+                icon: '🛒',
+                title: t('iAmBuyer'),
+                desc: t('buyerRoleDesc'),
+              },
+              {
+                roleId: 'COORDINATOR',
+                icon: '🤝',
+                title: t('iAmCoordinator'),
+                desc: t('coordinatorRoleDesc'),
+              },
+            ].map((item) => {
+              const active = role === item.roleId;
+              return (
+                <button
+                  key={item.roleId}
+                  type="button"
+                  onClick={() => setRole(item.roleId as any)}
+                  className={`w-full p-3.5 rounded-2xl border text-left transition flex items-center justify-between ${
+                    active
+                      ? 'border-emerald-600 bg-emerald-50/70 shadow-xs'
+                      : 'border-slate-200 hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{item.icon}</span>
+                    <div>
+                      <div className="text-xs font-bold text-slate-900">{item.title}</div>
+                      <div className="text-[11px] text-slate-500 mt-0.5">{item.desc}</div>
+                    </div>
+                  </div>
+                  {active && (
+                    <div className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                      <Check className="w-3.5 h-3.5" />
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+
+            <button
+              type="button"
+              onClick={handleStep1Next}
+              className="w-full h-12 mt-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-2"
+            >
+              <span>{language === 'ta' ? 'அடுத்து' : 'Continue'}</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-          <div>
-            <label className="block font-bold text-slate-700 mb-1">
-              {role === 'FARMER' ? 'Farmer Name (பெயர்)' : 'Contact Name'}
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Kumar Govindasamy"
-              className="w-full p-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block font-bold text-slate-700 mb-1">Mobile Number (அலைபேசி)</label>
-            <input
-              type="tel"
-              value={mobile}
-              onChange={(e) => setMobile(e.target.value)}
-              placeholder="e.g. 9842112345"
-              className="w-full p-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none"
-              required
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-          <div>
-            <label className="block font-bold text-slate-700 mb-1">Email Address</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="e.g. kumar@example.com"
-              className="w-full p-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block font-bold text-slate-700 mb-1">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none"
-              required
-            />
-          </div>
-        </div>
-
-        {/* Role Specific Fields */}
-        {role === 'FARMER' && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-2 border-t border-slate-100">
+        {/* Step 2: Basic Details */}
+        {currentStep === 2 && (
+          <div className="space-y-3.5 animate-in fade-in duration-150">
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Village (கிராமம்)</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                {language === 'ta' ? 'முழு பெயர்' : 'Full Name'}
+              </label>
               <input
                 type="text"
-                value={village}
-                onChange={(e) => setVillage(e.target.value)}
-                placeholder="Thalaivasal"
-                className="w-full p-2.5 rounded-xl border border-slate-200 outline-none"
+                placeholder={role === 'FARMER' ? 'குமார் கோவிந்தசாமி' : 'Ramesh Kumar'}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-3.5 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-xs focus:outline-none focus:border-emerald-600 font-medium"
               />
             </div>
-            <div>
-              <label className="block font-bold text-slate-700 mb-1">District (மாவட்டம்)</label>
-              <input
-                type="text"
-                value={district}
-                onChange={(e) => setDistrict(e.target.value)}
-                placeholder="Salem"
-                className="w-full p-2.5 rounded-xl border border-slate-200 outline-none"
-              />
-            </div>
-            <div>
-              <label className="block font-bold text-slate-700 mb-1">Land Size (Acres)</label>
-              <input
-                type="number"
-                step="0.5"
-                value={landSize}
-                onChange={(e) => setLandSize(e.target.value)}
-                placeholder="2.5"
-                className="w-full p-2.5 rounded-xl border border-slate-200 outline-none"
-              />
-            </div>
-          </div>
-        )}
 
-        {role === 'BUYER' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-2 border-t border-slate-100">
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Business Name</label>
-              <input
-                type="text"
-                value={businessName}
-                onChange={(e) => setBusinessName(e.target.value)}
-                placeholder="e.g. ABC Grand Heritage Hotel"
-                className="w-full p-2.5 rounded-xl border border-slate-200 outline-none"
-                required
-              />
-            </div>
-            <div>
-              <label className="block font-bold text-slate-700 mb-1">Business Type</label>
-              <select
-                value={businessType}
-                onChange={(e) => setBusinessType(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-slate-200 outline-none bg-white"
-              >
-                <option value="HOTEL">Hotel & Banquet</option>
-                <option value="RESTAURANT">Restaurant / Kitchen</option>
-                <option value="SUPERMARKET">Supermarket Retail</option>
-                <option value="WHOLESALER">Wholesaler / Bulk Buyer</option>
-                <option value="CATERING">Catering Company</option>
-                <option value="LOCAL_SHOP">Local Retail Store</option>
-              </select>
-            </div>
-          </div>
-        )}
-
-        <div>
-          <label className="block font-bold text-slate-700 text-xs mb-1">Preferred Interface Language</label>
-          <div className="flex gap-4 text-xs font-semibold">
-            <label className="flex items-center gap-1.5 cursor-pointer">
-              <input
-                type="radio"
-                name="lang"
-                value="ta"
-                checked={preferredLang === 'ta'}
-                onChange={() => setPreferredLang('ta')}
-                className="text-emerald-600 focus:ring-emerald-500"
-              />
-              <span>🇮🇳 தமிழ் (Tamil)</span>
-            </label>
-            <label className="flex items-center gap-1.5 cursor-pointer">
-              <input
-                type="radio"
-                name="lang"
-                value="en"
-                checked={preferredLang === 'en'}
-                onChange={() => setPreferredLang('en')}
-                className="text-emerald-600 focus:ring-emerald-500"
-              />
-              <span>🇬🇧 English</span>
-            </label>
-          </div>
-        </div>
-
-        <button
-          type="submit"
-          className="w-full py-3 rounded-2xl bg-emerald-700 hover:bg-emerald-600 text-white font-extrabold text-sm shadow-md transition"
-        >
-          Verify Mobile & Create Account
-        </button>
-
-        <div className="text-center pt-2 text-xs text-slate-500">
-          Already have an account?{' '}
-          <button
-            type="button"
-            onClick={() => onNavigate('login')}
-            className="text-emerald-700 font-bold hover:underline"
-          >
-            Sign In here
-          </button>
-        </div>
-      </form>
-
-      {/* Mock OTP Verification Modal */}
-      {showOtpModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
-              <ShieldCheck className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="font-extrabold text-base text-slate-900">Verify Mobile OTP</h3>
-              <p className="text-xs text-slate-500 mt-1">
-                Enter simulated OTP sent to <strong>{mobile}</strong>
-              </p>
-              <div className="mt-2 text-[11px] bg-amber-50 text-amber-800 border border-amber-200 rounded-lg p-1 font-mono">
-                Demo OTP: 1234
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                {t('mobileNumber')}
+              </label>
+              <div className="flex rounded-xl border border-slate-200 overflow-hidden bg-slate-50/50 focus-within:border-emerald-600">
+                <span className="bg-slate-100 px-3 py-3 text-xs font-bold text-slate-600 border-r border-slate-200">
+                  +91
+                </span>
+                <input
+                  type="tel"
+                  placeholder="98765 43210"
+                  value={mobile}
+                  onChange={(e) => setMobile(e.target.value)}
+                  maxLength={10}
+                  className="w-full px-3 py-3 text-xs bg-transparent text-slate-900 focus:outline-none font-medium"
+                />
               </div>
             </div>
 
-            <input
-              type="text"
-              maxLength={6}
-              value={otpInput}
-              onChange={(e) => setOtpInput(e.target.value)}
-              className="w-32 mx-auto text-center tracking-widest text-lg font-mono font-bold p-2 rounded-xl border border-slate-300 outline-none focus:ring-2 focus:ring-emerald-500"
-            />
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                {t('password')}
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-3.5 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-xs focus:outline-none focus:border-emerald-600 font-medium"
+              />
+            </div>
+
+            {error && (
+              <div className="p-2.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs flex items-center gap-1.5">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
 
             <div className="flex gap-2 pt-2">
               <button
                 type="button"
-                onClick={() => setShowOtpModal(false)}
-                className="flex-1 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
+                onClick={() => setCurrentStep(1)}
+                className="h-12 px-4 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs"
               >
-                Cancel
+                <ArrowLeft className="w-4 h-4" />
               </button>
               <button
                 type="button"
-                onClick={handleVerifyOtpAndRegister}
-                disabled={loading}
-                className="flex-1 py-2 text-xs font-bold bg-emerald-700 text-white rounded-xl shadow hover:bg-emerald-600 transition"
+                onClick={handleStep2Next}
+                className="flex-1 h-12 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-2"
               >
-                {loading ? 'Verifying...' : 'Verify & Sign Up'}
+                <span>{language === 'ta' ? 'அடுத்து' : 'Continue'}</span>
+                <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {/* Step 3: Role-Specific Details */}
+        {currentStep === 3 && (
+          <div className="space-y-3.5 animate-in fade-in duration-150">
+            {role === 'FARMER' || role === 'COORDINATOR' ? (
+              <>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    {language === 'ta' ? 'தோட்டம் அமைந்துள்ள கிராமம்' : 'Farm Village / Area'}
+                  </label>
+                  <input
+                    type="text"
+                    value={village}
+                    onChange={(e) => setVillage(e.target.value)}
+                    placeholder="தலைவாசல் (Thalaivasal)"
+                    className="w-full px-3.5 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-xs focus:outline-none focus:border-emerald-600 font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    {language === 'ta' ? 'மாவட்டம்' : 'District'}
+                  </label>
+                  <input
+                    type="text"
+                    value={district}
+                    onChange={(e) => setDistrict(e.target.value)}
+                    className="w-full px-3.5 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-xs focus:outline-none focus:border-emerald-600 font-medium"
+                  />
+                </div>
+
+                {role === 'FARMER' && (
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      {language === 'ta' ? 'விவசாய நிலத்தின் அளவு (ஏக்கர்)' : 'Farm Land Size (Acres)'}
+                    </label>
+                    <input
+                      type="number"
+                      step="0.5"
+                      value={landSize}
+                      onChange={(e) => setLandSize(e.target.value)}
+                      className="w-full px-3.5 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-xs focus:outline-none focus:border-emerald-600 font-medium"
+                    />
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    {language === 'ta' ? 'வணிகத்தின் பெயர் (ஹோட்டல்/அங்காடி)' : 'Business / Hotel Name'}
+                  </label>
+                  <input
+                    type="text"
+                    value={businessName}
+                    onChange={(e) => setBusinessName(e.target.value)}
+                    placeholder="ABC Grand Heritage Hotel"
+                    className="w-full px-3.5 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-xs focus:outline-none focus:border-emerald-600 font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    {language === 'ta' ? 'வணிக வகை' : 'Business Category'}
+                  </label>
+                  <select
+                    value={businessType}
+                    onChange={(e) => setBusinessType(e.target.value)}
+                    className="w-full px-3.5 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-xs focus:outline-none focus:border-emerald-600 font-medium"
+                  >
+                    <option value="HOTEL">Hotel / Restaurant (விடுதி/உணவகம்)</option>
+                    <option value="SUPERMARKET">Supermarket / Grocery (பல்பொருள் அங்காடி)</option>
+                    <option value="WHOLESALER">Regional Wholesaler (மொத்த வியாபாரி)</option>
+                    <option value="CATERING">Catering Services (சமையல் ஒப்பந்தக்காரர்)</option>
+                  </select>
+                </div>
+              </>
+            )}
+
+            {error && (
+              <div className="p-2.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs flex items-center gap-1.5">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setCurrentStep(2)}
+                className="h-12 px-4 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs"
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={handleStep3Next}
+                className="flex-1 h-12 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-2"
+              >
+                <span>{language === 'ta' ? 'அடுத்து' : 'Continue'}</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 4: OTP Verification Simulation */}
+        {currentStep === 4 && (
+          <div className="space-y-4 animate-in fade-in duration-150 text-center">
+            <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center mx-auto">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+
+            <div>
+              <h3 className="text-sm font-bold text-slate-900">
+                {language === 'ta' ? 'கைபேசி சரிபார்ப்பு (OTP)' : 'Mobile Verification (OTP)'}
+              </h3>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                {language === 'ta'
+                  ? `+91 ${mobile} எண்ணிற்கு 4 இலக்க OTP அனுப்பப்பட்டது (டெமோ OTP: 1234)`
+                  : `4-digit OTP sent to +91 ${mobile} (Demo OTP: 1234)`}
+              </p>
+            </div>
+
+            <div className="flex justify-center my-2">
+              <input
+                type="text"
+                maxLength={4}
+                value={otpInput}
+                onChange={(e) => setOtpInput(e.target.value)}
+                className="w-32 text-center tracking-[0.6em] text-lg font-black py-2.5 rounded-xl border-2 border-emerald-500 bg-emerald-50/50 text-slate-900 focus:outline-none"
+              />
+            </div>
+
+            {error && (
+              <div className="p-2.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs flex items-center gap-1.5 text-left">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setCurrentStep(3)}
+                className="h-12 px-4 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs"
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                disabled={loading}
+                onClick={handleFinalSubmit}
+                className="flex-1 h-12 rounded-xl bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md"
+              >
+                {loading ? (
+                  <span>{language === 'ta' ? 'பதிவாகிறது...' : 'Creating Account...'}</span>
+                ) : (
+                  <>
+                    <span>{language === 'ta' ? 'பதிவை முடிக்க' : 'Complete Registration'}</span>
+                    <Check className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Footer Navigation */}
+      <div className="text-center mt-4">
+        <button
+          onClick={() => onNavigate('login')}
+          className="text-xs font-semibold text-slate-600 hover:text-emerald-700"
+        >
+          {t('alreadyHaveAccount')}
+        </button>
+      </div>
     </div>
   );
 };

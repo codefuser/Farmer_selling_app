@@ -183,8 +183,18 @@ router.post('/batches', async (req: AuthenticatedRequest, res: Response): Promis
         imageUrl: imageUrl || product.imageUrl,
         notes,
       },
-      include: { product: true },
+      include: { product: true, images: true },
     });
+
+    if (imageUrl) {
+      await prisma.productImage.create({
+        data: {
+          batchId: batch.id,
+          imageUrl,
+          isPrimary: true,
+        },
+      }).catch(console.error);
+    }
 
     res.status(201).json({
       message: 'Produce batch published successfully',
