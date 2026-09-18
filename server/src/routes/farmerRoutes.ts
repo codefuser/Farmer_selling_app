@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import { prisma } from '../config/db.js';
 import { authenticateToken, AuthenticatedRequest, requireRole } from '../middleware/auth.js';
 import { FreshnessService } from '../services/freshnessService.js';
+import { ProfitCalculationService } from '../services/profitCalculationService.js';
 
 const router = Router();
 
@@ -77,15 +78,8 @@ router.get('/dashboard', async (req: AuthenticatedRequest, res: Response): Promi
       },
     });
 
-    // Payouts & Earnings calculation
-    const payouts = await prisma.farmerPayout.findMany({
-      where: {
-        farmerId: farmer.id,
-        status: 'RELEASED',
-      },
-    });
-
-    const totalEarnings = payouts.reduce((sum, p) => sum + p.amount, 0);
+    // Real Payouts & Earnings calculation
+    const financials = await ProfitCalculationService.getFarmerFinancials(farmer.id);
 
     res.json({
       farmer: {
@@ -96,6 +90,7 @@ router.get('/dashboard', async (req: AuthenticatedRequest, res: Response): Promi
         rating: farmer.rating,
         completedOrders: farmer.completedOrders,
         verified: farmer.verified,
+        verificationStatus: farmer.verificationStatus || 'VERIFIED',
       },
       stats: {
         activeBatchesCount: activeBatches.length,
@@ -106,8 +101,12 @@ router.get('/dashboard', async (req: AuthenticatedRequest, res: Response): Promi
         totalAvailableQuantityKg: totalQuantity,
         pendingOffersCount: pendingOffers,
         activeOrdersCount: activeOrders,
-        todayEarnings: totalEarnings > 0 ? Math.round(totalEarnings * 0.3) : 3450,
-        totalEarnings,
+        todayEarnings: financials.todayEarnings,
+        totalEarnings: financials.totalRevenue,
+        pendingPayouts: financials.pendingPayouts,
+        totalCosts: financials.totalCosts,
+        netProfit: financials.netProfit,
+        profitMargin: financials.profitMargin,
       },
       recentBatches: activeBatches.slice(0, 4).map((b) => ({
         ...b,
@@ -457,33 +456,24 @@ router.get('/earnings', async (req: AuthenticatedRequest, res: Response): Promis
       orderBy: { createdAt: 'desc' },
     });
 
-    const totalReleased = payouts
-      .filter((p) => p.status === 'RELEASED')
-      .reduce((sum, p) => sum + p.amount, 0);
-
-    const pendingPayouts = payouts
-      .filter((p) => p.status === 'PENDING')
-      .reduce((sum, p) => sum + p.amount, 0);
-
-    // Chart mock distribution by month
-    const monthlyData = [
-      { month: 'Apr', earnings: 14500, volumeKg: 650 },
-      { month: 'May', earnings: 19800, volumeKg: 920 },
-      { month: 'Jun', earnings: 24200, volumeKg: 1100 },
-      { month: 'Jul', earnings: 28500, volumeKg: 1350 },
-      { month: 'Aug', earnings: 32400, volumeKg: 1450 },
-      { month: 'Sep', earnings: totalReleased > 0 ? totalReleased : 38600, volumeKg: 1720 },
-    ];
+    // Real financial computation using ProfitCalculationService
+    const financials = await ProfitCalculationService.getFarmerFinancials(farmer.id);
 
     res.json({
       summary: {
-        totalEarnings: totalReleased > 0 ? totalReleased : 38600,
-        pendingPayouts,
+        totalEarnings: financials.totalRevenue,
+        pendingPayouts: financials.pendingPayouts,
+        todayEarnings: financials.todayEarnings,
+        totalCosts: financials.totalCosts,
+        netProfit: financials.netProfit,
+        profitMargin: financials.profitMargin,
         completedOrdersCount: farmer.completedOrders,
-        platformFeeSavedComparedToMiddlemen: Math.round((totalReleased || 38600) * 0.18), // 18% savings vs middlemen
+        platformFeeSavedComparedToMiddlemen: Math.round(financials.totalRevenue * 0.18), // 18% savings vs traditional APMC middlemen
       },
       payouts,
-      chart: monthlyData,
+      costByCategory: financials.costByCategory,
+      chart: financials.monthlyData,
+      recentCosts: financials.recentCosts,
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -577,6 +567,241 @@ router.get('/:id/public-profile', async (req: AuthenticatedRequest, res: Respons
   } catch (err: any) {
     console.error('Farmer public profile error:', err);
     res.status(500).json({ error: err.message || 'Failed to fetch farmer profile' });
+  }
+});
+
+// --- Phase 2: Cost Tracking (Profit & Loss Engine) ---
+
+// Get all input costs for current farmer
+router.get('/costs', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const farmer = await getFarmerProfile(req.user!.id);
+    if (!farmer) {
+      res.status(404).json({ error: 'Farmer profile not found' });
+      return;
+    }
+
+    const costs = await prisma.farmerCost.findMany({
+      where: { farmerId: farmer.id },
+      include: {
+        batch: {
+          include: { product: true },
+        },
+      },
+      orderBy: { date: 'desc' },
+    });
+
+    const total = costs.reduce((sum, c) => sum + c.amount, 0);
+
+    res.json({
+      costs,
+      totalCosts: total,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Add an input cost
+router.post('/costs', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const farmer = await getFarmerProfile(req.user!.id);
+    if (!farmer) {
+      res.status(404).json({ error: 'Farmer profile not found' });
+      return;
+    }
+
+    const { category, amount, description, batchId, date } = req.body;
+
+    if (!category || !amount || amount <= 0) {
+      res.status(400).json({ error: 'Category and positive amount are required' });
+      return;
+    }
+
+    const validCategories = ['SEED', 'FERTILIZER', 'PESTICIDE', 'LABOR', 'TRANSPORT', 'IRRIGATION', 'MACHINERY', 'OTHER'];
+    if (!validCategories.includes(category)) {
+      res.status(400).json({ error: `Invalid category. Must be one of: ${validCategories.join(', ')}` });
+      return;
+    }
+
+    const cost = await prisma.farmerCost.create({
+      data: {
+        farmerId: farmer.id,
+        category,
+        amount: parseFloat(amount),
+        description: description?.trim() || null,
+        batchId: batchId || null,
+        date: date ? new Date(date) : new Date(),
+      },
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Cost record saved',
+      cost,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete an input cost
+router.delete('/costs/:id', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const farmer = await getFarmerProfile(req.user!.id);
+    if (!farmer) {
+      res.status(404).json({ error: 'Farmer profile not found' });
+      return;
+    }
+
+    const { id } = req.params;
+    const existing = await prisma.farmerCost.findUnique({ where: { id } });
+
+    if (!existing) {
+      res.status(404).json({ error: 'Cost record not found' });
+      return;
+    }
+
+    if (existing.farmerId !== farmer.id && req.user!.role !== 'ADMIN') {
+      res.status(403).json({ error: 'Unauthorized to delete this cost' });
+      return;
+    }
+
+    await prisma.farmerCost.delete({ where: { id } });
+
+    res.json({ success: true, message: 'Cost record deleted' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- Phase 2: Farmer Reputation & Dimension Scores ---
+
+// Get reputation summary for a farmer
+router.get('/:id/reputation', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const farmer = await prisma.farmerProfile.findFirst({
+      where: { OR: [{ id }, { userId: id }] },
+      include: { user: true },
+    });
+
+    if (!farmer) {
+      res.status(404).json({ error: 'Farmer not found' });
+      return;
+    }
+
+    const ratings = await prisma.rating.findMany({
+      where: { toUserId: farmer.userId },
+      include: {
+        fromUser: { select: { id: true, name: true, avatarUrl: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const totalRatings = ratings.length;
+    let avgOverall = farmer.rating;
+    let avgQuality = 0;
+    let avgFreshness = 0;
+    let avgAccuracy = 0;
+    let avgCommunication = 0;
+
+    let qCount = 0, fCount = 0, aCount = 0, cCount = 0;
+
+    for (const r of ratings) {
+      if (r.qualityScore) { avgQuality += r.qualityScore; qCount++; }
+      if (r.freshnessScore) { avgFreshness += r.freshnessScore; fCount++; }
+      if (r.accuracyScore) { avgAccuracy += r.accuracyScore; aCount++; }
+      if (r.communicationScore) { avgCommunication += r.communicationScore; cCount++; }
+    }
+
+    res.json({
+      farmerId: farmer.id,
+      farmerName: farmer.user.name,
+      verified: farmer.verified,
+      verificationStatus: farmer.verificationStatus || 'VERIFIED',
+      completedOrders: farmer.completedOrders,
+      totalReviews: totalRatings,
+      overallRating: avgOverall,
+      dimensionScores: {
+        quality: qCount > 0 ? Math.round((avgQuality / qCount) * 10) / 10 : avgOverall,
+        freshness: fCount > 0 ? Math.round((avgFreshness / fCount) * 10) / 10 : avgOverall,
+        accuracy: aCount > 0 ? Math.round((avgAccuracy / aCount) * 10) / 10 : avgOverall,
+        communication: cCount > 0 ? Math.round((avgCommunication / cCount) * 10) / 10 : avgOverall,
+      },
+      recentReviews: ratings.slice(0, 10),
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- Phase 2: Farmer Follow / Unfollow ---
+
+router.post('/:id/follow', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params; // farmerProfile id or userId
+    const userId = req.user!.id;
+
+    const farmer = await prisma.farmerProfile.findFirst({
+      where: { OR: [{ id }, { userId: id }] },
+    });
+
+    if (!farmer) {
+      res.status(404).json({ error: 'Farmer profile not found' });
+      return;
+    }
+
+    if (farmer.userId === userId) {
+      res.status(400).json({ error: 'You cannot follow yourself' });
+      return;
+    }
+
+    const follow = await prisma.farmerFollow.upsert({
+      where: {
+        followerId_farmerId: {
+          followerId: userId,
+          farmerId: farmer.id,
+        },
+      },
+      update: {},
+      create: {
+        followerId: userId,
+        farmerId: farmer.id,
+      },
+    });
+
+    res.json({ success: true, message: 'Followed farmer successfully', follow });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/:id/unfollow', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const userId = req.user!.id;
+
+    const farmer = await prisma.farmerProfile.findFirst({
+      where: { OR: [{ id }, { userId: id }] },
+    });
+
+    if (!farmer) {
+      res.status(404).json({ error: 'Farmer profile not found' });
+      return;
+    }
+
+    await prisma.farmerFollow.deleteMany({
+      where: {
+        followerId: userId,
+        farmerId: farmer.id,
+      },
+    });
+
+    res.json({ success: true, message: 'Unfollowed farmer successfully' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
   }
 });
 

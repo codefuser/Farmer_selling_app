@@ -36,6 +36,11 @@ model User {
   conversationMembers ConversationMember[]
   messagesSent      Message[]
   messagesRead      MessageRead[]
+  followedFarmers   FarmerFollow[]     @relation("FarmerFollowers")
+  wishlist          Wishlist[]
+  priceAlerts       PriceAlert[]
+  searchHistory     SearchHistory[]
+  orderCancellations OrderCancellation[]
 }
 
 model FarmerProfile {
@@ -52,6 +57,7 @@ model FarmerProfile {
   bio                        String?
   identityVerificationStatus String         @default("VERIFIED") // PENDING, VERIFIED, REJECTED
   farmVerificationStatus     String         @default("VERIFIED") // PENDING, VERIFIED, REJECTED
+  verificationStatus         String         @default("PENDING") // PENDING, UNDER_REVIEW, VERIFIED, REJECTED, SUSPENDED
   rating                     Float          @default(4.8)
   completedOrders            Int            @default(0)
   verified                   Boolean        @default(true)
@@ -64,6 +70,8 @@ model FarmerProfile {
   collectiveMembers          CollectiveOrderMember[]
   payouts                    FarmerPayout[]
   posts                      Post[]
+  costs                      FarmerCost[]
+  followers                  FarmerFollow[] @relation("FarmerFollowed")
 }
 
 model BuyerProfile {
@@ -117,6 +125,8 @@ model Product {
   demands           BuyerDemand[]
   freshnessRules    FreshnessRule[]
   marketPrices      MarketPrice[]
+  wishlistItems     Wishlist[]
+  priceAlerts       PriceAlert[]
 }
 
 model FreshnessRule {
@@ -174,6 +184,8 @@ model ProduceBatch {
   images          ProductImage[]
   cartItems       CartItem[]
   posts           Post[]
+  costs           FarmerCost[]
+  wishlistItems   Wishlist[]
 }
 
 model BuyerDemand {
@@ -274,6 +286,11 @@ model Order {
   farmerPayout        Float
   status              String         @default("ORDERED") 
   // ORDERED, ACCEPTED, PICKUP_SCHEDULED, COLLECTED, QUALITY_CHECKED, PACKED, DISPATCHED, DELIVERED, PAYMENT_RELEASED, COMPLETED, CANCELLED
+  deliveryMethod      String?        @default("STANDARD") // STANDARD, EXPRESS, FARMER_DIRECT, SELF_PICKUP
+  deliveryFee         Float          @default(0)
+  cancellationReason  String?
+  cancelledBy         String?
+  cancelledAt         DateTime?
   deliveryAddress     String
   scheduledPickupTime DateTime?
   deliveredAt         DateTime?
@@ -289,6 +306,8 @@ model Order {
   payments            Payment[]
   ratings             Rating[]
   disputes            Dispute[]
+  cancellation        OrderCancellation?
+  refunds             Refund[]
 }
 
 model OrderItem {
@@ -372,6 +391,10 @@ model Delivery {
   currentLat       Float     @default(11.6643)
   currentLng       Float     @default(78.1460)
   status           String    @default("ASSIGNED") // ASSIGNED, PICKED_UP, IN_TRANSIT, DELIVERED
+  deliveryMethod   String?   @default("STANDARD")
+  deliveryProof    String?
+  confirmedOtp     String?
+  proofPhotoUrl    String?
   estimatedArrival DateTime?
   startedAt        DateTime?
   completedAt      DateTime?
@@ -396,6 +419,7 @@ model Payment {
   order          Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
   buyer          BuyerProfile   @relation(fields: [buyerId], references: [id], onDelete: Cascade)
   payouts        FarmerPayout[]
+  refunds        Refund[]
 }
 
 model FarmerPayout {
@@ -413,17 +437,23 @@ model FarmerPayout {
 }
 
 model Rating {
-  id         String   @id @default(cuid())
-  orderId    String
-  fromUserId String
-  toUserId   String
-  score      Int      // 1 to 5
-  comment    String?
-  createdAt  DateTime @default(now())
+  id                 String   @id @default(cuid())
+  orderId            String
+  fromUserId         String
+  toUserId           String
+  score              Int      // 1 to 5
+  qualityScore       Int?     // 1 to 5
+  freshnessScore     Int?     // 1 to 5
+  accuracyScore      Int?     // 1 to 5
+  communicationScore Int?     // 1 to 5
+  comment            String?
+  createdAt          DateTime @default(now())
 
-  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  fromUser   User     @relation("RatingsGiven", fields: [fromUserId], references: [id], onDelete: Cascade)
-  toUser     User     @relation("RatingsReceived", fields: [toUserId], references: [id], onDelete: Cascade)
+  order              Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  fromUser           User     @relation("RatingsGiven", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser             User     @relation("RatingsReceived", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  @@unique([orderId, fromUserId])
 }
 
 model Notification {
@@ -642,3 +672,128 @@ model MessageRead {
   @@index([messageId])
   @@index([userId])
 }
+
+model DeliveryPricingRule {
+  id            String   @id @default(cuid())
+  name          String
+  baseFee       Float    @default(30.0)
+  perKmRate     Float    @default(5.0)
+  perKgRate     Float    @default(1.0)
+  minDistanceKm Float    @default(0.0)
+  maxDistanceKm Float?
+  minWeightKg   Float    @default(0.0)
+  maxWeightKg   Float?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model FarmerCost {
+  id          String        @id @default(cuid())
+  farmerId    String
+  batchId     String?
+  category    String        // SEED, FERTILIZER, PESTICIDE, LABOR, TRANSPORT, IRRIGATION, MACHINERY, OTHER
+  amount      Float
+  description String?
+  date        DateTime      @default(now())
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  farmer      FarmerProfile @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  batch       ProduceBatch? @relation(fields: [batchId], references: [id], onDelete: SetNull)
+
+  @@index([farmerId])
+  @@index([batchId])
+}
+
+model FarmerFollow {
+  id         String        @id @default(cuid())
+  followerId String
+  farmerId   String
+  createdAt  DateTime      @default(now())
+
+  follower   User          @relation("FarmerFollowers", fields: [followerId], references: [id], onDelete: Cascade)
+  farmer     FarmerProfile @relation("FarmerFollowed", fields: [farmerId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, farmerId])
+  @@index([followerId])
+  @@index([farmerId])
+}
+
+model Wishlist {
+  id        String        @id @default(cuid())
+  userId    String
+  batchId   String?
+  productId String?
+  createdAt DateTime      @default(now())
+
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  batch     ProduceBatch? @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  product   Product?      @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model PriceAlert {
+  id          String    @id @default(cuid())
+  userId      String
+  productId   String
+  targetPrice Float
+  condition   String    @default("LESS_THAN_EQUAL") // LESS_THAN_EQUAL, GREATER_THAN_EQUAL
+  district    String?
+  isActive    Boolean   @default(true)
+  triggeredAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([productId])
+}
+
+model SearchHistory {
+  id          String   @id @default(cuid())
+  userId      String
+  query       String
+  category    String?
+  district    String?
+  resultCount Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model OrderCancellation {
+  id                String   @id @default(cuid())
+  orderId           String   @unique
+  cancelledByUserId String
+  reason            String
+  comments          String?
+  createdAt         DateTime @default(now())
+
+  order             Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  cancelledByUser   User     @relation(fields: [cancelledByUserId], references: [id], onDelete: Cascade)
+}
+
+model Refund {
+  id          String   @id @default(cuid())
+  paymentId   String
+  orderId     String
+  amount      Float
+  reason      String
+  status      String   @default("PROCESSED") // PENDING, PROCESSED, FAILED
+  refundRef   String?
+  processedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  payment     Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([paymentId])
+}
+

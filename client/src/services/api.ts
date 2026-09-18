@@ -221,6 +221,53 @@ class ApiService {
     });
   }
 
+  // Phase 2 Order Lifecycle APIs
+  public async acceptOrder(id: string): Promise<{ success: boolean; message: string; order: Order }> {
+    return this.request<any>(`/orders/${id}/accept`, { method: 'POST' });
+  }
+
+  public async rejectOrder(id: string, reason?: string): Promise<{ success: boolean; message: string; order: Order }> {
+    return this.request<any>(`/orders/${id}/reject`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+  }
+
+  public async cancelOrder(id: string, reason?: string): Promise<{ success: boolean; message: string; order: Order }> {
+    return this.request<any>(`/orders/${id}/cancel`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+  }
+
+  public async getOrderTracking(id: string): Promise<any> {
+    return this.request<any>(`/orders/${id}/tracking`);
+  }
+
+  public async confirmDelivery(id: string, data?: { otp?: string; proofPhotoUrl?: string }): Promise<any> {
+    return this.request<any>(`/orders/${id}/confirm-delivery`, {
+      method: 'POST',
+      body: JSON.stringify(data || {}),
+    });
+  }
+
+  public async submitOrderReview(
+    id: string,
+    reviewData: {
+      score: number;
+      qualityScore?: number;
+      freshnessScore?: number;
+      accuracyScore?: number;
+      communicationScore?: number;
+      comment?: string;
+    }
+  ): Promise<any> {
+    return this.request<any>(`/orders/${id}/review`, {
+      method: 'POST',
+      body: JSON.stringify(reviewData),
+    });
+  }
+
   // Logistics APIs
   public async getPickups(): Promise<any[]> {
     return this.request<any[]>('/logistics/pickups');
@@ -397,7 +444,7 @@ class ApiService {
   }
 
   // Cart & Checkout APIs (Mode 1: Direct Purchase)
-  public async getCart(): Promise<{
+  public async getCart(deliveryMethod: string = 'STANDARD'): Promise<{
     cartId: string;
     items: Array<{
       id: string;
@@ -408,9 +455,10 @@ class ApiService {
     itemCount: number;
     subtotal: number;
     deliveryFee: number;
+    deliveryBreakdown?: any;
     total: number;
   }> {
-    return this.request<any>('/buyers/cart');
+    return this.request<any>(`/buyers/cart?deliveryMethod=${encodeURIComponent(deliveryMethod)}`);
   }
 
   public async addToCart(batchId: string, quantity: number = 1): Promise<{ message: string; cartItem: any }> {
@@ -439,9 +487,22 @@ class ApiService {
     });
   }
 
+  public async getDeliveryEstimate(data: {
+    totalWeightKg?: number;
+    originDistrict?: string;
+    originVillage?: string;
+    batchId?: string;
+  }): Promise<{ options: Record<string, any> }> {
+    return this.request<any>('/buyers/delivery-estimate', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   public async checkout(data: {
     items: Array<{ batchId: string; quantity: number }>;
     deliveryAddress?: string;
+    deliveryMethod?: string;
     paymentMethod?: string;
     notes?: string;
   }): Promise<{ message: string; order: Order }> {
@@ -449,6 +510,95 @@ class ApiService {
       method: 'POST',
       body: JSON.stringify(data),
     });
+  }
+
+  // Wishlist APIs
+  public async getWishlist(): Promise<any[]> {
+    return this.request<any[]>('/buyers/wishlist');
+  }
+
+  public async addToWishlist(data: { batchId?: string; productId?: string }): Promise<any> {
+    return this.request<any>('/buyers/wishlist', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  public async removeFromWishlist(id: string): Promise<any> {
+    return this.request<any>(`/buyers/wishlist/${id}`, { method: 'DELETE' });
+  }
+
+  // Farmer Cost Tracking APIs
+  public async getFarmerCosts(): Promise<{ costs: any[]; totalCosts: number }> {
+    return this.request<any>('/farmers/costs');
+  }
+
+  public async addFarmerCost(data: {
+    category: string;
+    amount: number;
+    description?: string;
+    batchId?: string;
+    date?: string;
+  }): Promise<any> {
+    return this.request<any>('/farmers/costs', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  public async deleteFarmerCost(id: string): Promise<any> {
+    return this.request<any>(`/farmers/costs/${id}`, { method: 'DELETE' });
+  }
+
+  // Farmer Reputation & Follow APIs
+  public async getFarmerReputation(id: string): Promise<any> {
+    return this.request<any>(`/farmers/${id}/reputation`);
+  }
+
+  public async followFarmer(id: string): Promise<any> {
+    return this.request<any>(`/farmers/${id}/follow`, { method: 'POST' });
+  }
+
+  public async unfollowFarmer(id: string): Promise<any> {
+    return this.request<any>(`/farmers/${id}/unfollow`, { method: 'POST' });
+  }
+
+  // Market & Discovery APIs
+  public async getProductsWithMarketPrice(district: string = 'Salem'): Promise<any[]> {
+    return this.request<any[]>(`/market/products-with-market-price?district=${encodeURIComponent(district)}`);
+  }
+
+  public async getNearbyFarmers(lat?: number, lng?: number, maxDistanceKm?: number): Promise<any[]> {
+    const params = new URLSearchParams();
+    if (lat) params.set('lat', String(lat));
+    if (lng) params.set('lng', String(lng));
+    if (maxDistanceKm) params.set('maxDistanceKm', String(maxDistanceKm));
+    return this.request<any[]>(`/market/nearby-farmers?${params.toString()}`);
+  }
+
+  public async getMarketBatchDetail(batchId: string): Promise<any> {
+    return this.request<any>(`/market/batches/${batchId}`);
+  }
+
+  // Price Alert APIs
+  public async getPriceAlerts(): Promise<any[]> {
+    return this.request<any[]>('/price-alerts');
+  }
+
+  public async createPriceAlert(data: {
+    productId: string;
+    targetPrice: number;
+    condition?: string;
+    district?: string;
+  }): Promise<any> {
+    return this.request<any>('/price-alerts', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  public async deletePriceAlert(id: string): Promise<any> {
+    return this.request<any>(`/price-alerts/${id}`, { method: 'DELETE' });
   }
 
   // Multi-Role & Profile Switch APIs

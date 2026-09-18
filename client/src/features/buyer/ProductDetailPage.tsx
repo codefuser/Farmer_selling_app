@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useCart } from '../../context/CartContext';
 import api from '../../services/api';
@@ -14,6 +14,10 @@ import {
   Plus,
   Minus,
   CheckCircle2,
+  Heart,
+  TrendingDown,
+  Truck,
+  Award,
 } from 'lucide-react';
 
 interface ProductDetailPageProps {
@@ -42,8 +46,10 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
   const [batch, setBatch] = useState<any>(initialBatch || null);
   const [loadingBatch, setLoadingBatch] = useState(!initialBatch && !!productId);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!initialBatch && productId) {
       setLoadingBatch(true);
       api
@@ -63,6 +69,23 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   const [addingToCart, setAddingToCart] = useState(false);
   const [addedToast, setAddedToast] = useState(false);
 
+  const toggleWishlist = async () => {
+    if (!batch) return;
+    setWishlistLoading(true);
+    try {
+      if (isWishlisted) {
+        setIsWishlisted(false);
+      } else {
+        await api.addToWishlist({ batchId: batch.id, productId: batch.productId });
+        setIsWishlisted(true);
+      }
+    } catch (e) {
+      console.warn('Wishlist toggle error:', e);
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
+
   if (loadingBatch) {
     return (
       <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
@@ -81,6 +104,15 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   const maxQty = batch.quantity;
   const pricePerKg = batch.pricePerKg;
   const subtotal = quantity * pricePerKg;
+
+  // Comparison with reference market price (Mandi modal rate)
+  const mandiModalPrice =
+    batch.product?.marketPrices?.[0]?.modalPrice ||
+    Math.round(((batch.product?.referenceMinPrice || 24) + (batch.product?.referenceMaxPrice || 35)) / 2);
+  const isCheaperThanMandi = pricePerKg < mandiModalPrice;
+  const savingsPercent = isCheaperThanMandi
+    ? Math.round(((mandiModalPrice - pricePerKg) / mandiModalPrice) * 100)
+    : 0;
 
   const handleIncrement = () => {
     if (quantity < maxQty) {
@@ -111,21 +143,35 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   const distance = batch.distanceKm ? `${batch.distanceKm} km` : '5.2 km';
   const farmerUserId = batch.farmer?.user?.id || batch.farmer?.userId;
   const farmerProfileId = batch.farmer?.id;
+  const completedOrders = batch.farmer?.completedOrders || 12;
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div className="bg-white rounded-t-3xl sm:rounded-3xl max-w-lg w-full max-h-[92vh] flex flex-col overflow-hidden shadow-2xl border border-slate-200 animate-in slide-in-from-bottom-6 duration-200">
         {/* Modal Header Bar */}
-        <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-            {language === 'ta' ? 'விளைபொருள் விவரம்' : 'Produce Details'}
+        <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+          <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+            <Award className="w-3.5 h-3.5 text-emerald-600" />
+            {language === 'ta' ? 'நேரடி அறுவடை விவரம்' : 'Direct Harvest Details'}
           </span>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={toggleWishlist}
+              disabled={wishlistLoading}
+              className={`w-8 h-8 rounded-full flex items-center justify-center transition ${
+                isWishlisted ? 'bg-rose-50 text-rose-600' : 'bg-slate-100 hover:bg-slate-200 text-slate-500'
+              }`}
+              title="Save to Wishlist"
+            >
+              <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-rose-500 text-rose-500' : ''}`} />
+            </button>
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* Scrollable Body */}
@@ -175,7 +221,37 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             </div>
           </div>
 
-          {/* Farmer & Location Trust Card */}
+          {/* Mandi Price Comparison Card (Phase 2) */}
+          <div className="p-3 bg-gradient-to-r from-amber-50 to-emerald-50 rounded-2xl border border-amber-200/80 flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-700 flex items-center justify-center font-bold">
+                <TrendingDown className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="font-bold text-slate-800 block text-xs">
+                  {language === 'ta' ? 'அரசு மண்டி சந்தை விலை' : 'Mandi Benchmark Rate'}
+                </span>
+                <span className="text-[11px] text-slate-500">
+                  Salem APMC: ₹{mandiModalPrice}/kg
+                </span>
+              </div>
+            </div>
+
+            {isCheaperThanMandi ? (
+              <div className="text-right">
+                <span className="bg-emerald-600 text-white font-extrabold text-[11px] px-2 py-0.5 rounded-md">
+                  {savingsPercent}% {language === 'ta' ? 'குறைவு' : 'Cheaper'}
+                </span>
+                <span className="text-[10px] text-emerald-800 font-semibold block mt-0.5">
+                  Direct Farmer Deal
+                </span>
+              </div>
+            ) : (
+              <span className="text-[11px] font-bold text-slate-600">Fair Rate</span>
+            )}
+          </div>
+
+          {/* Farmer & Location Trust Card (Phase 2 Verification Badge) */}
           <div className="bg-slate-50 rounded-2xl p-3.5 border border-slate-200 flex items-center justify-between text-xs">
             <button
               onClick={() => {
@@ -192,7 +268,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               <div>
                 <div className="flex items-center gap-1 font-bold text-slate-900">
                   <span>{farmerName}</span>
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
                 </div>
                 <div className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
                   <MapPin className="w-3 h-3 text-slate-400" />
@@ -208,9 +284,9 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                     onClose();
                     onOpenChatWithUser(farmerUserId);
                   }}
-                  className="px-2.5 py-1.5 rounded-xl bg-white border border-emerald-300 text-emerald-800 hover:bg-emerald-50 font-bold text-[11px] transition"
+                  className="px-2.5 py-1.5 rounded-xl bg-white border border-emerald-300 text-emerald-800 hover:bg-emerald-50 font-bold text-[11px] transition shadow-xs"
                 >
-                  {language === 'ta' ? 'செய்தி' : 'Chat'}
+                  {language === 'ta' ? 'நேரடி அரட்டை' : 'Chat'}
                 </button>
               )}
 
@@ -219,9 +295,33 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                   <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
                   <span>{rating}</span>
                 </div>
-                <span className="text-[10px] text-slate-400">
-                  {language === 'ta' ? 'சரிபார்க்கப்பட்டது' : 'Verified'}
+                <span className="text-[10px] text-emerald-700 font-semibold block">
+                  {completedOrders} {language === 'ta' ? 'ஆர்டர்கள்' : 'orders'}
                 </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Delivery Channels Preview (Phase 2) */}
+          <div className="bg-slate-50/70 rounded-2xl p-3 border border-slate-200/70">
+            <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5 mb-2">
+              <Truck className="w-3.5 h-3.5 text-emerald-600" />
+              {language === 'ta' ? 'கிடைக்கும் டெலிவரி முறைகள்' : 'Available Delivery Options'}
+            </span>
+            <div className="grid grid-cols-2 gap-2 text-[11px]">
+              <div className="bg-white p-2 rounded-xl border border-slate-200/80">
+                <div className="font-bold text-slate-800 flex items-center justify-between">
+                  <span>Standard</span>
+                  <span className="text-emerald-700 font-black">₹30-40</span>
+                </div>
+                <span className="text-slate-500 text-[10px]">1-2 days dispatched</span>
+              </div>
+              <div className="bg-white p-2 rounded-xl border border-slate-200/80">
+                <div className="font-bold text-slate-800 flex items-center justify-between">
+                  <span>Self Pickup</span>
+                  <span className="text-emerald-600 font-black">FREE</span>
+                </div>
+                <span className="text-slate-500 text-[10px]">Direct from farm</span>
               </div>
             </div>
           </div>

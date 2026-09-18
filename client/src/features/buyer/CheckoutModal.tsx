@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
@@ -15,6 +15,9 @@ import {
   Loader2,
   ArrowRight,
   ShoppingBag,
+  Clock,
+  Zap,
+  UserCheck,
 } from 'lucide-react';
 
 export interface DirectCheckoutItem {
@@ -25,6 +28,8 @@ export interface DirectCheckoutItem {
   unit: string;
   imageUrl?: string;
   farmerName?: string;
+  village?: string;
+  district?: string;
 }
 
 interface CheckoutModalProps {
@@ -34,6 +39,8 @@ interface CheckoutModalProps {
   onOrderSuccess: (orderId: string) => void;
 }
 
+type DeliveryMethodType = 'STANDARD' | 'EXPRESS' | 'FARMER_DIRECT' | 'SELF_PICKUP';
+
 export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   isOpen,
   onClose,
@@ -42,7 +49,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 }) => {
   const { language, t } = useLanguage();
   const { user } = useAuth();
-  const { cartItems, subtotal: cartSubtotal, deliveryFee: cartDeliveryFee, total: cartTotal, clearCart } = useCart();
+  const { cartItems, subtotal: cartSubtotal, clearCart } = useCart();
 
   const initialAddress =
     user?.buyerProfile?.address ||
@@ -54,14 +61,15 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   const [address, setAddress] = useState(initialAddress);
   const [phone, setPhone] = useState(initialPhone);
+  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethodType>('STANDARD');
+  const [deliveryQuotes, setDeliveryQuotes] = useState<Record<DeliveryMethodType, any> | null>(null);
+  const [loadingQuotes, setLoadingQuotes] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'UPI' | 'NET_BANKING' | 'ESCROW' | 'COD'>('ESCROW');
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  if (!isOpen) return null;
-
-  // Determine items and totals
+  // Determine items
   const isDirectBuy = !!directItem;
   const items = isDirectBuy
     ? [
@@ -73,23 +81,75 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           unit: directItem.unit,
           imageUrl: directItem.imageUrl,
           farmerName: directItem.farmerName,
+          village: directItem.village,
+          district: directItem.district,
           itemTotal: directItem.quantity * directItem.pricePerUnit,
         },
       ]
     : cartItems.map((ci) => ({
         batchId: ci.batchId,
         quantity: ci.quantity,
-        title: ci.batch?.cropName || 'விளைபொருள்',
-        pricePerUnit: ci.batch?.pricePerUnit || 0,
-        unit: ci.batch?.unit || 'kg',
-        imageUrl: ci.batch?.images?.[0]?.imageUrl,
-        farmerName: ci.batch?.farmer?.name || ci.batch?.farmer?.businessName,
-        itemTotal: ci.quantity * (ci.batch?.pricePerUnit || 0),
+        title: ci.batch?.product?.nameTamil || ci.batch?.cropName || 'விளைபொருள்',
+        pricePerUnit: ci.batch?.pricePerKg || ci.batch?.pricePerUnit || 0,
+        unit: ci.batch?.product?.unit || ci.batch?.unit || 'kg',
+        imageUrl: ci.batch?.imageUrl || ci.batch?.images?.[0]?.imageUrl,
+        farmerName: ci.batch?.farmer?.user?.name || ci.batch?.farmer?.businessName,
+        village: ci.batch?.village,
+        district: ci.batch?.district,
+        itemTotal: ci.quantity * (ci.batch?.pricePerKg || ci.batch?.pricePerUnit || 0),
       }));
 
   const subtotal = isDirectBuy ? directItem.quantity * directItem.pricePerUnit : cartSubtotal;
-  const deliveryFee = isDirectBuy ? (subtotal > 1000 ? 0 : 50) : cartDeliveryFee;
-  const grandTotal = isDirectBuy ? subtotal + deliveryFee : cartTotal;
+  const totalWeight = items.reduce((sum, i) => sum + i.quantity, 0);
+
+  // Fetch live delivery estimation options
+  useEffect(() => {
+    if (!isOpen || items.length === 0) return;
+
+    let isMounted = true;
+    const fetchEstimates = async () => {
+      setLoadingQuotes(true);
+      try {
+        const firstItem = items[0];
+        const res = await api.getDeliveryEstimate({
+          totalWeightKg: totalWeight,
+          originDistrict: firstItem?.district,
+          originVillage: firstItem?.village,
+          batchId: firstItem?.batchId,
+        });
+
+        if (isMounted && res.options) {
+          setDeliveryQuotes(res.options as Record<DeliveryMethodType, any>);
+        }
+      } catch (err) {
+        console.warn('Failed to load delivery estimates, using fallback:', err);
+      } finally {
+        if (isMounted) setLoadingQuotes(false);
+      }
+    };
+
+    fetchEstimates();
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen, totalWeight, items]);
+
+  if (!isOpen) return null;
+
+  // Active delivery fee based on selected method
+  const activeDeliveryFee = deliveryQuotes
+    ? deliveryQuotes[deliveryMethod]?.totalDeliveryFee || 0
+    : deliveryMethod === 'SELF_PICKUP'
+    ? 0
+    : deliveryMethod === 'FARMER_DIRECT'
+    ? 25
+    : deliveryMethod === 'EXPRESS'
+    ? 80
+    : 40;
+
+  const grandTotal = Math.round((subtotal + activeDeliveryFee) * 100) / 100;
+  const platformFee = Math.round(subtotal * 0.02 * 100) / 100;
+  const farmerEarnings = Math.round((subtotal - platformFee) * 100) / 100;
   const estimatedSavings = Math.round(subtotal * 0.18); // ~18% saved vs intermediary prices
 
   const handleConfirmOrder = async () => {
@@ -117,13 +177,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           quantity: it.quantity,
         })),
         deliveryAddress: `${address} (Phone: ${phone})`,
-        paymentMethod: paymentMethod === 'ESCROW' ? 'MOCK_UPI_ESCROW' : paymentMethod,
+        deliveryMethod,
+        paymentMethod: paymentMethod === 'ESCROW' ? 'MOCK_UPI' : paymentMethod,
         notes: notes.trim() || undefined,
       };
 
       const res = await api.checkout(payload);
 
-      // If cart checkout, clear cart
       if (!isDirectBuy) {
         await clearCart();
       }
@@ -154,7 +214,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             </div>
             <div>
               <h2 className="font-black text-sm text-slate-900 tracking-tight">
-                {t('checkout')}
+                {language === 'ta' ? 'ஆர்டர் உறுதி செய்தல்' : 'Complete Order'}
               </h2>
               <span className="text-[10px] text-emerald-800 font-semibold flex items-center gap-1">
                 <ShieldCheck className="w-3 h-3 text-emerald-600" />
@@ -186,11 +246,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             <div className="flex items-center justify-between text-xs font-bold text-slate-700 pb-1.5 border-b border-slate-200/50">
               <span>{language === 'ta' ? 'தேர்ந்தெடுக்கப்பட்ட பொருட்கள்' : 'Selected Produce'} ({items.length})</span>
               <span className="text-[11px] text-emerald-700 font-semibold">
-                {language === 'ta' ? 'நேரடி பண்ணை விலை' : 'Direct Farm Price'}
+                {totalWeight} kg Total
               </span>
             </div>
 
-            <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+            <div className="space-y-2 max-h-36 overflow-y-auto pr-1">
               {items.map((item, idx) => (
                 <div key={idx} className="flex items-center justify-between text-xs py-1">
                   <div className="flex items-center gap-2">
@@ -218,6 +278,119 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   </span>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Delivery Method Selector (Phase 2) */}
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <Truck className="w-3.5 h-3.5 text-emerald-600" />
+                {t('deliveryMethod')}
+              </span>
+              {loadingQuotes && (
+                <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                  <Loader2 className="w-3 h-3 animate-spin" /> Calculating fee...
+                </span>
+              )}
+            </label>
+
+            <div className="grid grid-cols-2 gap-2">
+              {/* Standard */}
+              <button
+                type="button"
+                onClick={() => setDeliveryMethod('STANDARD')}
+                className={`p-2.5 rounded-xl border text-left transition flex flex-col justify-between ${
+                  deliveryMethod === 'STANDARD'
+                    ? 'border-emerald-600 bg-emerald-50/70 ring-1 ring-emerald-500'
+                    : 'border-slate-200 bg-white hover:border-slate-300'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-bold text-xs text-slate-900 flex items-center gap-1">
+                    <Truck className="w-3 h-3 text-emerald-600" />
+                    {t('standardDelivery')}
+                  </span>
+                  <span className="text-xs font-black text-emerald-700">
+                    ₹{deliveryQuotes?.STANDARD?.totalDeliveryFee ?? 40}
+                  </span>
+                </div>
+                <span className="text-[10px] text-slate-500 leading-tight flex items-center gap-1">
+                  <Clock className="w-2.5 h-2.5" /> 1-2 Days • Coordinated logistics
+                </span>
+              </button>
+
+              {/* Express */}
+              <button
+                type="button"
+                onClick={() => setDeliveryMethod('EXPRESS')}
+                className={`p-2.5 rounded-xl border text-left transition flex flex-col justify-between ${
+                  deliveryMethod === 'EXPRESS'
+                    ? 'border-emerald-600 bg-emerald-50/70 ring-1 ring-emerald-500'
+                    : 'border-slate-200 bg-white hover:border-slate-300'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-bold text-xs text-slate-900 flex items-center gap-1">
+                    <Zap className="w-3 h-3 text-amber-500" />
+                    {t('expressDelivery')}
+                  </span>
+                  <span className="text-xs font-black text-emerald-700">
+                    ₹{deliveryQuotes?.EXPRESS?.totalDeliveryFee ?? 80}
+                  </span>
+                </div>
+                <span className="text-[10px] text-slate-500 leading-tight flex items-center gap-1">
+                  <Clock className="w-2.5 h-2.5" /> Same Day • Priority vehicle
+                </span>
+              </button>
+
+              {/* Farmer Direct */}
+              <button
+                type="button"
+                onClick={() => setDeliveryMethod('FARMER_DIRECT')}
+                className={`p-2.5 rounded-xl border text-left transition flex flex-col justify-between ${
+                  deliveryMethod === 'FARMER_DIRECT'
+                    ? 'border-emerald-600 bg-emerald-50/70 ring-1 ring-emerald-500'
+                    : 'border-slate-200 bg-white hover:border-slate-300'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-bold text-xs text-slate-900 flex items-center gap-1">
+                    <UserCheck className="w-3 h-3 text-blue-600" />
+                    {t('farmerDirectDelivery')}
+                  </span>
+                  <span className="text-xs font-black text-emerald-700">
+                    ₹{deliveryQuotes?.FARMER_DIRECT?.totalDeliveryFee ?? 25}
+                  </span>
+                </div>
+                <span className="text-[10px] text-slate-500 leading-tight">
+                  Local farm drop directly by seller
+                </span>
+              </button>
+
+              {/* Self Pickup */}
+              <button
+                type="button"
+                onClick={() => setDeliveryMethod('SELF_PICKUP')}
+                className={`p-2.5 rounded-xl border text-left transition flex flex-col justify-between ${
+                  deliveryMethod === 'SELF_PICKUP'
+                    ? 'border-emerald-600 bg-emerald-50/70 ring-1 ring-emerald-500'
+                    : 'border-slate-200 bg-white hover:border-slate-300'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-bold text-xs text-slate-900 flex items-center gap-1">
+                    <MapPin className="w-3 h-3 text-purple-600" />
+                    {t('selfPickup')}
+                  </span>
+                  <span className="text-xs font-black text-emerald-600 uppercase">
+                    FREE
+                  </span>
+                </div>
+                <span className="text-[10px] text-slate-500 leading-tight">
+                  Collect directly at farmer collection point
+                </span>
+              </button>
             </div>
           </div>
 
@@ -321,33 +494,31 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             </div>
           </div>
 
-          {/* Intermediary Saving Badge */}
-          <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200/80 flex items-center justify-between text-xs text-amber-900">
-            <span className="font-semibold text-[11px]">
-              {language === 'ta' ? '🎉 இடைத்தரகர் கமிஷன் இல்லாத சேமிப்பு' : '🎉 Intermediary Markup Saved'}
-            </span>
-            <span className="font-extrabold text-amber-800">
-              ≈ ₹{estimatedSavings.toLocaleString()}
-            </span>
-          </div>
-
-          {/* Bill Breakdown */}
+          {/* Bill Breakdown (Transparent 2% Platform Fee & Farmer Net Earnings) */}
           <div className="pt-2 border-t border-slate-100 space-y-1.5 text-xs">
             <div className="flex justify-between text-slate-600">
               <span>{t('subtotal')}</span>
               <span className="font-semibold text-slate-900">₹{subtotal.toLocaleString()}</span>
             </div>
             <div className="flex justify-between text-slate-600">
-              <span>{t('deliveryFee')}</span>
+              <span>{t('deliveryFee')} ({t(deliveryMethod === 'STANDARD' ? 'standardDelivery' : deliveryMethod === 'EXPRESS' ? 'expressDelivery' : deliveryMethod === 'FARMER_DIRECT' ? 'farmerDirectDelivery' : 'selfPickup')})</span>
               <span className="font-semibold text-slate-900">
-                {deliveryFee === 0 ? (
+                {activeDeliveryFee === 0 ? (
                   <span className="text-emerald-700 font-bold">
                     {language === 'ta' ? 'இலவசம்' : 'FREE'}
                   </span>
                 ) : (
-                  `₹${deliveryFee}`
+                  `₹${activeDeliveryFee}`
                 )}
               </span>
+            </div>
+            <div className="flex justify-between text-[11px] text-slate-400">
+              <span>Platform Service Fee (2% included)</span>
+              <span>₹{platformFee}</span>
+            </div>
+            <div className="flex justify-between text-[11px] text-emerald-700 font-medium">
+              <span>Farmer Direct Payout</span>
+              <span>₹{farmerEarnings.toLocaleString()}</span>
             </div>
             <div className="flex justify-between text-sm font-black text-slate-900 pt-2 border-t border-slate-200">
               <span>{t('total')}</span>
@@ -370,7 +541,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               </>
             ) : (
               <>
-                <span>{t('confirmOrder')} • ₹{grandTotal.toLocaleString()}</span>
+                <span>{language === 'ta' ? 'ஆர்டரை உறுதி செய்' : 'Confirm Order'} • ₹{grandTotal.toLocaleString()}</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}

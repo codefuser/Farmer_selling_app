@@ -1,4 +1,5 @@
 import { prisma } from '../config/db.js';
+import { RealtimeService } from './realtimeService.js';
 
 export const ORDER_STATUS_FLOW = [
   'ORDERED',
@@ -135,6 +136,18 @@ export class OrderStateMachine {
         },
       });
 
+      // Realtime push to buyer
+      try {
+        RealtimeService.sendToUser(order.buyer.userId, 'order_status_update', {
+          orderId,
+          orderCode: order.orderCode,
+          status: nextStatus,
+          timestamp: new Date().toISOString(),
+        });
+      } catch (e) {
+        // SSE failure shouldn't fail DB tx
+      }
+
       // Notify all participating farmers
       for (const item of order.items) {
         await tx.notification.create({
@@ -146,6 +159,18 @@ export class OrderStateMachine {
             metadataJson: JSON.stringify({ orderId, quantity: item.quantity }),
           },
         });
+
+        // Realtime push to farmer
+        try {
+          RealtimeService.sendToUser(item.farmer.userId, 'order_status_update', {
+            orderId,
+            orderCode: order.orderCode,
+            status: nextStatus,
+            timestamp: new Date().toISOString(),
+          });
+        } catch (e) {
+          // SSE failure shouldn't fail DB tx
+        }
       }
 
       return updatedOrder;

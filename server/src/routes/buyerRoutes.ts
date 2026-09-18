@@ -4,6 +4,8 @@ import { authenticateToken, AuthenticatedRequest } from '../middleware/auth.js';
 import { MatchingService } from '../services/matchingService.js';
 import { CollectiveSellingService } from '../services/collectiveSellingService.js';
 import { FreshnessService } from '../services/freshnessService.js';
+import { DeliveryPricingService, DeliveryMethod } from '../services/deliveryPricingService.js';
+import { RealtimeService } from '../services/realtimeService.js';
 
 const router = Router();
 
@@ -421,9 +423,25 @@ router.get('/cart', async (req: AuthenticatedRequest, res: Response): Promise<vo
       };
     });
 
-    const subtotal = items.reduce((sum, i) => sum + i.quantity * i.batch.pricePerKg, 0);
-    const deliveryFee = items.length > 0 ? 40 : 0;
-    const total = subtotal + deliveryFee;
+    const subtotal = Math.round(items.reduce((sum, i) => sum + i.quantity * i.batch.pricePerKg, 0) * 100) / 100;
+    const totalWeightKg = items.reduce((sum, i) => sum + i.quantity, 0);
+    const reqMethod = (req.query.deliveryMethod as DeliveryMethod) || 'STANDARD';
+    const buyer = await getBuyerProfile(req.user!.id);
+    const firstFarmer = items[0]?.batch?.farmer;
+
+    const deliveryBreakdown = items.length > 0 ? await DeliveryPricingService.calculateFee({
+      deliveryMethod: reqMethod,
+      totalWeightKg,
+      destLat: buyer?.latitude,
+      destLng: buyer?.longitude,
+      destDistrict: buyer?.district,
+      destVillage: buyer?.village || undefined,
+      originDistrict: firstFarmer?.district,
+      originVillage: firstFarmer?.village,
+    }) : null;
+
+    const deliveryFee = deliveryBreakdown ? deliveryBreakdown.totalDeliveryFee : 0;
+    const total = Math.round((subtotal + deliveryFee) * 100) / 100;
 
     res.json({
       cartId: cart.id,
@@ -431,7 +449,58 @@ router.get('/cart', async (req: AuthenticatedRequest, res: Response): Promise<vo
       itemCount: items.length,
       subtotal,
       deliveryFee,
+      deliveryBreakdown,
       total,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Calculate live delivery quotes across all methods
+router.post('/delivery-estimate', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { totalWeightKg = 5, originDistrict, originVillage, batchId } = req.body;
+    const buyer = await getBuyerProfile(req.user!.id);
+
+    let fromDistrict = originDistrict;
+    let fromVillage = originVillage;
+
+    if (batchId && (!fromDistrict || !fromVillage)) {
+      const batch = await prisma.produceBatch.findUnique({
+        where: { id: batchId },
+        include: { farmer: true },
+      });
+      if (batch) {
+        fromDistrict = batch.district || batch.farmer.district;
+        fromVillage = batch.village || batch.farmer.village;
+      }
+    }
+
+    const input = {
+      totalWeightKg: Math.max(1, parseFloat(String(totalWeightKg))),
+      destLat: buyer?.latitude,
+      destLng: buyer?.longitude,
+      destDistrict: buyer?.district,
+      destVillage: buyer?.village || undefined,
+      originDistrict: fromDistrict,
+      originVillage: fromVillage,
+    };
+
+    const [standard, express, farmerDirect, selfPickup] = await Promise.all([
+      DeliveryPricingService.calculateFee({ ...input, deliveryMethod: 'STANDARD' }),
+      DeliveryPricingService.calculateFee({ ...input, deliveryMethod: 'EXPRESS' }),
+      DeliveryPricingService.calculateFee({ ...input, deliveryMethod: 'FARMER_DIRECT' }),
+      DeliveryPricingService.calculateFee({ ...input, deliveryMethod: 'SELF_PICKUP' }),
+    ]);
+
+    res.json({
+      options: {
+        STANDARD: standard,
+        EXPRESS: express,
+        FARMER_DIRECT: farmerDirect,
+        SELF_PICKUP: selfPickup,
+      },
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -586,16 +655,34 @@ router.post('/checkout', async (req: AuthenticatedRequest, res: Response): Promi
       return;
     }
 
-    const { items, deliveryAddress, paymentMethod = 'MOCK_UPI', notes } = req.body;
+    const { items, deliveryAddress, deliveryMethod = 'STANDARD', paymentMethod = 'MOCK_UPI', notes } = req.body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       res.status(400).json({ error: 'No items provided for checkout' });
       return;
     }
 
+    // Calculate total weight to determine accurate delivery fee
+    let preliminaryWeight = 0;
+    for (const item of items) {
+      preliminaryWeight += parseFloat(String(item.quantity || 1));
+    }
+
+    // Determine delivery pricing
+    const deliveryQuote = await DeliveryPricingService.calculateFee({
+      deliveryMethod: deliveryMethod as DeliveryMethod,
+      totalWeightKg: preliminaryWeight,
+      destLat: buyer.latitude,
+      destLng: buyer.longitude,
+      destDistrict: buyer.district,
+      destVillage: buyer.village || undefined,
+    });
+
+    const calculatedDeliveryFee = deliveryQuote.totalDeliveryFee;
+
     // Execute safe transaction
     const orderResult = await prisma.$transaction(async (tx) => {
-      let totalAmount = 0;
+      let subtotalAmount = 0;
       let totalQuantity = 0;
       const orderItemsToCreate: Array<{
         farmerId: string;
@@ -624,8 +711,8 @@ router.post('/checkout', async (req: AuthenticatedRequest, res: Response): Promi
           throw new Error(`Ordered quantity (${orderQty} kg) exceeds available stock (${batch.quantity} kg) for ${batch.batchCode}`);
         }
 
-        const itemTotal = orderQty * batch.pricePerKg;
-        totalAmount += itemTotal;
+        const itemTotal = Math.round(orderQty * batch.pricePerKg * 100) / 100;
+        subtotalAmount += itemTotal;
         totalQuantity += orderQty;
 
         orderItemsToCreate.push({
@@ -647,9 +734,10 @@ router.post('/checkout', async (req: AuthenticatedRequest, res: Response): Promi
         });
       }
 
-      // 2% platform fee, 98% farmer payout
-      const platformFee = Math.round(totalAmount * 0.02 * 100) / 100;
-      const farmerPayout = Math.round((totalAmount - platformFee) * 100) / 100;
+      // 2% transparent platform fee, 98% farmer payout
+      const platformFee = Math.round(subtotalAmount * 0.02 * 100) / 100;
+      const farmerPayout = Math.round((subtotalAmount - platformFee) * 100) / 100;
+      const totalAmount = Math.round((subtotalAmount + calculatedDeliveryFee) * 100) / 100;
 
       const orderCount = await tx.order.count();
       const orderCode = `ORD-${Date.now().toString().slice(-4)}${String(orderCount + 1).padStart(3, '0')}`;
@@ -663,6 +751,8 @@ router.post('/checkout', async (req: AuthenticatedRequest, res: Response): Promi
           totalAmount,
           platformFee,
           farmerPayout,
+          deliveryFee: calculatedDeliveryFee,
+          deliveryMethod,
           status: 'ORDERED',
           deliveryAddress: deliveryAddress || buyer.address,
           scheduledPickupTime: new Date(Date.now() + 2 * 3600 * 1000), // 2 hours from now
@@ -703,9 +793,10 @@ router.post('/checkout', async (req: AuthenticatedRequest, res: Response): Promi
         data: {
           orderId: newOrder.id,
           status: 'ASSIGNED',
+          deliveryMethod,
           currentLat: buyer.latitude || 11.6643,
           currentLng: buyer.longitude || 78.1460,
-          estimatedArrival: new Date(Date.now() + 4 * 3600 * 1000),
+          estimatedArrival: new Date(Date.now() + deliveryQuote.estimatedDays * 24 * 3600 * 1000),
         },
       });
 
@@ -714,6 +805,7 @@ router.post('/checkout', async (req: AuthenticatedRequest, res: Response): Promi
         orderItemsToCreate,
         totalQuantity,
         totalAmount,
+        deliveryFee: calculatedDeliveryFee,
       };
     }, { maxWait: 10000, timeout: 25000 });
 
@@ -772,6 +864,74 @@ router.post('/checkout', async (req: AuthenticatedRequest, res: Response): Promi
     });
   } catch (err: any) {
     res.status(400).json({ error: err.message || 'Checkout failed' });
+  }
+});
+
+// --- Phase 2: Wishlist (Saved Batches & Products) ---
+
+router.get('/wishlist', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const wishlist = await prisma.wishlist.findMany({
+      where: { userId },
+      include: {
+        batch: {
+          include: {
+            product: { include: { freshnessRules: true } },
+            farmer: { include: { user: true } },
+          },
+        },
+        product: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json(wishlist);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/wishlist', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const { batchId, productId } = req.body;
+
+    if (!batchId && !productId) {
+      res.status(400).json({ error: 'batchId or productId is required' });
+      return;
+    }
+
+    const item = await prisma.wishlist.create({
+      data: {
+        userId,
+        batchId: batchId || null,
+        productId: productId || null,
+      },
+      include: {
+        batch: { include: { product: true } },
+        product: true,
+      },
+    });
+
+    res.status(201).json({ success: true, message: 'Added to wishlist', item });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.delete('/wishlist/:id', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const { id } = req.params;
+
+    await prisma.wishlist.deleteMany({
+      where: { id, userId },
+    });
+
+    res.json({ success: true, message: 'Removed from wishlist' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
   }
 });
 

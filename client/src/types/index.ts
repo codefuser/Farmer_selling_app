@@ -343,6 +343,11 @@ export interface Order {
   totalAmount: number;
   platformFee: number;
   farmerPayout: number;
+  deliveryFee?: number;
+  deliveryMethod?: string;
+  cancellationReason?: string;
+  cancelledBy?: string;
+  cancelledAt?: string;
   status: OrderStatus;
   deliveryAddress: string;
   scheduledPickupTime?: string;

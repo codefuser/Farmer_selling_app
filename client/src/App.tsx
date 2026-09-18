@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { CartProvider, useCart } from './context/CartContext';
+import { RealtimeProvider } from './context/RealtimeContext';
 import Navbar from './components/common/Navbar';
 import MobileBottomNav from './components/common/MobileBottomNav';
 import DemoScenarioBar from './components/common/DemoScenarioBar';
@@ -341,9 +342,11 @@ export const App: React.FC = () => {
   return (
     <LanguageProvider>
       <AuthProvider>
-        <CartProvider>
-          <AppContent />
-        </CartProvider>
+        <RealtimeProvider>
+          <CartProvider>
+            <AppContent />
+          </CartProvider>
+        </RealtimeProvider>
       </AuthProvider>
     </LanguageProvider>
   );

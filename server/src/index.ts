@@ -20,6 +20,9 @@ import marketPriceRoutes from './routes/marketPriceRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import postRoutes from './routes/postRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
+import realtimeRoutes from './routes/realtimeRoutes.js';
+import marketRoutes from './routes/marketRoutes.js';
+import priceAlertRoutes from './routes/priceAlertRoutes.js';
 import path from 'path';
 
 const app = express();
@@ -52,6 +55,9 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/demo', demoRoutes);
 app.use('/api/market-prices', marketPriceRoutes);
+app.use('/api/realtime', realtimeRoutes);
+app.use('/api/market', marketRoutes);
+app.use('/api/price-alerts', priceAlertRoutes);
 
 // Health Check
 app.get('/api/health', (req, res) => {

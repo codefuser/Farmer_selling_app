@@ -1,4 +1,5 @@
 import { prisma } from '../config/db.js';
+import { RealtimeService } from './realtimeService.js';
 
 export class NotificationService {
   /**
@@ -12,7 +13,7 @@ export class NotificationService {
     channel?: 'IN_APP' | 'SMS_MOCK' | 'WHATSAPP_MOCK' | 'VOICE_MOCK';
     metadata?: any;
   }) {
-    return await prisma.notification.create({
+    const notification = await prisma.notification.create({
       data: {
         userId: input.userId,
         title: input.title,
@@ -22,6 +23,15 @@ export class NotificationService {
         metadataJson: input.metadata ? JSON.stringify(input.metadata) : null,
       },
     });
+
+    // Realtime push to active client sessions
+    try {
+      RealtimeService.sendToUser(input.userId, 'notification', notification);
+    } catch (e) {
+      console.warn('Realtime push warning:', e);
+    }
+
+    return notification;
   }
 
   /**
