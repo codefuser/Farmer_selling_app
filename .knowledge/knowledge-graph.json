@@ -1,0 +1,4304 @@
+{
+  "version": "1.0.0",
+  "project": "KisanDirect - Community-Powered Direct Agricultural Marketplace",
+  "problemStatementId": "SIH26033",
+  "generatedAt": "2026-09-18T11:11:37.552Z",
+  "stats": {
+    "totalNodes": 249,
+    "totalRelationships": 395,
+    "nodeTypes": {
+      "module": 16,
+      "feature": 8,
+      "database_table": 28,
+      "file": 71,
+      "function": 17,
+      "api_endpoint": 68,
+      "component": 17,
+      "hook": 3,
+      "workflow": 7,
+      "config": 14
+    }
+  },
+  "nodes": [
+    {
+      "id": "module:server-core",
+      "type": "module",
+      "name": "Server Core & HTTP Setup",
+      "path": "server/src/index.ts",
+      "description": "Express application entry point, middleware configuration, and route mounts"
+    },
+    {
+      "id": "module:server-config",
+      "type": "module",
+      "name": "Server Configuration & Environment",
+      "path": "server/src/config",
+      "description": "Database Prisma client and environment variable resolution"
+    },
+    {
+      "id": "module:server-middleware",
+      "type": "module",
+      "name": "Server Middleware & Auth Guard",
+      "path": "server/src/middleware",
+      "description": "JWT authentication and role-based access control middleware"
+    },
+    {
+      "id": "module:server-services",
+      "type": "module",
+      "name": "Server Domain Services",
+      "path": "server/src/services",
+      "description": "Core business logic engines: matching, collective pooling, freshness decay, state machine, payments, and notifications"
+    },
+    {
+      "id": "module:server-routes",
+      "type": "module",
+      "name": "Server REST API Routes",
+      "path": "server/src/routes",
+      "description": "Express routing controllers mapping HTTP requests to database and domain services"
+    },
+    {
+      "id": "module:database-schema",
+      "type": "module",
+      "name": "Prisma Schema & Database Layer",
+      "path": "server/prisma/schema.prisma",
+      "description": "Prisma ORM schema with 28 models supporting agricultural marketplace operations"
+    },
+    {
+      "id": "module:client-core",
+      "type": "module",
+      "name": "Client App Core & Routing",
+      "path": "client/src/App.tsx",
+      "description": "State-based view routing, global layout, modal controllers, and demo switcher"
+    },
+    {
+      "id": "module:client-context",
+      "type": "module",
+      "name": "Client State & Context Providers",
+      "path": "client/src/context",
+      "description": "React Context providers for Auth, Cart/Checkout, and Bilingual Localization"
+    },
+    {
+      "id": "module:client-services",
+      "type": "module",
+      "name": "Client HTTP API Service",
+      "path": "client/src/services/api.ts",
+      "description": "Centralized API client wrapping fetch with JWT auth and typed methods"
+    },
+    {
+      "id": "module:client-components-common",
+      "type": "module",
+      "name": "Shared UI Components",
+      "path": "client/src/components/common",
+      "description": "Reusable UI elements: FreshnessBadge, FairPriceGauge, DeliveryMap, DemoScenarioBar, Navbar, VoiceListingModal"
+    },
+    {
+      "id": "module:client-features-farmer",
+      "type": "module",
+      "name": "Farmer Experience Features",
+      "path": "client/src/features/farmer",
+      "description": "Produce listing, batch inventory, buyer offer negotiation, collective pooling, and earnings dashboard"
+    },
+    {
+      "id": "module:client-features-buyer",
+      "type": "module",
+      "name": "Buyer Experience Features",
+      "path": "client/src/features/buyer",
+      "description": "Marketplace browsing, demand posting, smart match clustering, direct checkout, and order tracking"
+    },
+    {
+      "id": "module:client-features-coordinator",
+      "type": "module",
+      "name": "Village Coordinator Features",
+      "path": "client/src/features/coordinator",
+      "description": "Assisted farmer registration and voice-assisted harvest listing"
+    },
+    {
+      "id": "module:client-features-logistics",
+      "type": "module",
+      "name": "Logistics Fleet & QA Features",
+      "path": "client/src/features/logistics",
+      "description": "Dispatch scheduling, live GPS route simulation, and collection center quality checks"
+    },
+    {
+      "id": "module:client-features-admin",
+      "type": "module",
+      "name": "Admin Governance Features",
+      "path": "client/src/features/admin",
+      "description": "Platform telemetry, dispute arbitration, user suspension, and impact metrics"
+    },
+    {
+      "id": "module:client-features-public",
+      "type": "module",
+      "name": "Public Landing & Informational Pages",
+      "path": "client/src/features/public",
+      "description": "Landing page, how it works, live APMC mandi rates, persona onboarding, and auth screens"
+    },
+    {
+      "id": "feature:collective-selling",
+      "type": "feature",
+      "name": "Reverse-Demand Collective Supply Pooling (கூட்டு விற்பனை)",
+      "description": "Aggregates multiple smallholder farmers (100-300kg) to fulfill bulk commercial buyer demands (500kg-2000kg) at guaranteed fair prices"
+    },
+    {
+      "id": "feature:freshness-decay-engine",
+      "type": "feature",
+      "name": "Perishable Freshness Decay & Dynamic Discount Engine",
+      "description": "Tracks produce shelf-life countdown (FRESH -> AGING -> URGENT -> EXPIRED) and automatically applies progressive discounts to eliminate food waste"
+    },
+    {
+      "id": "feature:smart-matching-algorithm",
+      "type": "feature",
+      "name": "Multi-Factor Smart Matching Algorithm",
+      "description": "Scores candidate produce batches against buyer requirements using distance, price, quality grade, freshness, and farmer rating"
+    },
+    {
+      "id": "feature:escrow-order-state-machine",
+      "type": "feature",
+      "name": "10-Stage Escrow Order State Machine",
+      "description": "Sequential lifecycle tracking (ORDERED -> DELIVERED -> PAYMENT_RELEASED) with automated escrow fund authorization and payouts"
+    },
+    {
+      "id": "feature:fair-price-transparency",
+      "type": "feature",
+      "name": "Daily APMC Mandi Benchmark & Fair Price Transparency",
+      "description": "Live daily benchmark rates across 13 Tamil Nadu mandis guaranteeing +16% to 22% higher farmer earnings without predatory middlemen"
+    },
+    {
+      "id": "feature:voice-assisted-listing",
+      "type": "feature",
+      "name": "Bilingual Voice-Assisted Produce Listing",
+      "description": "Speech-to-text simulation in Tamil and English empowering low-literacy farmers and village coordinators"
+    },
+    {
+      "id": "feature:two-tier-checkout",
+      "type": "feature",
+      "name": "Dual Purchase Modes (Direct Cart & Bulk Reverse Demand)",
+      "description": "Supports immediate consumer/kitchen purchases via cart drawer and large-scale bulk procurement via demand posting"
+    },
+    {
+      "id": "feature:quality-verification-logistics",
+      "type": "feature",
+      "name": "Hub Quality Verification & Farm Logistics Dispatch",
+      "description": "Physical quality checks at village collection hubs, vehicle dispatch, GPS simulation, and transparent damage reconciliation"
+    },
+    {
+      "id": "table:User",
+      "type": "database_table",
+      "name": "User",
+      "source": "server/prisma/schema.prisma",
+      "line_range": "11-31",
+      "module": "module:database-schema",
+      "description": "Core user credentials, authentication role, mobile, preferred language, status"
+    },
+    {
+      "id": "table:FarmerProfile",
+      "type": "database_table",
+      "name": "FarmerProfile",
+      "source": "server/prisma/schema.prisma",
+      "line_range": "33-52",
+      "module": "module:database-schema",
+      "description": "Farmer profile, FD-ID, village, district, land size, rating, completed orders"
+    },
+    {
+      "id": "table:BuyerProfile",
+      "type": "database_table",
+      "name": "BuyerProfile",
+      "source": "server/prisma/schema.prisma",
+      "line_range": "54-73",
+      "module": "module:database-schema",
+      "description": "Commercial buyer business profile, GST, business type, delivery coordinates"
+    },
+    {
+      "id": "table:CoordinatorProfile",
+      "type": "database_table",
+      "name": "CoordinatorProfile",
+      "source": "server/prisma/schema.prisma",
+      "line_range": "75-86",
+      "module": "module:database-schema",
+      "description": "Village digital hub coordinator profile, assigned center, active farmers managed"
+    },
+    {
+      "id": "table:Product",
+      "type": "database_table",
+      "name": "Product",
+      "source": "server/prisma/schema.prisma",
+      "line_range": "88-104",
+      "module": "module:database-schema",
+      "description": "Master agricultural commodities catalog with Tamil names and reference prices"
+    },
+    {
+      "id": "table:FreshnessRule",
+      "type": "database_table",
+      "name": "FreshnessRule",
+      "source": "server/prisma/schema.prisma",
+      "line_range": "106-115",
+      "module": "module:database-schema",
+      "description": "Commodity-specific shelf-life durations for fresh, aging, and urgent windows"
+    },
+    {
+      "id": "table:MarketPrice",
+      "type": "database_table",
+      "name": "MarketPrice",
+      "source": "server/prisma/schema.prisma",
+      "line_range": "117-127",
+      "module": "module:database-schema",
+      "description": "Historical and daily APMC mandi modal, min, and max price benchmark records"
+    },
+    {
+      "id": "table:ProduceBatch",
+      "type": "database_table",
+      "name": "ProduceBatch",
+      "source": "server/prisma/schema.prisma",
+      "line_range": "129-160",
+      "module": "module:database-schema",
+      "description": "Farmer harvest batch listing with quantities, price, grade, coordinates, and freshness countdown"
+    },
+    {
+      "id": "table:BuyerDemand",
+      "type": "database_table",
+      "name": "BuyerDemand",
+      "source": "server/prisma/schema.prisma",
+      "line_range": "162-186",
+      "module": "module:database-schema",
+      "description": "Commercial buyer demand posting specifying quantity, budget range, grade, and deadline"
+    },
+    {
+      "id": "table:Offer",
+      "type": "database_table",
+      "name": "Offer",
+      "source": "server/prisma/schema.prisma",
+      "line_range": "188-207",
+      "module": "module:database-schema",
+      "description": "Bilateral negotiation offers between buyers and farmers on batches/demands"
+    },
+    {
+      "id": "table:OfferHistory",
+      "type": "database_table",
+      "name": "OfferHistory",
+      "source": "server/prisma/schema.prisma",
+      "line_range": "209-219",
+      "module": "module:database-schema",
+      "description": "Counter-offer negotiation audit trail recording proposed price changes"
+    },
+    {
+      "id": "table:CollectiveOrder",
+      "type": "database_table",
+      "name": "CollectiveOrder",
+      "source": "server/prisma/schema.prisma",
+      "line_range": "220-233",
+      "module": "module:database-schema",
+      "description": "Aggregated pooled order combining multiple farmers to fulfill single bulk demand"
+    },
+    {
+      "id": "table:CollectiveOrderMember",
+      "type": "database_table",
+      "name": "CollectiveOrderMember",
+      "source": "server/prisma/schema.prisma",
+      "line_range": "235-248",
+      "module": "module:database-schema",
+      "description": "Individual farmer allocation within a collective pooled order"
+    },
+    {
+      "id": "table:Order",
+      "type": "database_table",
+      "name": "Order",
+      "source": "server/prisma/schema.prisma",
+      "line_range": "249-275",
+      "module": "module:database-schema",
+      "description": "Central order lifecycle entity with 10-stage status, amounts, and platform fee"
+    },
+    {
+      "id": "table:OrderItem",
+      "type": "database_table",
+      "name": "OrderItem",
+      "source": "server/prisma/schema.prisma",
+      "line_range": "277-289",
+      "module": "module:database-schema",
+      "description": "Line items within an order linking batch, farmer, quantity, and unit price"
+    },
+    {
+      "id": "table:CollectionCenter",
+      "type": "database_table",
+      "name": "CollectionCenter",
+      "source": "server/prisma/schema.prisma",
+      "line_range": "291-303",
+      "module": "module:database-schema",
+      "description": "Village agri-depot collection center with coordinates and coordinator assignment"
+    },
+    {
+      "id": "table:QualityCheck",
+      "type": "database_table",
+      "name": "QualityCheck",
+      "source": "server/prisma/schema.prisma",
+      "line_range": "305-323",
+      "module": "module:database-schema",
+      "description": "Inspection report recording actual vs expected weight, damaged qty, and grade"
+    },
+    {
+      "id": "table:Vehicle",
+      "type": "database_table",
+      "name": "Vehicle",
+      "source": "server/prisma/schema.prisma",
+      "line_range": "325-336",
+      "module": "module:database-schema",
+      "description": "Fleet vehicle entity with registration number, driver details, and capacity"
+    },
+    {
+      "id": "table:PickupRequest",
+      "type": "database_table",
+      "name": "PickupRequest",
+      "source": "server/prisma/schema.prisma",
+      "line_range": "338-349",
+      "module": "module:database-schema",
+      "description": "Scheduled pickup dispatch from farm/center to vehicle"
+    },
+    {
+      "id": "table:Delivery",
+      "type": "database_table",
+      "name": "Delivery",
+      "source": "server/prisma/schema.prisma",
+      "line_range": "351-364",
+      "module": "module:database-schema",
+      "description": "Active delivery tracking record with live coordinates and milestone timestamps"
+    },
+    {
+      "id": "table:Payment",
+      "type": "database_table",
+      "name": "Payment",
+      "source": "server/prisma/schema.prisma",
+      "line_range": "366-382",
+      "module": "module:database-schema",
+      "description": "Escrow payment transaction held in AUTHORIZED state until delivery completion"
+    },
+    {
+      "id": "table:FarmerPayout",
+      "type": "database_table",
+      "name": "FarmerPayout",
+      "source": "server/prisma/schema.prisma",
+      "line_range": "384-396",
+      "module": "module:database-schema",
+      "description": "Individual farmer net payout release with bank UTR reference"
+    },
+    {
+      "id": "table:Rating",
+      "type": "database_table",
+      "name": "Rating",
+      "source": "server/prisma/schema.prisma",
+      "line_range": "398-410",
+      "module": "module:database-schema",
+      "description": "Post-delivery bilateral 1-5 star reviews and feedback comments"
+    },
+    {
+      "id": "table:Notification",
+      "type": "database_table",
+      "name": "Notification",
+      "source": "server/prisma/schema.prisma",
+      "line_range": "412-425",
+      "module": "module:database-schema",
+      "description": "Multichannel user notifications (In-App, SMS, WhatsApp, Voice simulations)"
+    },
+    {
+      "id": "table:Dispute",
+      "type": "database_table",
+      "name": "Dispute",
+      "source": "server/prisma/schema.prisma",
+      "line_range": "427-439",
+      "module": "module:database-schema",
+      "description": "Buyer or farmer order disputes escalated for admin arbitration"
+    },
+    {
+      "id": "table:ProductImage",
+      "type": "database_table",
+      "name": "ProductImage",
+      "source": "server/prisma/schema.prisma",
+      "line_range": "441-449",
+      "module": "module:database-schema",
+      "description": "Uploaded batch produce photos with primary flag"
+    },
+    {
+      "id": "table:Cart",
+      "type": "database_table",
+      "name": "Cart",
+      "source": "server/prisma/schema.prisma",
+      "line_range": "451-459",
+      "module": "module:database-schema",
+      "description": "Buyer direct purchase shopping cart instance per user"
+    },
+    {
+      "id": "table:CartItem",
+      "type": "database_table",
+      "name": "CartItem",
+      "source": "server/prisma/schema.prisma",
+      "line_range": "461-473",
+      "module": "module:database-schema",
+      "description": "Line item in shopping cart pointing to active produce batch"
+    },
+    {
+      "id": "file:server/src/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "path": "server/src/index.ts",
+      "module": "module:server-core",
+      "description": "Main Express server bootstrapper, CORS, JSON parsers, static uploads, and route mounts"
+    },
+    {
+      "id": "file:server/prisma/schema.prisma",
+      "type": "file",
+      "name": "schema.prisma",
+      "path": "server/prisma/schema.prisma",
+      "module": "module:database-schema",
+      "description": "Prisma ORM schema definition with 28 models and relations"
+    },
+    {
+      "id": "file:server/prisma/seed.ts",
+      "type": "file",
+      "name": "seed.ts",
+      "path": "server/prisma/seed.ts",
+      "module": "module:database-schema",
+      "description": "Comprehensive database seeder script populating test personas, products, and market rates"
+    },
+    {
+      "id": "file:server/src/config/db.ts",
+      "type": "file",
+      "name": "db.ts",
+      "path": "server/src/config/db.ts",
+      "module": "module:server-config",
+      "description": "Initializes and exports singleton PrismaClient instance"
+    },
+    {
+      "id": "file:server/src/config/env.ts",
+      "type": "file",
+      "name": "env.ts",
+      "path": "server/src/config/env.ts",
+      "module": "module:server-config",
+      "description": "Loads dotenv variables and provides fallback configurations"
+    },
+    {
+      "id": "file:server/src/middleware/auth.ts",
+      "type": "file",
+      "name": "auth.ts",
+      "path": "server/src/middleware/auth.ts",
+      "module": "module:server-middleware",
+      "description": "JWT authentication guard and role-based authorization middleware"
+    },
+    {
+      "id": "file:server/src/services/collectiveSellingService.ts",
+      "type": "file",
+      "name": "collectiveSellingService.ts",
+      "path": "server/src/services/collectiveSellingService.ts",
+      "module": "module:server-services",
+      "description": "Transactional creation of collective orders, allocations, escrow payment, and batch quantity deductions"
+    },
+    {
+      "id": "file:server/src/services/freshnessService.ts",
+      "type": "file",
+      "name": "freshnessService.ts",
+      "path": "server/src/services/freshnessService.ts",
+      "module": "module:server-services",
+      "description": "Calculates batch shelf-life countdown, urgency threshold, recommended discounts, and batch auto-expiration"
+    },
+    {
+      "id": "file:server/src/services/marketPriceService.ts",
+      "type": "file",
+      "name": "marketPriceService.ts",
+      "path": "server/src/services/marketPriceService.ts",
+      "module": "module:server-services",
+      "description": "Generates daily calibrated mandi modal prices for 25+ crops across 13 Tamil Nadu mandis with optional Agmarknet sync"
+    },
+    {
+      "id": "file:server/src/services/matchingService.ts",
+      "type": "file",
+      "name": "matchingService.ts",
+      "path": "server/src/services/matchingService.ts",
+      "module": "module:server-services",
+      "description": "Haversine distance calculation, suitability scoring (distance, price, grade, freshness, rating), and collective pooling algorithm"
+    },
+    {
+      "id": "file:server/src/services/notificationService.ts",
+      "type": "file",
+      "name": "notificationService.ts",
+      "path": "server/src/services/notificationService.ts",
+      "module": "module:server-services",
+      "description": "Creates notification records across in-app, SMS, WhatsApp, and voice channels"
+    },
+    {
+      "id": "file:server/src/services/orderStateMachine.ts",
+      "type": "file",
+      "name": "orderStateMachine.ts",
+      "path": "server/src/services/orderStateMachine.ts",
+      "module": "module:server-services",
+      "description": "State machine for 10-stage order transitions with automated delivery timestamps, escrow releases, and inventory rollbacks"
+    },
+    {
+      "id": "file:server/src/services/paymentService.ts",
+      "type": "file",
+      "name": "paymentService.ts",
+      "path": "server/src/services/paymentService.ts",
+      "module": "module:server-services",
+      "description": "Authorizes mock UPI escrow payments and handles released payouts to farmers"
+    },
+    {
+      "id": "file:server/src/routes/authRoutes.ts",
+      "type": "file",
+      "name": "authRoutes.ts",
+      "path": "server/src/routes/authRoutes.ts",
+      "module": "module:server-routes",
+      "description": "User registration, login, profile retrieval, OTP verification, and demo persona switching"
+    },
+    {
+      "id": "file:server/src/routes/farmerRoutes.ts",
+      "type": "file",
+      "name": "farmerRoutes.ts",
+      "path": "server/src/routes/farmerRoutes.ts",
+      "module": "module:server-routes",
+      "description": "Farmer dashboard stats, produce batch CRUD, offer negotiation (accept/reject/counter), and earnings history"
+    },
+    {
+      "id": "file:server/src/routes/buyerRoutes.ts",
+      "type": "file",
+      "name": "buyerRoutes.ts",
+      "path": "server/src/routes/buyerRoutes.ts",
+      "module": "module:server-routes",
+      "description": "Buyer dashboard, marketplace filtering, demand posting, smart match querying, collective order execution, cart CRUD, and direct checkout"
+    },
+    {
+      "id": "file:server/src/routes/orderRoutes.ts",
+      "type": "file",
+      "name": "orderRoutes.ts",
+      "path": "server/src/routes/orderRoutes.ts",
+      "module": "module:server-routes",
+      "description": "Order detail retrieval, status transition trigger, and dispute initiation"
+    },
+    {
+      "id": "file:server/src/routes/logisticsRoutes.ts",
+      "type": "file",
+      "name": "logisticsRoutes.ts",
+      "path": "server/src/routes/logisticsRoutes.ts",
+      "module": "module:server-routes",
+      "description": "Pickup scheduling, delivery tracking, GPS updates, and fleet vehicle management"
+    },
+    {
+      "id": "file:server/src/routes/qualityRoutes.ts",
+      "type": "file",
+      "name": "qualityRoutes.ts",
+      "path": "server/src/routes/qualityRoutes.ts",
+      "module": "module:server-routes",
+      "description": "Hub quality inspections, damage percentage calculation, and pass/partial/reject grading"
+    },
+    {
+      "id": "file:server/src/routes/paymentRoutes.ts",
+      "type": "file",
+      "name": "paymentRoutes.ts",
+      "path": "server/src/routes/paymentRoutes.ts",
+      "module": "module:server-routes",
+      "description": "Mock payment authorization and escrow release endpoints"
+    },
+    {
+      "id": "file:server/src/routes/ratingRoutes.ts",
+      "type": "file",
+      "name": "ratingRoutes.ts",
+      "path": "server/src/routes/ratingRoutes.ts",
+      "module": "module:server-routes",
+      "description": "Rating submission and farmer average rating recalculation"
+    },
+    {
+      "id": "file:server/src/routes/coordinatorRoutes.ts",
+      "type": "file",
+      "name": "coordinatorRoutes.ts",
+      "path": "server/src/routes/coordinatorRoutes.ts",
+      "module": "module:server-routes",
+      "description": "Assisted registration of low-literacy farmers and assisted produce batch creation"
+    },
+    {
+      "id": "file:server/src/routes/adminRoutes.ts",
+      "type": "file",
+      "name": "adminRoutes.ts",
+      "path": "server/src/routes/adminRoutes.ts",
+      "module": "module:server-routes",
+      "description": "System-wide analytics, user moderation, dispute resolution, and impact telemetry"
+    },
+    {
+      "id": "file:server/src/routes/notificationRoutes.ts",
+      "type": "file",
+      "name": "notificationRoutes.ts",
+      "path": "server/src/routes/notificationRoutes.ts",
+      "module": "module:server-routes",
+      "description": "User notification listing and read status management"
+    },
+    {
+      "id": "file:server/src/routes/demoRoutes.ts",
+      "type": "file",
+      "name": "demoRoutes.ts",
+      "path": "server/src/routes/demoRoutes.ts",
+      "module": "module:server-routes",
+      "description": "Interactive demo triggers: perishable urgency decay simulation and batch expiration"
+    },
+    {
+      "id": "file:server/src/routes/marketPriceRoutes.ts",
+      "type": "file",
+      "name": "marketPriceRoutes.ts",
+      "path": "server/src/routes/marketPriceRoutes.ts",
+      "module": "module:server-routes",
+      "description": "Live daily APMC mandi prices, price ticker, and market directory"
+    },
+    {
+      "id": "file:server/src/routes/uploadRoutes.ts",
+      "type": "file",
+      "name": "uploadRoutes.ts",
+      "path": "server/src/routes/uploadRoutes.ts",
+      "module": "module:server-routes",
+      "description": "Base64 image upload handler saving produce photos to local uploads directory"
+    },
+    {
+      "id": "function:authenticateToken",
+      "type": "function",
+      "name": "authenticateToken",
+      "file": "server/src/middleware/auth.ts",
+      "source": "server/src/middleware/auth.ts",
+      "line_range": "16-33",
+      "description": "Extracts Bearer token from header, validates with JWT_SECRET, attaches user to req"
+    },
+    {
+      "id": "function:requireRole",
+      "type": "function",
+      "name": "requireRole",
+      "file": "server/src/middleware/auth.ts",
+      "source": "server/src/middleware/auth.ts",
+      "line_range": "35-49",
+      "description": "Ensures authenticated user has one of required roles or ADMIN"
+    },
+    {
+      "id": "function:CollectiveSellingService.createCollectiveOrder",
+      "type": "function",
+      "name": "createCollectiveOrder",
+      "file": "server/src/services/collectiveSellingService.ts",
+      "source": "server/src/services/collectiveSellingService.ts",
+      "line_range": "19-152",
+      "description": "Runs ACID transaction to create CollectiveOrder, Order, CollectiveOrderMembers, OrderItems, updates batch quantities, creates authorized escrow Payment, and notifies farmers"
+    },
+    {
+      "id": "function:FreshnessService.calculateFreshness",
+      "type": "function",
+      "name": "calculateFreshness",
+      "file": "server/src/services/freshnessService.ts",
+      "source": "server/src/services/freshnessService.ts",
+      "line_range": "18-88",
+      "description": "Computes freshness status (FRESH, AGING, URGENT, EXPIRED), hours remaining, and recommended discount"
+    },
+    {
+      "id": "function:FreshnessService.evaluateAllActiveBatches",
+      "type": "function",
+      "name": "evaluateAllActiveBatches",
+      "file": "server/src/services/freshnessService.ts",
+      "source": "server/src/services/freshnessService.ts",
+      "line_range": "93-134",
+      "description": "Batch evaluates active batches and updates database records when statuses change"
+    },
+    {
+      "id": "function:MatchingService.calculateDistance",
+      "type": "function",
+      "name": "calculateDistance",
+      "file": "server/src/services/matchingService.ts",
+      "source": "server/src/services/matchingService.ts",
+      "line_range": "55-67",
+      "description": "Computes Haversine distance in kilometers between two GPS coordinate pairs"
+    },
+    {
+      "id": "function:MatchingService.evaluateBatchSuitability",
+      "type": "function",
+      "name": "evaluateBatchSuitability",
+      "file": "server/src/services/matchingService.ts",
+      "source": "server/src/services/matchingService.ts",
+      "line_range": "72-160",
+      "description": "Calculates weighted score (0-100) based on distance (25%), price (20%), quality (20%), freshness (15%), rating (10%), quantity (10%)"
+    },
+    {
+      "id": "function:MatchingService.findMatchesForDemand",
+      "type": "function",
+      "name": "findMatchesForDemand",
+      "file": "server/src/services/matchingService.ts",
+      "source": "server/src/services/matchingService.ts",
+      "line_range": "165-249",
+      "description": "Queries active batches of requested product, scores each batch, and constructs pooled collective group"
+    },
+    {
+      "id": "function:MatchingService.buildCollectiveSupplyPool",
+      "type": "function",
+      "name": "buildCollectiveSupplyPool",
+      "file": "server/src/services/matchingService.ts",
+      "source": "server/src/services/matchingService.ts",
+      "line_range": "254-308",
+      "description": "Aggregates multiple farmers allocations until required demand quantity is reached"
+    },
+    {
+      "id": "function:OrderStateMachine.isValidTransition",
+      "type": "function",
+      "name": "isValidTransition",
+      "file": "server/src/services/orderStateMachine.ts",
+      "source": "server/src/services/orderStateMachine.ts",
+      "line_range": "22-36",
+      "description": "Validates forward progression through ORDER_STATUS_FLOW or cancellation rules"
+    },
+    {
+      "id": "function:OrderStateMachine.transitionOrder",
+      "type": "function",
+      "name": "transitionOrder",
+      "file": "server/src/services/orderStateMachine.ts",
+      "source": "server/src/services/orderStateMachine.ts",
+      "line_range": "40-153",
+      "description": "Transitions order status, automatically triggers delivery timestamps, releases payments and updates farmer metrics upon DELIVERED, or restores stock upon CANCELLED"
+    },
+    {
+      "id": "function:MarketPriceService.getDailyRates",
+      "type": "function",
+      "name": "getDailyRates",
+      "file": "server/src/services/marketPriceService.ts",
+      "source": "server/src/services/marketPriceService.ts",
+      "line_range": "377-470",
+      "description": "Returns daily mandi summary with min, modal, max, and KisanDirect fair prices, cached in memory"
+    },
+    {
+      "id": "function:MarketPriceService.getTickerRates",
+      "type": "function",
+      "name": "getTickerRates",
+      "file": "server/src/services/marketPriceService.ts",
+      "source": "server/src/services/marketPriceService.ts",
+      "line_range": "475-484",
+      "description": "Returns lightweight ticker items for navigation bar"
+    },
+    {
+      "id": "function:PaymentService.authorizePayment",
+      "type": "function",
+      "name": "authorizePayment",
+      "file": "server/src/services/paymentService.ts",
+      "source": "server/src/services/paymentService.ts",
+      "line_range": "7-34",
+      "description": "Creates AUTHORIZED escrow payment record for order"
+    },
+    {
+      "id": "function:PaymentService.releasePayment",
+      "type": "function",
+      "name": "releasePayment",
+      "file": "server/src/services/paymentService.ts",
+      "source": "server/src/services/paymentService.ts",
+      "line_range": "39-81",
+      "description": "Updates payment to RELEASED and creates individual farmer payout records with UTR references"
+    },
+    {
+      "id": "function:NotificationService.notify",
+      "type": "function",
+      "name": "notify",
+      "file": "server/src/services/notificationService.ts",
+      "source": "server/src/services/notificationService.ts",
+      "line_range": "7-25",
+      "description": "Creates notification record with channel specification"
+    },
+    {
+      "id": "function:NotificationService.broadcastUrgentSale",
+      "type": "function",
+      "name": "broadcastUrgentSale",
+      "file": "server/src/services/notificationService.ts",
+      "source": "server/src/services/notificationService.ts",
+      "line_range": "30-55",
+      "description": "Broadcasts urgent perishable alerts to local B2B commercial buyers"
+    },
+    {
+      "id": "api:POST /api/auth/register",
+      "type": "api_endpoint",
+      "name": "POST /api/auth/register",
+      "method": "POST",
+      "path": "/api/auth/register",
+      "file": "server/src/routes/authRoutes.ts",
+      "source": "server/src/routes/authRoutes.ts",
+      "line": 11,
+      "authRequired": false,
+      "module": "module:server-routes",
+      "description": "Register new user (Farmer, Buyer, Coordinator)"
+    },
+    {
+      "id": "api:POST /api/auth/login",
+      "type": "api_endpoint",
+      "name": "POST /api/auth/login",
+      "method": "POST",
+      "path": "/api/auth/login",
+      "file": "server/src/routes/authRoutes.ts",
+      "source": "server/src/routes/authRoutes.ts",
+      "line": 126,
+      "authRequired": false,
+      "module": "module:server-routes",
+      "description": "User login with email/mobile and password"
+    },
+    {
+      "id": "api:POST /api/auth/verify-otp",
+      "type": "api_endpoint",
+      "name": "POST /api/auth/verify-otp",
+      "method": "POST",
+      "path": "/api/auth/verify-otp",
+      "file": "server/src/routes/authRoutes.ts",
+      "source": "server/src/routes/authRoutes.ts",
+      "line": 190,
+      "authRequired": false,
+      "module": "module:server-routes",
+      "description": "Mock OTP verification for mobile registration"
+    },
+    {
+      "id": "api:POST /api/auth/demo-switch",
+      "type": "api_endpoint",
+      "name": "POST /api/auth/demo-switch",
+      "method": "POST",
+      "path": "/api/auth/demo-switch",
+      "file": "server/src/routes/authRoutes.ts",
+      "source": "server/src/routes/authRoutes.ts",
+      "line": 205,
+      "authRequired": false,
+      "module": "module:server-routes",
+      "description": "Instant persona switch to demo accounts"
+    },
+    {
+      "id": "api:GET /api/auth/me",
+      "type": "api_endpoint",
+      "name": "GET /api/auth/me",
+      "method": "GET",
+      "path": "/api/auth/me",
+      "file": "server/src/routes/authRoutes.ts",
+      "source": "server/src/routes/authRoutes.ts",
+      "line": 257,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Get current authenticated user profile"
+    },
+    {
+      "id": "api:POST /api/upload",
+      "type": "api_endpoint",
+      "name": "POST /api/upload",
+      "method": "POST",
+      "path": "/api/upload",
+      "file": "server/src/routes/uploadRoutes.ts",
+      "source": "server/src/routes/uploadRoutes.ts",
+      "line": 14,
+      "authRequired": false,
+      "module": "module:server-routes",
+      "description": "Upload Base64 encoded produce image"
+    },
+    {
+      "id": "api:GET /api/farmers/products",
+      "type": "api_endpoint",
+      "name": "GET /api/farmers/products",
+      "method": "GET",
+      "path": "/api/farmers/products",
+      "file": "server/src/routes/farmerRoutes.ts",
+      "source": "server/src/routes/farmerRoutes.ts",
+      "line": 20,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "List catalog products with freshness rules and reference prices"
+    },
+    {
+      "id": "api:GET /api/farmers/dashboard",
+      "type": "api_endpoint",
+      "name": "GET /api/farmers/dashboard",
+      "method": "GET",
+      "path": "/api/farmers/dashboard",
+      "file": "server/src/routes/farmerRoutes.ts",
+      "source": "server/src/routes/farmerRoutes.ts",
+      "line": 38,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Farmer dashboard metrics, stock quantities, and earnings"
+    },
+    {
+      "id": "api:POST /api/farmers/batches",
+      "type": "api_endpoint",
+      "name": "POST /api/farmers/batches",
+      "method": "POST",
+      "path": "/api/farmers/batches",
+      "file": "server/src/routes/farmerRoutes.ts",
+      "source": "server/src/routes/farmerRoutes.ts",
+      "line": 123,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Create new produce batch harvest listing"
+    },
+    {
+      "id": "api:GET /api/farmers/batches",
+      "type": "api_endpoint",
+      "name": "GET /api/farmers/batches",
+      "method": "GET",
+      "path": "/api/farmers/batches",
+      "file": "server/src/routes/farmerRoutes.ts",
+      "source": "server/src/routes/farmerRoutes.ts",
+      "line": 212,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "List batches listed by current farmer"
+    },
+    {
+      "id": "api:GET /api/farmers/offers",
+      "type": "api_endpoint",
+      "name": "GET /api/farmers/offers",
+      "method": "GET",
+      "path": "/api/farmers/offers",
+      "file": "server/src/routes/farmerRoutes.ts",
+      "source": "server/src/routes/farmerRoutes.ts",
+      "line": 247,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "List incoming buyer negotiation offers"
+    },
+    {
+      "id": "api:PATCH /api/farmers/offers/:id/accept",
+      "type": "api_endpoint",
+      "name": "PATCH /api/farmers/offers/:id/accept",
+      "method": "PATCH",
+      "path": "/api/farmers/offers/:id/accept",
+      "file": "server/src/routes/farmerRoutes.ts",
+      "source": "server/src/routes/farmerRoutes.ts",
+      "line": 273,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Accept incoming buyer offer"
+    },
+    {
+      "id": "api:PATCH /api/farmers/offers/:id/reject",
+      "type": "api_endpoint",
+      "name": "PATCH /api/farmers/offers/:id/reject",
+      "method": "PATCH",
+      "path": "/api/farmers/offers/:id/reject",
+      "file": "server/src/routes/farmerRoutes.ts",
+      "source": "server/src/routes/farmerRoutes.ts",
+      "line": 314,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Reject incoming buyer offer"
+    },
+    {
+      "id": "api:POST /api/farmers/offers/:id/counter",
+      "type": "api_endpoint",
+      "name": "POST /api/farmers/offers/:id/counter",
+      "method": "POST",
+      "path": "/api/farmers/offers/:id/counter",
+      "file": "server/src/routes/farmerRoutes.ts",
+      "source": "server/src/routes/farmerRoutes.ts",
+      "line": 329,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Counter an offer with revised price"
+    },
+    {
+      "id": "api:GET /api/farmers/orders",
+      "type": "api_endpoint",
+      "name": "GET /api/farmers/orders",
+      "method": "GET",
+      "path": "/api/farmers/orders",
+      "file": "server/src/routes/farmerRoutes.ts",
+      "source": "server/src/routes/farmerRoutes.ts",
+      "line": 386,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "List orders containing farmer produce"
+    },
+    {
+      "id": "api:GET /api/farmers/collective-pools",
+      "type": "api_endpoint",
+      "name": "GET /api/farmers/collective-pools",
+      "method": "GET",
+      "path": "/api/farmers/collective-pools",
+      "file": "server/src/routes/farmerRoutes.ts",
+      "source": "server/src/routes/farmerRoutes.ts",
+      "line": 416,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "List collective selling pools farmer participates in"
+    },
+    {
+      "id": "api:GET /api/farmers/earnings",
+      "type": "api_endpoint",
+      "name": "GET /api/farmers/earnings",
+      "method": "GET",
+      "path": "/api/farmers/earnings",
+      "file": "server/src/routes/farmerRoutes.ts",
+      "source": "server/src/routes/farmerRoutes.ts",
+      "line": 444,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Get farmer released payouts and earnings breakdown"
+    },
+    {
+      "id": "api:GET /api/buyers/dashboard",
+      "type": "api_endpoint",
+      "name": "GET /api/buyers/dashboard",
+      "method": "GET",
+      "path": "/api/buyers/dashboard",
+      "file": "server/src/routes/buyerRoutes.ts",
+      "source": "server/src/routes/buyerRoutes.ts",
+      "line": 20,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Buyer dashboard overview and spend metrics"
+    },
+    {
+      "id": "api:GET /api/buyers/marketplace",
+      "type": "api_endpoint",
+      "name": "GET /api/buyers/marketplace",
+      "method": "GET",
+      "path": "/api/buyers/marketplace",
+      "file": "server/src/routes/buyerRoutes.ts",
+      "source": "server/src/routes/buyerRoutes.ts",
+      "line": 75,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Browse and filter available produce batches"
+    },
+    {
+      "id": "api:POST /api/buyers/demands",
+      "type": "api_endpoint",
+      "name": "POST /api/buyers/demands",
+      "method": "POST",
+      "path": "/api/buyers/demands",
+      "file": "server/src/routes/buyerRoutes.ts",
+      "source": "server/src/routes/buyerRoutes.ts",
+      "line": 140,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Post commercial bulk produce demand"
+    },
+    {
+      "id": "api:GET /api/buyers/demands",
+      "type": "api_endpoint",
+      "name": "GET /api/buyers/demands",
+      "method": "GET",
+      "path": "/api/buyers/demands",
+      "file": "server/src/routes/buyerRoutes.ts",
+      "source": "server/src/routes/buyerRoutes.ts",
+      "line": 199,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "List demands posted by buyer"
+    },
+    {
+      "id": "api:GET /api/buyers/demands/:id/matches",
+      "type": "api_endpoint",
+      "name": "GET /api/buyers/demands/:id/matches",
+      "method": "GET",
+      "path": "/api/buyers/demands/:id/matches",
+      "file": "server/src/routes/buyerRoutes.ts",
+      "source": "server/src/routes/buyerRoutes.ts",
+      "line": 224,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Get smart matches and collective pool for a demand"
+    },
+    {
+      "id": "api:POST /api/buyers/demands/:id/offers",
+      "type": "api_endpoint",
+      "name": "POST /api/buyers/demands/:id/offers",
+      "method": "POST",
+      "path": "/api/buyers/demands/:id/offers",
+      "file": "server/src/routes/buyerRoutes.ts",
+      "source": "server/src/routes/buyerRoutes.ts",
+      "line": 235,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Send direct offer to a farmer"
+    },
+    {
+      "id": "api:POST /api/buyers/demands/:id/collective-order",
+      "type": "api_endpoint",
+      "name": "POST /api/buyers/demands/:id/collective-order",
+      "method": "POST",
+      "path": "/api/buyers/demands/:id/collective-order",
+      "file": "server/src/routes/buyerRoutes.ts",
+      "source": "server/src/routes/buyerRoutes.ts",
+      "line": 299,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Confirm collective pooled order and authorize escrow payment"
+    },
+    {
+      "id": "api:GET /api/buyers/orders",
+      "type": "api_endpoint",
+      "name": "GET /api/buyers/orders",
+      "method": "GET",
+      "path": "/api/buyers/orders",
+      "file": "server/src/routes/buyerRoutes.ts",
+      "source": "server/src/routes/buyerRoutes.ts",
+      "line": 333,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "List orders placed by buyer"
+    },
+    {
+      "id": "api:GET /api/buyers/cart",
+      "type": "api_endpoint",
+      "name": "GET /api/buyers/cart",
+      "method": "GET",
+      "path": "/api/buyers/cart",
+      "file": "server/src/routes/buyerRoutes.ts",
+      "source": "server/src/routes/buyerRoutes.ts",
+      "line": 369,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Get buyer shopping cart items and totals"
+    },
+    {
+      "id": "api:POST /api/buyers/cart/items",
+      "type": "api_endpoint",
+      "name": "POST /api/buyers/cart/items",
+      "method": "POST",
+      "path": "/api/buyers/cart/items",
+      "file": "server/src/routes/buyerRoutes.ts",
+      "source": "server/src/routes/buyerRoutes.ts",
+      "line": 442,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Add produce batch item to cart"
+    },
+    {
+      "id": "api:PATCH /api/buyers/cart/items/:id",
+      "type": "api_endpoint",
+      "name": "PATCH /api/buyers/cart/items/:id",
+      "method": "PATCH",
+      "path": "/api/buyers/cart/items/:id",
+      "file": "server/src/routes/buyerRoutes.ts",
+      "source": "server/src/routes/buyerRoutes.ts",
+      "line": 517,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Update cart item quantity"
+    },
+    {
+      "id": "api:DELETE /api/buyers/cart/items/:id",
+      "type": "api_endpoint",
+      "name": "DELETE /api/buyers/cart/items/:id",
+      "method": "DELETE",
+      "path": "/api/buyers/cart/items/:id",
+      "file": "server/src/routes/buyerRoutes.ts",
+      "source": "server/src/routes/buyerRoutes.ts",
+      "line": 556,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Remove item from cart"
+    },
+    {
+      "id": "api:DELETE /api/buyers/cart",
+      "type": "api_endpoint",
+      "name": "DELETE /api/buyers/cart",
+      "method": "DELETE",
+      "path": "/api/buyers/cart",
+      "file": "server/src/routes/buyerRoutes.ts",
+      "source": "server/src/routes/buyerRoutes.ts",
+      "line": 567,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Clear all items from cart"
+    },
+    {
+      "id": "api:POST /api/buyers/checkout",
+      "type": "api_endpoint",
+      "name": "POST /api/buyers/checkout",
+      "method": "POST",
+      "path": "/api/buyers/checkout",
+      "file": "server/src/routes/buyerRoutes.ts",
+      "source": "server/src/routes/buyerRoutes.ts",
+      "line": 581,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Direct checkout: creates order, authorizes escrow payment, schedules delivery"
+    },
+    {
+      "id": "api:GET /api/orders/:id",
+      "type": "api_endpoint",
+      "name": "GET /api/orders/:id",
+      "method": "GET",
+      "path": "/api/orders/:id",
+      "file": "server/src/routes/orderRoutes.ts",
+      "source": "server/src/routes/orderRoutes.ts",
+      "line": 11,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Get complete order details with tracking, items, quality checks, payments"
+    },
+    {
+      "id": "api:PATCH /api/orders/:id/status",
+      "type": "api_endpoint",
+      "name": "PATCH /api/orders/:id/status",
+      "method": "PATCH",
+      "path": "/api/orders/:id/status",
+      "file": "server/src/routes/orderRoutes.ts",
+      "source": "server/src/routes/orderRoutes.ts",
+      "line": 55,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Advance order state machine to next status"
+    },
+    {
+      "id": "api:POST /api/orders/:id/dispute",
+      "type": "api_endpoint",
+      "name": "POST /api/orders/:id/dispute",
+      "method": "POST",
+      "path": "/api/orders/:id/dispute",
+      "file": "server/src/routes/orderRoutes.ts",
+      "source": "server/src/routes/orderRoutes.ts",
+      "line": 82,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Raise order dispute for admin resolution"
+    },
+    {
+      "id": "api:GET /api/logistics/pickups",
+      "type": "api_endpoint",
+      "name": "GET /api/logistics/pickups",
+      "method": "GET",
+      "path": "/api/logistics/pickups",
+      "file": "server/src/routes/logisticsRoutes.ts",
+      "source": "server/src/routes/logisticsRoutes.ts",
+      "line": 11,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "List scheduled pickup requests"
+    },
+    {
+      "id": "api:POST /api/logistics/pickups",
+      "type": "api_endpoint",
+      "name": "POST /api/logistics/pickups",
+      "method": "POST",
+      "path": "/api/logistics/pickups",
+      "file": "server/src/routes/logisticsRoutes.ts",
+      "source": "server/src/routes/logisticsRoutes.ts",
+      "line": 34,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Schedule pickup and advance order to PICKUP_SCHEDULED"
+    },
+    {
+      "id": "api:PATCH /api/logistics/pickups/:id",
+      "type": "api_endpoint",
+      "name": "PATCH /api/logistics/pickups/:id",
+      "method": "PATCH",
+      "path": "/api/logistics/pickups/:id",
+      "file": "server/src/routes/logisticsRoutes.ts",
+      "source": "server/src/routes/logisticsRoutes.ts",
+      "line": 64,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Update pickup status (COMPLETED triggers COLLECTED)"
+    },
+    {
+      "id": "api:GET /api/logistics/deliveries",
+      "type": "api_endpoint",
+      "name": "GET /api/logistics/deliveries",
+      "method": "GET",
+      "path": "/api/logistics/deliveries",
+      "file": "server/src/routes/logisticsRoutes.ts",
+      "source": "server/src/routes/logisticsRoutes.ts",
+      "line": 89,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "List active deliveries and coordinates"
+    },
+    {
+      "id": "api:PATCH /api/logistics/deliveries/:id/status",
+      "type": "api_endpoint",
+      "name": "PATCH /api/logistics/deliveries/:id/status",
+      "method": "PATCH",
+      "path": "/api/logistics/deliveries/:id/status",
+      "file": "server/src/routes/logisticsRoutes.ts",
+      "source": "server/src/routes/logisticsRoutes.ts",
+      "line": 111,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Update delivery status and GPS coordinates"
+    },
+    {
+      "id": "api:GET /api/logistics/vehicles",
+      "type": "api_endpoint",
+      "name": "GET /api/logistics/vehicles",
+      "method": "GET",
+      "path": "/api/logistics/vehicles",
+      "file": "server/src/routes/logisticsRoutes.ts",
+      "source": "server/src/routes/logisticsRoutes.ts",
+      "line": 150,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "List fleet vehicles"
+    },
+    {
+      "id": "api:GET /api/logistics/collection-centers",
+      "type": "api_endpoint",
+      "name": "GET /api/logistics/collection-centers",
+      "method": "GET",
+      "path": "/api/logistics/collection-centers",
+      "file": "server/src/routes/logisticsRoutes.ts",
+      "source": "server/src/routes/logisticsRoutes.ts",
+      "line": 160,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "List collection centers"
+    },
+    {
+      "id": "api:POST /api/quality-checks",
+      "type": "api_endpoint",
+      "name": "POST /api/quality-checks",
+      "method": "POST",
+      "path": "/api/quality-checks",
+      "file": "server/src/routes/qualityRoutes.ts",
+      "source": "server/src/routes/qualityRoutes.ts",
+      "line": 11,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Submit quality verification report and advance order to QUALITY_CHECKED"
+    },
+    {
+      "id": "api:GET /api/quality-checks/:id",
+      "type": "api_endpoint",
+      "name": "GET /api/quality-checks/:id",
+      "method": "GET",
+      "path": "/api/quality-checks/:id",
+      "file": "server/src/routes/qualityRoutes.ts",
+      "source": "server/src/routes/qualityRoutes.ts",
+      "line": 73,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Get quality check report details"
+    },
+    {
+      "id": "api:POST /api/payments/create",
+      "type": "api_endpoint",
+      "name": "POST /api/payments/create",
+      "method": "POST",
+      "path": "/api/payments/create",
+      "file": "server/src/routes/paymentRoutes.ts",
+      "source": "server/src/routes/paymentRoutes.ts",
+      "line": 11,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Create mock payment authorization"
+    },
+    {
+      "id": "api:POST /api/payments/release/:id",
+      "type": "api_endpoint",
+      "name": "POST /api/payments/release/:id",
+      "method": "POST",
+      "path": "/api/payments/release/:id",
+      "file": "server/src/routes/paymentRoutes.ts",
+      "source": "server/src/routes/paymentRoutes.ts",
+      "line": 27,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Release escrow payment to farmers"
+    },
+    {
+      "id": "api:GET /api/payments/:id",
+      "type": "api_endpoint",
+      "name": "GET /api/payments/:id",
+      "method": "GET",
+      "path": "/api/payments/:id",
+      "file": "server/src/routes/paymentRoutes.ts",
+      "source": "server/src/routes/paymentRoutes.ts",
+      "line": 38,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Get payment details and farmer payouts"
+    },
+    {
+      "id": "api:POST /api/ratings",
+      "type": "api_endpoint",
+      "name": "POST /api/ratings",
+      "method": "POST",
+      "path": "/api/ratings",
+      "file": "server/src/routes/ratingRoutes.ts",
+      "source": "server/src/routes/ratingRoutes.ts",
+      "line": 10,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Submit 1-5 rating review and update average"
+    },
+    {
+      "id": "api:GET /api/ratings/:userId",
+      "type": "api_endpoint",
+      "name": "GET /api/ratings/:userId",
+      "method": "GET",
+      "path": "/api/ratings/:userId",
+      "file": "server/src/routes/ratingRoutes.ts",
+      "source": "server/src/routes/ratingRoutes.ts",
+      "line": 52,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Get reviews received by user"
+    },
+    {
+      "id": "api:GET /api/coordinator/farmers",
+      "type": "api_endpoint",
+      "name": "GET /api/coordinator/farmers",
+      "method": "GET",
+      "path": "/api/coordinator/farmers",
+      "file": "server/src/routes/coordinatorRoutes.ts",
+      "source": "server/src/routes/coordinatorRoutes.ts",
+      "line": 12,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "List village farmers managed by coordinator"
+    },
+    {
+      "id": "api:POST /api/coordinator/register-farmer",
+      "type": "api_endpoint",
+      "name": "POST /api/coordinator/register-farmer",
+      "method": "POST",
+      "path": "/api/coordinator/register-farmer",
+      "file": "server/src/routes/coordinatorRoutes.ts",
+      "source": "server/src/routes/coordinatorRoutes.ts",
+      "line": 32,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Assisted registration of low-literacy farmer"
+    },
+    {
+      "id": "api:POST /api/coordinator/create-batch",
+      "type": "api_endpoint",
+      "name": "POST /api/coordinator/create-batch",
+      "method": "POST",
+      "path": "/api/coordinator/create-batch",
+      "file": "server/src/routes/coordinatorRoutes.ts",
+      "source": "server/src/routes/coordinatorRoutes.ts",
+      "line": 92,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Assisted produce batch creation on behalf of farmer"
+    },
+    {
+      "id": "api:GET /api/coordinator/dashboard",
+      "type": "api_endpoint",
+      "name": "GET /api/coordinator/dashboard",
+      "method": "GET",
+      "path": "/api/coordinator/dashboard",
+      "file": "server/src/routes/coordinatorRoutes.ts",
+      "source": "server/src/routes/coordinatorRoutes.ts",
+      "line": 170,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Get coordinator summary metrics"
+    },
+    {
+      "id": "api:GET /api/admin/dashboard",
+      "type": "api_endpoint",
+      "name": "GET /api/admin/dashboard",
+      "method": "GET",
+      "path": "/api/admin/dashboard",
+      "file": "server/src/routes/adminRoutes.ts",
+      "source": "server/src/routes/adminRoutes.ts",
+      "line": 10,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Get admin overview counts, financials, and impact metrics"
+    },
+    {
+      "id": "api:GET /api/admin/farmers",
+      "type": "api_endpoint",
+      "name": "GET /api/admin/farmers",
+      "method": "GET",
+      "path": "/api/admin/farmers",
+      "file": "server/src/routes/adminRoutes.ts",
+      "source": "server/src/routes/adminRoutes.ts",
+      "line": 64,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "List all registered farmers"
+    },
+    {
+      "id": "api:GET /api/admin/buyers",
+      "type": "api_endpoint",
+      "name": "GET /api/admin/buyers",
+      "method": "GET",
+      "path": "/api/admin/buyers",
+      "file": "server/src/routes/adminRoutes.ts",
+      "source": "server/src/routes/adminRoutes.ts",
+      "line": 80,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "List all registered buyers"
+    },
+    {
+      "id": "api:GET /api/admin/listings",
+      "type": "api_endpoint",
+      "name": "GET /api/admin/listings",
+      "method": "GET",
+      "path": "/api/admin/listings",
+      "file": "server/src/routes/adminRoutes.ts",
+      "source": "server/src/routes/adminRoutes.ts",
+      "line": 96,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "List all produce batch listings"
+    },
+    {
+      "id": "api:GET /api/admin/orders",
+      "type": "api_endpoint",
+      "name": "GET /api/admin/orders",
+      "method": "GET",
+      "path": "/api/admin/orders",
+      "file": "server/src/routes/adminRoutes.ts",
+      "source": "server/src/routes/adminRoutes.ts",
+      "line": 112,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "List all platform orders"
+    },
+    {
+      "id": "api:GET /api/admin/disputes",
+      "type": "api_endpoint",
+      "name": "GET /api/admin/disputes",
+      "method": "GET",
+      "path": "/api/admin/disputes",
+      "file": "server/src/routes/adminRoutes.ts",
+      "source": "server/src/routes/adminRoutes.ts",
+      "line": 130,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "List all open and resolved disputes"
+    },
+    {
+      "id": "api:PATCH /api/admin/disputes/:id",
+      "type": "api_endpoint",
+      "name": "PATCH /api/admin/disputes/:id",
+      "method": "PATCH",
+      "path": "/api/admin/disputes/:id",
+      "file": "server/src/routes/adminRoutes.ts",
+      "source": "server/src/routes/adminRoutes.ts",
+      "line": 146,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Resolve dispute and save resolution notes"
+    },
+    {
+      "id": "api:PATCH /api/admin/users/:id/status",
+      "type": "api_endpoint",
+      "name": "PATCH /api/admin/users/:id/status",
+      "method": "PATCH",
+      "path": "/api/admin/users/:id/status",
+      "file": "server/src/routes/adminRoutes.ts",
+      "source": "server/src/routes/adminRoutes.ts",
+      "line": 166,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Suspend or activate user account"
+    },
+    {
+      "id": "api:GET /api/notifications",
+      "type": "api_endpoint",
+      "name": "GET /api/notifications",
+      "method": "GET",
+      "path": "/api/notifications",
+      "file": "server/src/routes/notificationRoutes.ts",
+      "source": "server/src/routes/notificationRoutes.ts",
+      "line": 10,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Get current user notifications"
+    },
+    {
+      "id": "api:PATCH /api/notifications/:id/read",
+      "type": "api_endpoint",
+      "name": "PATCH /api/notifications/:id/read",
+      "method": "PATCH",
+      "path": "/api/notifications/:id/read",
+      "file": "server/src/routes/notificationRoutes.ts",
+      "source": "server/src/routes/notificationRoutes.ts",
+      "line": 24,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Mark single notification as read"
+    },
+    {
+      "id": "api:PATCH /api/notifications/read-all",
+      "type": "api_endpoint",
+      "name": "PATCH /api/notifications/read-all",
+      "method": "PATCH",
+      "path": "/api/notifications/read-all",
+      "file": "server/src/routes/notificationRoutes.ts",
+      "source": "server/src/routes/notificationRoutes.ts",
+      "line": 38,
+      "authRequired": true,
+      "module": "module:server-routes",
+      "description": "Mark all notifications as read"
+    },
+    {
+      "id": "api:POST /api/demo/simulate-urgency",
+      "type": "api_endpoint",
+      "name": "POST /api/demo/simulate-urgency",
+      "method": "POST",
+      "path": "/api/demo/simulate-urgency",
+      "file": "server/src/routes/demoRoutes.ts",
+      "source": "server/src/routes/demoRoutes.ts",
+      "line": 9,
+      "authRequired": false,
+      "module": "module:server-routes",
+      "description": "Simulate freshness decay to 45 mins and trigger urgent sale broadcast"
+    },
+    {
+      "id": "api:POST /api/demo/simulate-expiry",
+      "type": "api_endpoint",
+      "name": "POST /api/demo/simulate-expiry",
+      "method": "POST",
+      "path": "/api/demo/simulate-expiry",
+      "file": "server/src/routes/demoRoutes.ts",
+      "source": "server/src/routes/demoRoutes.ts",
+      "line": 64,
+      "authRequired": false,
+      "module": "module:server-routes",
+      "description": "Simulate batch shelf-life expiry and deactivation"
+    },
+    {
+      "id": "api:GET /api/market-prices/daily",
+      "type": "api_endpoint",
+      "name": "GET /api/market-prices/daily",
+      "method": "GET",
+      "path": "/api/market-prices/daily",
+      "file": "server/src/routes/marketPriceRoutes.ts",
+      "source": "server/src/routes/marketPriceRoutes.ts",
+      "line": 10,
+      "authRequired": false,
+      "module": "module:server-routes",
+      "description": "Get daily live mandi rates and KisanDirect benchmark prices"
+    },
+    {
+      "id": "api:GET /api/market-prices/ticker",
+      "type": "api_endpoint",
+      "name": "GET /api/market-prices/ticker",
+      "method": "GET",
+      "path": "/api/market-prices/ticker",
+      "file": "server/src/routes/marketPriceRoutes.ts",
+      "source": "server/src/routes/marketPriceRoutes.ts",
+      "line": 50,
+      "authRequired": false,
+      "module": "module:server-routes",
+      "description": "Get lightweight ticker rates for top header"
+    },
+    {
+      "id": "api:GET /api/market-prices/mandis",
+      "type": "api_endpoint",
+      "name": "GET /api/market-prices/mandis",
+      "method": "GET",
+      "path": "/api/market-prices/mandis",
+      "file": "server/src/routes/marketPriceRoutes.ts",
+      "source": "server/src/routes/marketPriceRoutes.ts",
+      "line": 65,
+      "authRequired": false,
+      "module": "module:server-routes",
+      "description": "List available mandis directory"
+    },
+    {
+      "id": "file:client/src/main.tsx",
+      "type": "file",
+      "name": "main.tsx",
+      "path": "client/src/main.tsx",
+      "module": "module:client-core",
+      "description": "React 18 DOM mount with StrictMode"
+    },
+    {
+      "id": "file:client/src/vite-env.d.ts",
+      "type": "file",
+      "name": "vite-env.d.ts",
+      "path": "client/src/vite-env.d.ts",
+      "module": "module:client-core",
+      "description": "Vite client TypeScript environment definitions"
+    },
+    {
+      "id": "file:client/src/App.tsx",
+      "type": "file",
+      "name": "App.tsx",
+      "path": "client/src/App.tsx",
+      "module": "module:client-core",
+      "description": "Root application shell, state-based view router, modal controllers, and demo hooks"
+    },
+    {
+      "id": "file:client/src/services/api.ts",
+      "type": "file",
+      "name": "api.ts",
+      "path": "client/src/services/api.ts",
+      "module": "module:client-services",
+      "description": "Centralized HTTP client wrapping all backend REST endpoints with JWT handling"
+    },
+    {
+      "id": "file:client/src/types/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "path": "client/src/types/index.ts",
+      "module": "module:client-core",
+      "description": "TypeScript interface definitions for users, profiles, batches, orders, and mandis"
+    },
+    {
+      "id": "file:client/src/context/AuthContext.tsx",
+      "type": "file",
+      "name": "AuthContext.tsx",
+      "path": "client/src/context/AuthContext.tsx",
+      "module": "module:client-context",
+      "description": "Authentication context, session management, demo persona switcher, and notification polling"
+    },
+    {
+      "id": "file:client/src/context/CartContext.tsx",
+      "type": "file",
+      "name": "CartContext.tsx",
+      "path": "client/src/context/CartContext.tsx",
+      "module": "module:client-context",
+      "description": "Cart context managing shopping items, quantities, subtotal, and drawer toggle"
+    },
+    {
+      "id": "file:client/src/context/LanguageContext.tsx",
+      "type": "file",
+      "name": "LanguageContext.tsx",
+      "path": "client/src/context/LanguageContext.tsx",
+      "module": "module:client-context",
+      "description": "Dual-language context providing English and Tamil translations with key dictionary"
+    },
+    {
+      "id": "file:client/src/components/common/Navbar.tsx",
+      "type": "file",
+      "name": "Navbar.tsx",
+      "path": "client/src/components/common/Navbar.tsx",
+      "module": "module:client-components-common",
+      "description": "Global header with live mandi rate ticker, cart button, notifications, and language switcher"
+    },
+    {
+      "id": "file:client/src/components/common/DemoScenarioBar.tsx",
+      "type": "file",
+      "name": "DemoScenarioBar.tsx",
+      "path": "client/src/components/common/DemoScenarioBar.tsx",
+      "module": "module:client-components-common",
+      "description": "Top presenter bar for triggering 3 SIH evaluation scenarios and 5 persona switches"
+    },
+    {
+      "id": "file:client/src/components/common/FreshnessBadge.tsx",
+      "type": "file",
+      "name": "FreshnessBadge.tsx",
+      "path": "client/src/components/common/FreshnessBadge.tsx",
+      "module": "module:client-components-common",
+      "description": "Visual countdown badge showing FRESH, AGING, URGENT SALE, or EXPIRED with live time remaining"
+    },
+    {
+      "id": "file:client/src/components/common/FairPriceGauge.tsx",
+      "type": "file",
+      "name": "FairPriceGauge.tsx",
+      "path": "client/src/components/common/FairPriceGauge.tsx",
+      "module": "module:client-components-common",
+      "description": "Comparative pricing gauge showing APMC Mandi Modal vs KisanDirect vs Middlemen rates"
+    },
+    {
+      "id": "file:client/src/components/common/DeliveryMap.tsx",
+      "type": "file",
+      "name": "DeliveryMap.tsx",
+      "path": "client/src/components/common/DeliveryMap.tsx",
+      "module": "module:client-components-common",
+      "description": "SVG route visualization from farm clusters to hub to buyer delivery destination"
+    },
+    {
+      "id": "file:client/src/components/common/VoiceListingModal.tsx",
+      "type": "file",
+      "name": "VoiceListingModal.tsx",
+      "path": "client/src/components/common/VoiceListingModal.tsx",
+      "module": "module:client-components-common",
+      "description": "Simulated bilingual voice assistant parsing spoken harvests into structured produce batches"
+    },
+    {
+      "id": "file:client/src/components/common/MobileBottomNav.tsx",
+      "type": "file",
+      "name": "MobileBottomNav.tsx",
+      "path": "client/src/components/common/MobileBottomNav.tsx",
+      "module": "module:client-components-common",
+      "description": "Mobile bottom tab navigation bar"
+    },
+    {
+      "id": "file:client/src/components/common/OnboardingView.tsx",
+      "type": "file",
+      "name": "OnboardingView.tsx",
+      "path": "client/src/components/common/OnboardingView.tsx",
+      "module": "module:client-components-common",
+      "description": "4-step onboarding carousel introducing platform innovations and role selection"
+    },
+    {
+      "id": "file:client/src/components/common/SplashScreen.tsx",
+      "type": "file",
+      "name": "SplashScreen.tsx",
+      "path": "client/src/components/common/SplashScreen.tsx",
+      "module": "module:client-components-common",
+      "description": "Animated splash screen with SIH26033 problem statement tag"
+    },
+    {
+      "id": "file:client/src/features/farmer/FarmerDashboard.tsx",
+      "type": "file",
+      "name": "FarmerDashboard.tsx",
+      "path": "client/src/features/farmer/FarmerDashboard.tsx",
+      "module": "module:client-features-farmer",
+      "description": "Farmer overview with quick listing, pending offers, active orders, and live batch freshness"
+    },
+    {
+      "id": "file:client/src/features/farmer/AddProduce.tsx",
+      "type": "file",
+      "name": "AddProduce.tsx",
+      "path": "client/src/features/farmer/AddProduce.tsx",
+      "module": "module:client-features-farmer",
+      "description": "5-step produce listing wizard with photo upload, grade selection, shelf-life hours, and price gauge"
+    },
+    {
+      "id": "file:client/src/features/farmer/MyProduce.tsx",
+      "type": "file",
+      "name": "MyProduce.tsx",
+      "path": "client/src/features/farmer/MyProduce.tsx",
+      "module": "module:client-features-farmer",
+      "description": "Inventory management showing batch cards, freshness countdowns, and quick actions"
+    },
+    {
+      "id": "file:client/src/features/farmer/FarmerOffers.tsx",
+      "type": "file",
+      "name": "FarmerOffers.tsx",
+      "path": "client/src/features/farmer/FarmerOffers.tsx",
+      "module": "module:client-features-farmer",
+      "description": "Bilateral buyer offer inbox with Accept, Reject, and Counter-Offer actions"
+    },
+    {
+      "id": "file:client/src/features/farmer/FarmerCollective.tsx",
+      "type": "file",
+      "name": "FarmerCollective.tsx",
+      "path": "client/src/features/farmer/FarmerCollective.tsx",
+      "module": "module:client-features-farmer",
+      "description": "Collective selling pooling history showing farmer share in aggregated bulk orders"
+    },
+    {
+      "id": "file:client/src/features/farmer/FarmerOrders.tsx",
+      "type": "file",
+      "name": "FarmerOrders.tsx",
+      "path": "client/src/features/farmer/FarmerOrders.tsx",
+      "module": "module:client-features-farmer",
+      "description": "Farmer orders tracking pickup scheduling and collection center drop-offs"
+    },
+    {
+      "id": "file:client/src/features/farmer/FarmerEarnings.tsx",
+      "type": "file",
+      "name": "FarmerEarnings.tsx",
+      "path": "client/src/features/farmer/FarmerEarnings.tsx",
+      "module": "module:client-features-farmer",
+      "description": "Farmer earnings telemetry, released payouts, and middlemen savings comparison"
+    },
+    {
+      "id": "file:client/src/features/buyer/BuyerDashboard.tsx",
+      "type": "file",
+      "name": "BuyerDashboard.tsx",
+      "path": "client/src/features/buyer/BuyerDashboard.tsx",
+      "module": "module:client-features-buyer",
+      "description": "Buyer overview showing active demands, orders in transit, and total spend"
+    },
+    {
+      "id": "file:client/src/features/buyer/Marketplace.tsx",
+      "type": "file",
+      "name": "Marketplace.tsx",
+      "path": "client/src/features/buyer/Marketplace.tsx",
+      "module": "module:client-features-buyer",
+      "description": "Produce marketplace with filters (crop, grade, freshness, max price, sort) and add-to-cart"
+    },
+    {
+      "id": "file:client/src/features/buyer/PostDemand.tsx",
+      "type": "file",
+      "name": "PostDemand.tsx",
+      "path": "client/src/features/buyer/PostDemand.tsx",
+      "module": "module:client-features-buyer",
+      "description": "Commercial bulk demand form specifying quantity, budget band, required grade, and delivery deadline"
+    },
+    {
+      "id": "file:client/src/features/buyer/SmartMatches.tsx",
+      "type": "file",
+      "name": "SmartMatches.tsx",
+      "path": "client/src/features/buyer/SmartMatches.tsx",
+      "module": "module:client-features-buyer",
+      "description": "Smart match view displaying individual candidate batches and auto-formed collective supply pool"
+    },
+    {
+      "id": "file:client/src/features/buyer/ProductDetailPage.tsx",
+      "type": "file",
+      "name": "ProductDetailPage.tsx",
+      "path": "client/src/features/buyer/ProductDetailPage.tsx",
+      "module": "module:client-features-buyer",
+      "description": "Batch detail modal with freshness badge, farmer rating, quantity selector, and Buy Now"
+    },
+    {
+      "id": "file:client/src/features/buyer/CartDrawer.tsx",
+      "type": "file",
+      "name": "CartDrawer.tsx",
+      "path": "client/src/features/buyer/CartDrawer.tsx",
+      "module": "module:client-features-buyer",
+      "description": "Slide-over cart drawer with quantity adjustments, delivery fee calculation, and checkout CTA"
+    },
+    {
+      "id": "file:client/src/features/buyer/CheckoutModal.tsx",
+      "type": "file",
+      "name": "CheckoutModal.tsx",
+      "path": "client/src/features/buyer/CheckoutModal.tsx",
+      "module": "module:client-features-buyer",
+      "description": "Checkout dialog with address, phone, escrow payment authorization, and instant order placement"
+    },
+    {
+      "id": "file:client/src/features/buyer/BuyerOrders.tsx",
+      "type": "file",
+      "name": "BuyerOrders.tsx",
+      "path": "client/src/features/buyer/BuyerOrders.tsx",
+      "module": "module:client-features-buyer",
+      "description": "Order tracking view with 10-step progress bar, route map, escrow status, and rating submission"
+    },
+    {
+      "id": "file:client/src/features/coordinator/CoordinatorDashboard.tsx",
+      "type": "file",
+      "name": "CoordinatorDashboard.tsx",
+      "path": "client/src/features/coordinator/CoordinatorDashboard.tsx",
+      "module": "module:client-features-coordinator",
+      "description": "Coordinator hub with assisted farmer registration and voice batch listing"
+    },
+    {
+      "id": "file:client/src/features/logistics/LogisticsDashboard.tsx",
+      "type": "file",
+      "name": "LogisticsDashboard.tsx",
+      "path": "client/src/features/logistics/LogisticsDashboard.tsx",
+      "module": "module:client-features-logistics",
+      "description": "Fleet dashboard with pickups, deliveries, vehicles, and hub quality check submission"
+    },
+    {
+      "id": "file:client/src/features/admin/AdminDashboard.tsx",
+      "type": "file",
+      "name": "AdminDashboard.tsx",
+      "path": "client/src/features/admin/AdminDashboard.tsx",
+      "module": "module:client-features-admin",
+      "description": "Admin console with platform counts, financials, dispute arbitration, and impact metrics"
+    },
+    {
+      "id": "file:client/src/features/public/LandingPage.tsx",
+      "type": "file",
+      "name": "LandingPage.tsx",
+      "path": "client/src/features/public/LandingPage.tsx",
+      "module": "module:client-features-public",
+      "description": "Public landing hero, key innovations showcase, interactive mandi price widget, and persona CTAs"
+    },
+    {
+      "id": "file:client/src/features/public/HowItWorksPage.tsx",
+      "type": "file",
+      "name": "HowItWorksPage.tsx",
+      "path": "client/src/features/public/HowItWorksPage.tsx",
+      "module": "module:client-features-public",
+      "description": "Illustrated breakdown of 4-step farm-to-door direct supply chain"
+    },
+    {
+      "id": "file:client/src/features/public/ForFarmersPage.tsx",
+      "type": "file",
+      "name": "ForFarmersPage.tsx",
+      "path": "client/src/features/public/ForFarmersPage.tsx",
+      "module": "module:client-features-public",
+      "description": "Farmer-focused value proposition, voice listing demo, and price guarantee highlights"
+    },
+    {
+      "id": "file:client/src/features/public/ForBuyersPage.tsx",
+      "type": "file",
+      "name": "ForBuyersPage.tsx",
+      "path": "client/src/features/public/ForBuyersPage.tsx",
+      "module": "module:client-features-public",
+      "description": "Buyer-focused value proposition, commercial bulk pooling, and freshness guarantee"
+    },
+    {
+      "id": "file:client/src/features/public/ImpactPage.tsx",
+      "type": "file",
+      "name": "ImpactPage.tsx",
+      "path": "client/src/features/public/ImpactPage.tsx",
+      "module": "module:client-features-public",
+      "description": "Socio-economic impact metrics: farmer income increase, wastage reduction, and middlemen eliminated"
+    },
+    {
+      "id": "file:client/src/features/public/LoginPage.tsx",
+      "type": "file",
+      "name": "LoginPage.tsx",
+      "path": "client/src/features/public/LoginPage.tsx",
+      "module": "module:client-features-public",
+      "description": "Login form with mobile/email and password, plus quick persona login pills"
+    },
+    {
+      "id": "file:client/src/features/public/RegisterPage.tsx",
+      "type": "file",
+      "name": "RegisterPage.tsx",
+      "path": "client/src/features/public/RegisterPage.tsx",
+      "module": "module:client-features-public",
+      "description": "Role-based registration form with role selection (Farmer, Buyer, Coordinator)"
+    },
+    {
+      "id": "file:client/src/features/public/MarketRatesPage.tsx",
+      "type": "file",
+      "name": "MarketRatesPage.tsx",
+      "path": "client/src/features/public/MarketRatesPage.tsx",
+      "module": "module:client-features-public",
+      "description": "Dedicated live market rates explorer across 13 Tamil Nadu mandis with grid/table views"
+    },
+    {
+      "id": "file:client/src/features/public/ProfilePage.tsx",
+      "type": "file",
+      "name": "ProfilePage.tsx",
+      "path": "client/src/features/public/ProfilePage.tsx",
+      "module": "module:client-features-public",
+      "description": "User profile management showing verified status, contact details, and role info"
+    },
+    {
+      "id": "component:App",
+      "type": "component",
+      "name": "App",
+      "file": "client/src/App.tsx",
+      "source": "client/src/App.tsx",
+      "description": "Root component providing Context wrappers and rendering AppContent"
+    },
+    {
+      "id": "component:Navbar",
+      "type": "component",
+      "name": "Navbar",
+      "file": "client/src/components/common/Navbar.tsx",
+      "source": "client/src/components/common/Navbar.tsx",
+      "description": "Main navigation bar with live APMC rates ticker, cart drawer trigger, and language selector"
+    },
+    {
+      "id": "component:DemoScenarioBar",
+      "type": "component",
+      "name": "DemoScenarioBar",
+      "file": "client/src/components/common/DemoScenarioBar.tsx",
+      "source": "client/src/components/common/DemoScenarioBar.tsx",
+      "description": "Interactive demo switcher bar triggering 3 SIH scenarios and 5 user personas"
+    },
+    {
+      "id": "component:FreshnessBadge",
+      "type": "component",
+      "name": "FreshnessBadge",
+      "file": "client/src/components/common/FreshnessBadge.tsx",
+      "source": "client/src/components/common/FreshnessBadge.tsx",
+      "description": "Countdown badge reflecting produce freshness state and remaining shelf-life"
+    },
+    {
+      "id": "component:FairPriceGauge",
+      "type": "component",
+      "name": "FairPriceGauge",
+      "file": "client/src/components/common/FairPriceGauge.tsx",
+      "source": "client/src/components/common/FairPriceGauge.tsx",
+      "description": "Price benchmark gauge comparing APMC Mandi Modal with KisanDirect Fair Price"
+    },
+    {
+      "id": "component:DeliveryMap",
+      "type": "component",
+      "name": "DeliveryMap",
+      "file": "client/src/components/common/DeliveryMap.tsx",
+      "source": "client/src/components/common/DeliveryMap.tsx",
+      "description": "Interactive SVG route map showing collection center and delivery path"
+    },
+    {
+      "id": "component:VoiceListingModal",
+      "type": "component",
+      "name": "VoiceListingModal",
+      "file": "client/src/components/common/VoiceListingModal.tsx",
+      "source": "client/src/components/common/VoiceListingModal.tsx",
+      "description": "Speech-to-text assisted produce listing modal with Tamil audio prompts"
+    },
+    {
+      "id": "component:CartDrawer",
+      "type": "component",
+      "name": "CartDrawer",
+      "file": "client/src/features/buyer/CartDrawer.tsx",
+      "source": "client/src/features/buyer/CartDrawer.tsx",
+      "description": "Shopping cart slide-over drawer showing selected produce items and direct checkout action"
+    },
+    {
+      "id": "component:CheckoutModal",
+      "type": "component",
+      "name": "CheckoutModal",
+      "file": "client/src/features/buyer/CheckoutModal.tsx",
+      "source": "client/src/features/buyer/CheckoutModal.tsx",
+      "description": "Direct checkout confirmation dialog authorizing escrow payment"
+    },
+    {
+      "id": "component:SmartMatches",
+      "type": "component",
+      "name": "SmartMatches",
+      "file": "client/src/features/buyer/SmartMatches.tsx",
+      "source": "client/src/features/buyer/SmartMatches.tsx",
+      "description": "Displays candidate farmer matches and collective supply pool with single-click order creation"
+    },
+    {
+      "id": "component:Marketplace",
+      "type": "component",
+      "name": "Marketplace",
+      "file": "client/src/features/buyer/Marketplace.tsx",
+      "source": "client/src/features/buyer/Marketplace.tsx",
+      "description": "Browse and filter available produce with live freshness badges and add to cart"
+    },
+    {
+      "id": "component:BuyerOrders",
+      "type": "component",
+      "name": "BuyerOrders",
+      "file": "client/src/features/buyer/BuyerOrders.tsx",
+      "source": "client/src/features/buyer/BuyerOrders.tsx",
+      "description": "Interactive 10-step order tracking with delivery map and rating feedback"
+    },
+    {
+      "id": "component:AddProduce",
+      "type": "component",
+      "name": "AddProduce",
+      "file": "client/src/features/farmer/AddProduce.tsx",
+      "source": "client/src/features/farmer/AddProduce.tsx",
+      "description": "Step-by-step farmer produce upload with camera capture and fair price gauge"
+    },
+    {
+      "id": "component:FarmerOffers",
+      "type": "component",
+      "name": "FarmerOffers",
+      "file": "client/src/features/farmer/FarmerOffers.tsx",
+      "source": "client/src/features/farmer/FarmerOffers.tsx",
+      "description": "Negotiation offer management with accept, reject, and counter-offer dialog"
+    },
+    {
+      "id": "component:CoordinatorDashboard",
+      "type": "component",
+      "name": "CoordinatorDashboard",
+      "file": "client/src/features/coordinator/CoordinatorDashboard.tsx",
+      "source": "client/src/features/coordinator/CoordinatorDashboard.tsx",
+      "description": "Digital village coordinator desk for assisted farmer registration and voice harvest input"
+    },
+    {
+      "id": "component:LogisticsDashboard",
+      "type": "component",
+      "name": "LogisticsDashboard",
+      "file": "client/src/features/logistics/LogisticsDashboard.tsx",
+      "source": "client/src/features/logistics/LogisticsDashboard.tsx",
+      "description": "Fleet logistics desk with quality verification modal and delivery tracking"
+    },
+    {
+      "id": "component:AdminDashboard",
+      "type": "component",
+      "name": "AdminDashboard",
+      "file": "client/src/features/admin/AdminDashboard.tsx",
+      "source": "client/src/features/admin/AdminDashboard.tsx",
+      "description": "Governance control center with dispute resolution and impact calculations"
+    },
+    {
+      "id": "hook:useAuth",
+      "type": "hook",
+      "name": "useAuth",
+      "file": "client/src/context/AuthContext.tsx",
+      "source": "client/src/context/AuthContext.tsx",
+      "description": "Hook providing current user profile, login, logout, demoSwitch, and notifications"
+    },
+    {
+      "id": "hook:useCart",
+      "type": "hook",
+      "name": "useCart",
+      "file": "client/src/context/CartContext.tsx",
+      "source": "client/src/context/CartContext.tsx",
+      "description": "Hook providing shopping cart items, add/remove/update, subtotal, and drawer controls"
+    },
+    {
+      "id": "hook:useLanguage",
+      "type": "hook",
+      "name": "useLanguage",
+      "file": "client/src/context/LanguageContext.tsx",
+      "source": "client/src/context/LanguageContext.tsx",
+      "description": "Hook providing current language (en/ta), setLanguage, and translation function t(key)"
+    },
+    {
+      "id": "workflow:reverse-demand-collective-pooling",
+      "type": "workflow",
+      "name": "Workflow 1: Reverse Demand & Collective Supply Pooling (கூட்டு விற்பனை)",
+      "description": "Buyer posts 500kg demand -> MatchingService scores candidate farmers -> Collective pool auto-assembled -> Buyer confirms -> CollectiveSellingService creates order & locks escrow -> Farmers notified"
+    },
+    {
+      "id": "workflow:perishable-freshness-decay",
+      "type": "workflow",
+      "name": "Workflow 2: Freshness Decay, Urgent Sale & Auto-Expiration",
+      "description": "Farmer lists batch -> FreshnessService computes hourly decay -> At 4h enters URGENT SALE (15% discount) -> WhatsApp alert broadcast to B2B buyers -> At 0h marks EXPIRED and deactivates listing"
+    },
+    {
+      "id": "workflow:direct-cart-checkout",
+      "type": "workflow",
+      "name": "Workflow 3: Direct Cart Purchase & Escrow Authorization (Mode 1)",
+      "description": "Buyer browses marketplace -> Adds batches to cart -> Opens CartDrawer -> Clicks Checkout -> Authorizes escrow payment -> Order created -> Quantities deducted -> Farmers notified"
+    },
+    {
+      "id": "workflow:assisted-voice-listing",
+      "type": "workflow",
+      "name": "Workflow 4: Low-Literacy Farmer Assisted Voice Harvest Listing",
+      "description": "Farmer or Coordinator opens VoiceListingModal -> Speaks harvest details in Tamil/English -> Web Speech API extracts crop, qty, price -> Preview confirmed -> ProduceBatch created with unique batchCode"
+    },
+    {
+      "id": "workflow:order-fulfillment-state-machine",
+      "type": "workflow",
+      "name": "Workflow 5: 10-Stage Order Fulfillment & Quality Verification",
+      "description": "ORDERED -> ACCEPTED -> PICKUP_SCHEDULED -> COLLECTED -> QUALITY_CHECKED (hub inspection) -> PACKED -> DISPATCHED -> DELIVERED (GPS updates) -> PAYMENT_RELEASED (auto escrow payout to farmers) -> COMPLETED"
+    },
+    {
+      "id": "workflow:bilateral-offer-negotiation",
+      "type": "workflow",
+      "name": "Workflow 6: Direct Price Negotiation & Counter-Offers",
+      "description": "Buyer submits offer on farmer batch -> Farmer receives notification -> Farmer accepts (locks stock) OR counters with new price -> Buyer receives counter-offer -> Agreement leads to order"
+    },
+    {
+      "id": "workflow:dispute-arbitration",
+      "type": "workflow",
+      "name": "Workflow 7: Quality Dispute Arbitration & Resolution",
+      "description": "Buyer or Farmer raises dispute with reason & evidence -> Admin views dispute dashboard -> Examines weighing logs & photos -> Updates status to RESOLVED with notes -> Adjusts escrow payout"
+    },
+    {
+      "id": "config:PORT",
+      "type": "config",
+      "name": "PORT",
+      "description": "Server HTTP listening port (default: 5000)"
+    },
+    {
+      "id": "config:NODE_ENV",
+      "type": "config",
+      "name": "NODE_ENV",
+      "description": "Execution environment (development | production)"
+    },
+    {
+      "id": "config:DATABASE_URL",
+      "type": "config",
+      "name": "DATABASE_URL",
+      "description": "PostgreSQL or SQLite database connection URL for Prisma ORM"
+    },
+    {
+      "id": "config:DIRECT_URL",
+      "type": "config",
+      "name": "DIRECT_URL",
+      "description": "Direct connection URL bypassing transaction poolers for Prisma migrations"
+    },
+    {
+      "id": "config:SUPABASE_URL",
+      "type": "config",
+      "name": "SUPABASE_URL",
+      "description": "Supabase project API gateway endpoint"
+    },
+    {
+      "id": "config:SUPABASE_ANON_KEY",
+      "type": "config",
+      "name": "SUPABASE_ANON_KEY",
+      "description": "Supabase anonymous client public authorization key"
+    },
+    {
+      "id": "config:JWT_SECRET",
+      "type": "config",
+      "name": "JWT_SECRET",
+      "description": "HMAC SHA-256 secret key for signing and verifying user tokens"
+    },
+    {
+      "id": "config:JWT_EXPIRES_IN",
+      "type": "config",
+      "name": "JWT_EXPIRES_IN",
+      "description": "Token lifetime duration (default: 7d)"
+    },
+    {
+      "id": "config:DATA_GOV_IN_API_KEY",
+      "type": "config",
+      "name": "DATA_GOV_IN_API_KEY",
+      "description": "Government Agmarknet API key for live APMC mandi wholesale price synchronization"
+    },
+    {
+      "id": "config:MAPS_API_KEY",
+      "type": "config",
+      "name": "MAPS_API_KEY",
+      "description": "Mapping service API key for route rendering and geocoding"
+    },
+    {
+      "id": "config:PAYMENT_API_KEY",
+      "type": "config",
+      "name": "PAYMENT_API_KEY",
+      "description": "Payment gateway API key (e.g. Razorpay / Mock UPI)"
+    },
+    {
+      "id": "config:SMS_API_KEY",
+      "type": "config",
+      "name": "SMS_API_KEY",
+      "description": "SMS notification provider API key (e.g. Fast2SMS / Mock)"
+    },
+    {
+      "id": "config:VOICE_API_KEY",
+      "type": "config",
+      "name": "VOICE_API_KEY",
+      "description": "Speech recognition API key (Google Speech / Web Speech API)"
+    },
+    {
+      "id": "config:FRONTEND_URL",
+      "type": "config",
+      "name": "FRONTEND_URL",
+      "description": "Client application origin URL for CORS configuration (default: http://localhost:5173)"
+    }
+  ],
+  "relationships": [
+    {
+      "from": "module:database-schema",
+      "type": "contains",
+      "to": "table:User"
+    },
+    {
+      "from": "module:database-schema",
+      "type": "contains",
+      "to": "table:FarmerProfile"
+    },
+    {
+      "from": "module:database-schema",
+      "type": "contains",
+      "to": "table:BuyerProfile"
+    },
+    {
+      "from": "module:database-schema",
+      "type": "contains",
+      "to": "table:CoordinatorProfile"
+    },
+    {
+      "from": "module:database-schema",
+      "type": "contains",
+      "to": "table:Product"
+    },
+    {
+      "from": "module:database-schema",
+      "type": "contains",
+      "to": "table:FreshnessRule"
+    },
+    {
+      "from": "module:database-schema",
+      "type": "contains",
+      "to": "table:MarketPrice"
+    },
+    {
+      "from": "module:database-schema",
+      "type": "contains",
+      "to": "table:ProduceBatch"
+    },
+    {
+      "from": "module:database-schema",
+      "type": "contains",
+      "to": "table:BuyerDemand"
+    },
+    {
+      "from": "module:database-schema",
+      "type": "contains",
+      "to": "table:Offer"
+    },
+    {
+      "from": "module:database-schema",
+      "type": "contains",
+      "to": "table:OfferHistory"
+    },
+    {
+      "from": "module:database-schema",
+      "type": "contains",
+      "to": "table:CollectiveOrder"
+    },
+    {
+      "from": "module:database-schema",
+      "type": "contains",
+      "to": "table:CollectiveOrderMember"
+    },
+    {
+      "from": "module:database-schema",
+      "type": "contains",
+      "to": "table:Order"
+    },
+    {
+      "from": "module:database-schema",
+      "type": "contains",
+      "to": "table:OrderItem"
+    },
+    {
+      "from": "module:database-schema",
+      "type": "contains",
+      "to": "table:CollectionCenter"
+    },
+    {
+      "from": "module:database-schema",
+      "type": "contains",
+      "to": "table:QualityCheck"
+    },
+    {
+      "from": "module:database-schema",
+      "type": "contains",
+      "to": "table:Vehicle"
+    },
+    {
+      "from": "module:database-schema",
+      "type": "contains",
+      "to": "table:PickupRequest"
+    },
+    {
+      "from": "module:database-schema",
+      "type": "contains",
+      "to": "table:Delivery"
+    },
+    {
+      "from": "module:database-schema",
+      "type": "contains",
+      "to": "table:Payment"
+    },
+    {
+      "from": "module:database-schema",
+      "type": "contains",
+      "to": "table:FarmerPayout"
+    },
+    {
+      "from": "module:database-schema",
+      "type": "contains",
+      "to": "table:Rating"
+    },
+    {
+      "from": "module:database-schema",
+      "type": "contains",
+      "to": "table:Notification"
+    },
+    {
+      "from": "module:database-schema",
+      "type": "contains",
+      "to": "table:Dispute"
+    },
+    {
+      "from": "module:database-schema",
+      "type": "contains",
+      "to": "table:ProductImage"
+    },
+    {
+      "from": "module:database-schema",
+      "type": "contains",
+      "to": "table:Cart"
+    },
+    {
+      "from": "module:database-schema",
+      "type": "contains",
+      "to": "table:CartItem"
+    },
+    {
+      "from": "module:server-core",
+      "type": "contains",
+      "to": "file:server/src/index.ts"
+    },
+    {
+      "from": "module:database-schema",
+      "type": "contains",
+      "to": "file:server/prisma/schema.prisma"
+    },
+    {
+      "from": "module:database-schema",
+      "type": "contains",
+      "to": "file:server/prisma/seed.ts"
+    },
+    {
+      "from": "module:server-config",
+      "type": "contains",
+      "to": "file:server/src/config/db.ts"
+    },
+    {
+      "from": "module:server-config",
+      "type": "contains",
+      "to": "file:server/src/config/env.ts"
+    },
+    {
+      "from": "module:server-middleware",
+      "type": "contains",
+      "to": "file:server/src/middleware/auth.ts"
+    },
+    {
+      "from": "module:server-services",
+      "type": "contains",
+      "to": "file:server/src/services/collectiveSellingService.ts"
+    },
+    {
+      "from": "module:server-services",
+      "type": "contains",
+      "to": "file:server/src/services/freshnessService.ts"
+    },
+    {
+      "from": "module:server-services",
+      "type": "contains",
+      "to": "file:server/src/services/marketPriceService.ts"
+    },
+    {
+      "from": "module:server-services",
+      "type": "contains",
+      "to": "file:server/src/services/matchingService.ts"
+    },
+    {
+      "from": "module:server-services",
+      "type": "contains",
+      "to": "file:server/src/services/notificationService.ts"
+    },
+    {
+      "from": "module:server-services",
+      "type": "contains",
+      "to": "file:server/src/services/orderStateMachine.ts"
+    },
+    {
+      "from": "module:server-services",
+      "type": "contains",
+      "to": "file:server/src/services/paymentService.ts"
+    },
+    {
+      "from": "module:server-routes",
+      "type": "contains",
+      "to": "file:server/src/routes/authRoutes.ts"
+    },
+    {
+      "from": "module:server-routes",
+      "type": "contains",
+      "to": "file:server/src/routes/farmerRoutes.ts"
+    },
+    {
+      "from": "module:server-routes",
+      "type": "contains",
+      "to": "file:server/src/routes/buyerRoutes.ts"
+    },
+    {
+      "from": "module:server-routes",
+      "type": "contains",
+      "to": "file:server/src/routes/orderRoutes.ts"
+    },
+    {
+      "from": "module:server-routes",
+      "type": "contains",
+      "to": "file:server/src/routes/logisticsRoutes.ts"
+    },
+    {
+      "from": "module:server-routes",
+      "type": "contains",
+      "to": "file:server/src/routes/qualityRoutes.ts"
+    },
+    {
+      "from": "module:server-routes",
+      "type": "contains",
+      "to": "file:server/src/routes/paymentRoutes.ts"
+    },
+    {
+      "from": "module:server-routes",
+      "type": "contains",
+      "to": "file:server/src/routes/ratingRoutes.ts"
+    },
+    {
+      "from": "module:server-routes",
+      "type": "contains",
+      "to": "file:server/src/routes/coordinatorRoutes.ts"
+    },
+    {
+      "from": "module:server-routes",
+      "type": "contains",
+      "to": "file:server/src/routes/adminRoutes.ts"
+    },
+    {
+      "from": "module:server-routes",
+      "type": "contains",
+      "to": "file:server/src/routes/notificationRoutes.ts"
+    },
+    {
+      "from": "module:server-routes",
+      "type": "contains",
+      "to": "file:server/src/routes/demoRoutes.ts"
+    },
+    {
+      "from": "module:server-routes",
+      "type": "contains",
+      "to": "file:server/src/routes/marketPriceRoutes.ts"
+    },
+    {
+      "from": "module:server-routes",
+      "type": "contains",
+      "to": "file:server/src/routes/uploadRoutes.ts"
+    },
+    {
+      "from": "file:server/src/middleware/auth.ts",
+      "type": "contains",
+      "to": "function:authenticateToken"
+    },
+    {
+      "from": "file:server/src/middleware/auth.ts",
+      "type": "contains",
+      "to": "function:requireRole"
+    },
+    {
+      "from": "file:server/src/services/collectiveSellingService.ts",
+      "type": "contains",
+      "to": "function:CollectiveSellingService.createCollectiveOrder"
+    },
+    {
+      "from": "file:server/src/services/freshnessService.ts",
+      "type": "contains",
+      "to": "function:FreshnessService.calculateFreshness"
+    },
+    {
+      "from": "file:server/src/services/freshnessService.ts",
+      "type": "contains",
+      "to": "function:FreshnessService.evaluateAllActiveBatches"
+    },
+    {
+      "from": "file:server/src/services/matchingService.ts",
+      "type": "contains",
+      "to": "function:MatchingService.calculateDistance"
+    },
+    {
+      "from": "file:server/src/services/matchingService.ts",
+      "type": "contains",
+      "to": "function:MatchingService.evaluateBatchSuitability"
+    },
+    {
+      "from": "file:server/src/services/matchingService.ts",
+      "type": "contains",
+      "to": "function:MatchingService.findMatchesForDemand"
+    },
+    {
+      "from": "file:server/src/services/matchingService.ts",
+      "type": "contains",
+      "to": "function:MatchingService.buildCollectiveSupplyPool"
+    },
+    {
+      "from": "file:server/src/services/orderStateMachine.ts",
+      "type": "contains",
+      "to": "function:OrderStateMachine.isValidTransition"
+    },
+    {
+      "from": "file:server/src/services/orderStateMachine.ts",
+      "type": "contains",
+      "to": "function:OrderStateMachine.transitionOrder"
+    },
+    {
+      "from": "file:server/src/services/marketPriceService.ts",
+      "type": "contains",
+      "to": "function:MarketPriceService.getDailyRates"
+    },
+    {
+      "from": "file:server/src/services/marketPriceService.ts",
+      "type": "contains",
+      "to": "function:MarketPriceService.getTickerRates"
+    },
+    {
+      "from": "file:server/src/services/paymentService.ts",
+      "type": "contains",
+      "to": "function:PaymentService.authorizePayment"
+    },
+    {
+      "from": "file:server/src/services/paymentService.ts",
+      "type": "contains",
+      "to": "function:PaymentService.releasePayment"
+    },
+    {
+      "from": "file:server/src/services/notificationService.ts",
+      "type": "contains",
+      "to": "function:NotificationService.notify"
+    },
+    {
+      "from": "file:server/src/services/notificationService.ts",
+      "type": "contains",
+      "to": "function:NotificationService.broadcastUrgentSale"
+    },
+    {
+      "from": "file:server/src/routes/authRoutes.ts",
+      "type": "contains",
+      "to": "api:POST /api/auth/register"
+    },
+    {
+      "from": "file:server/src/routes/authRoutes.ts",
+      "type": "contains",
+      "to": "api:POST /api/auth/login"
+    },
+    {
+      "from": "file:server/src/routes/authRoutes.ts",
+      "type": "contains",
+      "to": "api:POST /api/auth/verify-otp"
+    },
+    {
+      "from": "file:server/src/routes/authRoutes.ts",
+      "type": "contains",
+      "to": "api:POST /api/auth/demo-switch"
+    },
+    {
+      "from": "file:server/src/routes/authRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/auth/me"
+    },
+    {
+      "from": "file:server/src/routes/uploadRoutes.ts",
+      "type": "contains",
+      "to": "api:POST /api/upload"
+    },
+    {
+      "from": "file:server/src/routes/farmerRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/farmers/products"
+    },
+    {
+      "from": "file:server/src/routes/farmerRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/farmers/dashboard"
+    },
+    {
+      "from": "file:server/src/routes/farmerRoutes.ts",
+      "type": "contains",
+      "to": "api:POST /api/farmers/batches"
+    },
+    {
+      "from": "file:server/src/routes/farmerRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/farmers/batches"
+    },
+    {
+      "from": "file:server/src/routes/farmerRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/farmers/offers"
+    },
+    {
+      "from": "file:server/src/routes/farmerRoutes.ts",
+      "type": "contains",
+      "to": "api:PATCH /api/farmers/offers/:id/accept"
+    },
+    {
+      "from": "file:server/src/routes/farmerRoutes.ts",
+      "type": "contains",
+      "to": "api:PATCH /api/farmers/offers/:id/reject"
+    },
+    {
+      "from": "file:server/src/routes/farmerRoutes.ts",
+      "type": "contains",
+      "to": "api:POST /api/farmers/offers/:id/counter"
+    },
+    {
+      "from": "file:server/src/routes/farmerRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/farmers/orders"
+    },
+    {
+      "from": "file:server/src/routes/farmerRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/farmers/collective-pools"
+    },
+    {
+      "from": "file:server/src/routes/farmerRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/farmers/earnings"
+    },
+    {
+      "from": "file:server/src/routes/buyerRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/buyers/dashboard"
+    },
+    {
+      "from": "file:server/src/routes/buyerRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/buyers/marketplace"
+    },
+    {
+      "from": "file:server/src/routes/buyerRoutes.ts",
+      "type": "contains",
+      "to": "api:POST /api/buyers/demands"
+    },
+    {
+      "from": "file:server/src/routes/buyerRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/buyers/demands"
+    },
+    {
+      "from": "file:server/src/routes/buyerRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/buyers/demands/:id/matches"
+    },
+    {
+      "from": "file:server/src/routes/buyerRoutes.ts",
+      "type": "contains",
+      "to": "api:POST /api/buyers/demands/:id/offers"
+    },
+    {
+      "from": "file:server/src/routes/buyerRoutes.ts",
+      "type": "contains",
+      "to": "api:POST /api/buyers/demands/:id/collective-order"
+    },
+    {
+      "from": "file:server/src/routes/buyerRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/buyers/orders"
+    },
+    {
+      "from": "file:server/src/routes/buyerRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/buyers/cart"
+    },
+    {
+      "from": "file:server/src/routes/buyerRoutes.ts",
+      "type": "contains",
+      "to": "api:POST /api/buyers/cart/items"
+    },
+    {
+      "from": "file:server/src/routes/buyerRoutes.ts",
+      "type": "contains",
+      "to": "api:PATCH /api/buyers/cart/items/:id"
+    },
+    {
+      "from": "file:server/src/routes/buyerRoutes.ts",
+      "type": "contains",
+      "to": "api:DELETE /api/buyers/cart/items/:id"
+    },
+    {
+      "from": "file:server/src/routes/buyerRoutes.ts",
+      "type": "contains",
+      "to": "api:DELETE /api/buyers/cart"
+    },
+    {
+      "from": "file:server/src/routes/buyerRoutes.ts",
+      "type": "contains",
+      "to": "api:POST /api/buyers/checkout"
+    },
+    {
+      "from": "file:server/src/routes/orderRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/orders/:id"
+    },
+    {
+      "from": "file:server/src/routes/orderRoutes.ts",
+      "type": "contains",
+      "to": "api:PATCH /api/orders/:id/status"
+    },
+    {
+      "from": "file:server/src/routes/orderRoutes.ts",
+      "type": "contains",
+      "to": "api:POST /api/orders/:id/dispute"
+    },
+    {
+      "from": "file:server/src/routes/logisticsRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/logistics/pickups"
+    },
+    {
+      "from": "file:server/src/routes/logisticsRoutes.ts",
+      "type": "contains",
+      "to": "api:POST /api/logistics/pickups"
+    },
+    {
+      "from": "file:server/src/routes/logisticsRoutes.ts",
+      "type": "contains",
+      "to": "api:PATCH /api/logistics/pickups/:id"
+    },
+    {
+      "from": "file:server/src/routes/logisticsRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/logistics/deliveries"
+    },
+    {
+      "from": "file:server/src/routes/logisticsRoutes.ts",
+      "type": "contains",
+      "to": "api:PATCH /api/logistics/deliveries/:id/status"
+    },
+    {
+      "from": "file:server/src/routes/logisticsRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/logistics/vehicles"
+    },
+    {
+      "from": "file:server/src/routes/logisticsRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/logistics/collection-centers"
+    },
+    {
+      "from": "file:server/src/routes/qualityRoutes.ts",
+      "type": "contains",
+      "to": "api:POST /api/quality-checks"
+    },
+    {
+      "from": "file:server/src/routes/qualityRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/quality-checks/:id"
+    },
+    {
+      "from": "file:server/src/routes/paymentRoutes.ts",
+      "type": "contains",
+      "to": "api:POST /api/payments/create"
+    },
+    {
+      "from": "file:server/src/routes/paymentRoutes.ts",
+      "type": "contains",
+      "to": "api:POST /api/payments/release/:id"
+    },
+    {
+      "from": "file:server/src/routes/paymentRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/payments/:id"
+    },
+    {
+      "from": "file:server/src/routes/ratingRoutes.ts",
+      "type": "contains",
+      "to": "api:POST /api/ratings"
+    },
+    {
+      "from": "file:server/src/routes/ratingRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/ratings/:userId"
+    },
+    {
+      "from": "file:server/src/routes/coordinatorRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/coordinator/farmers"
+    },
+    {
+      "from": "file:server/src/routes/coordinatorRoutes.ts",
+      "type": "contains",
+      "to": "api:POST /api/coordinator/register-farmer"
+    },
+    {
+      "from": "file:server/src/routes/coordinatorRoutes.ts",
+      "type": "contains",
+      "to": "api:POST /api/coordinator/create-batch"
+    },
+    {
+      "from": "file:server/src/routes/coordinatorRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/coordinator/dashboard"
+    },
+    {
+      "from": "file:server/src/routes/adminRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/admin/dashboard"
+    },
+    {
+      "from": "file:server/src/routes/adminRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/admin/farmers"
+    },
+    {
+      "from": "file:server/src/routes/adminRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/admin/buyers"
+    },
+    {
+      "from": "file:server/src/routes/adminRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/admin/listings"
+    },
+    {
+      "from": "file:server/src/routes/adminRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/admin/orders"
+    },
+    {
+      "from": "file:server/src/routes/adminRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/admin/disputes"
+    },
+    {
+      "from": "file:server/src/routes/adminRoutes.ts",
+      "type": "contains",
+      "to": "api:PATCH /api/admin/disputes/:id"
+    },
+    {
+      "from": "file:server/src/routes/adminRoutes.ts",
+      "type": "contains",
+      "to": "api:PATCH /api/admin/users/:id/status"
+    },
+    {
+      "from": "file:server/src/routes/notificationRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/notifications"
+    },
+    {
+      "from": "file:server/src/routes/notificationRoutes.ts",
+      "type": "contains",
+      "to": "api:PATCH /api/notifications/:id/read"
+    },
+    {
+      "from": "file:server/src/routes/notificationRoutes.ts",
+      "type": "contains",
+      "to": "api:PATCH /api/notifications/read-all"
+    },
+    {
+      "from": "file:server/src/routes/demoRoutes.ts",
+      "type": "contains",
+      "to": "api:POST /api/demo/simulate-urgency"
+    },
+    {
+      "from": "file:server/src/routes/demoRoutes.ts",
+      "type": "contains",
+      "to": "api:POST /api/demo/simulate-expiry"
+    },
+    {
+      "from": "file:server/src/routes/marketPriceRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/market-prices/daily"
+    },
+    {
+      "from": "file:server/src/routes/marketPriceRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/market-prices/ticker"
+    },
+    {
+      "from": "file:server/src/routes/marketPriceRoutes.ts",
+      "type": "contains",
+      "to": "api:GET /api/market-prices/mandis"
+    },
+    {
+      "from": "module:client-core",
+      "type": "contains",
+      "to": "file:client/src/main.tsx"
+    },
+    {
+      "from": "module:client-core",
+      "type": "contains",
+      "to": "file:client/src/vite-env.d.ts"
+    },
+    {
+      "from": "module:client-core",
+      "type": "contains",
+      "to": "file:client/src/App.tsx"
+    },
+    {
+      "from": "module:client-services",
+      "type": "contains",
+      "to": "file:client/src/services/api.ts"
+    },
+    {
+      "from": "module:client-core",
+      "type": "contains",
+      "to": "file:client/src/types/index.ts"
+    },
+    {
+      "from": "module:client-context",
+      "type": "contains",
+      "to": "file:client/src/context/AuthContext.tsx"
+    },
+    {
+      "from": "module:client-context",
+      "type": "contains",
+      "to": "file:client/src/context/CartContext.tsx"
+    },
+    {
+      "from": "module:client-context",
+      "type": "contains",
+      "to": "file:client/src/context/LanguageContext.tsx"
+    },
+    {
+      "from": "module:client-components-common",
+      "type": "contains",
+      "to": "file:client/src/components/common/Navbar.tsx"
+    },
+    {
+      "from": "module:client-components-common",
+      "type": "contains",
+      "to": "file:client/src/components/common/DemoScenarioBar.tsx"
+    },
+    {
+      "from": "module:client-components-common",
+      "type": "contains",
+      "to": "file:client/src/components/common/FreshnessBadge.tsx"
+    },
+    {
+      "from": "module:client-components-common",
+      "type": "contains",
+      "to": "file:client/src/components/common/FairPriceGauge.tsx"
+    },
+    {
+      "from": "module:client-components-common",
+      "type": "contains",
+      "to": "file:client/src/components/common/DeliveryMap.tsx"
+    },
+    {
+      "from": "module:client-components-common",
+      "type": "contains",
+      "to": "file:client/src/components/common/VoiceListingModal.tsx"
+    },
+    {
+      "from": "module:client-components-common",
+      "type": "contains",
+      "to": "file:client/src/components/common/MobileBottomNav.tsx"
+    },
+    {
+      "from": "module:client-components-common",
+      "type": "contains",
+      "to": "file:client/src/components/common/OnboardingView.tsx"
+    },
+    {
+      "from": "module:client-components-common",
+      "type": "contains",
+      "to": "file:client/src/components/common/SplashScreen.tsx"
+    },
+    {
+      "from": "module:client-features-farmer",
+      "type": "contains",
+      "to": "file:client/src/features/farmer/FarmerDashboard.tsx"
+    },
+    {
+      "from": "module:client-features-farmer",
+      "type": "contains",
+      "to": "file:client/src/features/farmer/AddProduce.tsx"
+    },
+    {
+      "from": "module:client-features-farmer",
+      "type": "contains",
+      "to": "file:client/src/features/farmer/MyProduce.tsx"
+    },
+    {
+      "from": "module:client-features-farmer",
+      "type": "contains",
+      "to": "file:client/src/features/farmer/FarmerOffers.tsx"
+    },
+    {
+      "from": "module:client-features-farmer",
+      "type": "contains",
+      "to": "file:client/src/features/farmer/FarmerCollective.tsx"
+    },
+    {
+      "from": "module:client-features-farmer",
+      "type": "contains",
+      "to": "file:client/src/features/farmer/FarmerOrders.tsx"
+    },
+    {
+      "from": "module:client-features-farmer",
+      "type": "contains",
+      "to": "file:client/src/features/farmer/FarmerEarnings.tsx"
+    },
+    {
+      "from": "module:client-features-buyer",
+      "type": "contains",
+      "to": "file:client/src/features/buyer/BuyerDashboard.tsx"
+    },
+    {
+      "from": "module:client-features-buyer",
+      "type": "contains",
+      "to": "file:client/src/features/buyer/Marketplace.tsx"
+    },
+    {
+      "from": "module:client-features-buyer",
+      "type": "contains",
+      "to": "file:client/src/features/buyer/PostDemand.tsx"
+    },
+    {
+      "from": "module:client-features-buyer",
+      "type": "contains",
+      "to": "file:client/src/features/buyer/SmartMatches.tsx"
+    },
+    {
+      "from": "module:client-features-buyer",
+      "type": "contains",
+      "to": "file:client/src/features/buyer/ProductDetailPage.tsx"
+    },
+    {
+      "from": "module:client-features-buyer",
+      "type": "contains",
+      "to": "file:client/src/features/buyer/CartDrawer.tsx"
+    },
+    {
+      "from": "module:client-features-buyer",
+      "type": "contains",
+      "to": "file:client/src/features/buyer/CheckoutModal.tsx"
+    },
+    {
+      "from": "module:client-features-buyer",
+      "type": "contains",
+      "to": "file:client/src/features/buyer/BuyerOrders.tsx"
+    },
+    {
+      "from": "module:client-features-coordinator",
+      "type": "contains",
+      "to": "file:client/src/features/coordinator/CoordinatorDashboard.tsx"
+    },
+    {
+      "from": "module:client-features-logistics",
+      "type": "contains",
+      "to": "file:client/src/features/logistics/LogisticsDashboard.tsx"
+    },
+    {
+      "from": "module:client-features-admin",
+      "type": "contains",
+      "to": "file:client/src/features/admin/AdminDashboard.tsx"
+    },
+    {
+      "from": "module:client-features-public",
+      "type": "contains",
+      "to": "file:client/src/features/public/LandingPage.tsx"
+    },
+    {
+      "from": "module:client-features-public",
+      "type": "contains",
+      "to": "file:client/src/features/public/HowItWorksPage.tsx"
+    },
+    {
+      "from": "module:client-features-public",
+      "type": "contains",
+      "to": "file:client/src/features/public/ForFarmersPage.tsx"
+    },
+    {
+      "from": "module:client-features-public",
+      "type": "contains",
+      "to": "file:client/src/features/public/ForBuyersPage.tsx"
+    },
+    {
+      "from": "module:client-features-public",
+      "type": "contains",
+      "to": "file:client/src/features/public/ImpactPage.tsx"
+    },
+    {
+      "from": "module:client-features-public",
+      "type": "contains",
+      "to": "file:client/src/features/public/LoginPage.tsx"
+    },
+    {
+      "from": "module:client-features-public",
+      "type": "contains",
+      "to": "file:client/src/features/public/RegisterPage.tsx"
+    },
+    {
+      "from": "module:client-features-public",
+      "type": "contains",
+      "to": "file:client/src/features/public/MarketRatesPage.tsx"
+    },
+    {
+      "from": "module:client-features-public",
+      "type": "contains",
+      "to": "file:client/src/features/public/ProfilePage.tsx"
+    },
+    {
+      "from": "file:client/src/App.tsx",
+      "type": "contains",
+      "to": "component:App"
+    },
+    {
+      "from": "file:client/src/components/common/Navbar.tsx",
+      "type": "contains",
+      "to": "component:Navbar"
+    },
+    {
+      "from": "file:client/src/components/common/DemoScenarioBar.tsx",
+      "type": "contains",
+      "to": "component:DemoScenarioBar"
+    },
+    {
+      "from": "file:client/src/components/common/FreshnessBadge.tsx",
+      "type": "contains",
+      "to": "component:FreshnessBadge"
+    },
+    {
+      "from": "file:client/src/components/common/FairPriceGauge.tsx",
+      "type": "contains",
+      "to": "component:FairPriceGauge"
+    },
+    {
+      "from": "file:client/src/components/common/DeliveryMap.tsx",
+      "type": "contains",
+      "to": "component:DeliveryMap"
+    },
+    {
+      "from": "file:client/src/components/common/VoiceListingModal.tsx",
+      "type": "contains",
+      "to": "component:VoiceListingModal"
+    },
+    {
+      "from": "file:client/src/features/buyer/CartDrawer.tsx",
+      "type": "contains",
+      "to": "component:CartDrawer"
+    },
+    {
+      "from": "file:client/src/features/buyer/CheckoutModal.tsx",
+      "type": "contains",
+      "to": "component:CheckoutModal"
+    },
+    {
+      "from": "file:client/src/features/buyer/SmartMatches.tsx",
+      "type": "contains",
+      "to": "component:SmartMatches"
+    },
+    {
+      "from": "file:client/src/features/buyer/Marketplace.tsx",
+      "type": "contains",
+      "to": "component:Marketplace"
+    },
+    {
+      "from": "file:client/src/features/buyer/BuyerOrders.tsx",
+      "type": "contains",
+      "to": "component:BuyerOrders"
+    },
+    {
+      "from": "file:client/src/features/farmer/AddProduce.tsx",
+      "type": "contains",
+      "to": "component:AddProduce"
+    },
+    {
+      "from": "file:client/src/features/farmer/FarmerOffers.tsx",
+      "type": "contains",
+      "to": "component:FarmerOffers"
+    },
+    {
+      "from": "file:client/src/features/coordinator/CoordinatorDashboard.tsx",
+      "type": "contains",
+      "to": "component:CoordinatorDashboard"
+    },
+    {
+      "from": "file:client/src/features/logistics/LogisticsDashboard.tsx",
+      "type": "contains",
+      "to": "component:LogisticsDashboard"
+    },
+    {
+      "from": "file:client/src/features/admin/AdminDashboard.tsx",
+      "type": "contains",
+      "to": "component:AdminDashboard"
+    },
+    {
+      "from": "file:client/src/context/AuthContext.tsx",
+      "type": "contains",
+      "to": "hook:useAuth"
+    },
+    {
+      "from": "file:client/src/context/CartContext.tsx",
+      "type": "contains",
+      "to": "hook:useCart"
+    },
+    {
+      "from": "file:client/src/context/LanguageContext.tsx",
+      "type": "contains",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "function:CollectiveSellingService.createCollectiveOrder",
+      "type": "queries",
+      "to": "table:ProduceBatch"
+    },
+    {
+      "from": "function:CollectiveSellingService.createCollectiveOrder",
+      "type": "queries",
+      "to": "table:FarmerProfile"
+    },
+    {
+      "from": "function:CollectiveSellingService.createCollectiveOrder",
+      "type": "mutates",
+      "to": "table:CollectiveOrder"
+    },
+    {
+      "from": "function:CollectiveSellingService.createCollectiveOrder",
+      "type": "mutates",
+      "to": "table:Order"
+    },
+    {
+      "from": "function:CollectiveSellingService.createCollectiveOrder",
+      "type": "mutates",
+      "to": "table:CollectiveOrderMember"
+    },
+    {
+      "from": "function:CollectiveSellingService.createCollectiveOrder",
+      "type": "mutates",
+      "to": "table:OrderItem"
+    },
+    {
+      "from": "function:CollectiveSellingService.createCollectiveOrder",
+      "type": "mutates",
+      "to": "table:ProduceBatch"
+    },
+    {
+      "from": "function:CollectiveSellingService.createCollectiveOrder",
+      "type": "mutates",
+      "to": "table:BuyerDemand"
+    },
+    {
+      "from": "function:CollectiveSellingService.createCollectiveOrder",
+      "type": "mutates",
+      "to": "table:Payment"
+    },
+    {
+      "from": "function:CollectiveSellingService.createCollectiveOrder",
+      "type": "mutates",
+      "to": "table:Notification"
+    },
+    {
+      "from": "function:FreshnessService.calculateFreshness",
+      "type": "reads",
+      "to": "table:FreshnessRule"
+    },
+    {
+      "from": "function:FreshnessService.evaluateAllActiveBatches",
+      "type": "queries",
+      "to": "table:ProduceBatch"
+    },
+    {
+      "from": "function:FreshnessService.evaluateAllActiveBatches",
+      "type": "queries",
+      "to": "table:Product"
+    },
+    {
+      "from": "function:FreshnessService.evaluateAllActiveBatches",
+      "type": "mutates",
+      "to": "table:ProduceBatch"
+    },
+    {
+      "from": "function:MatchingService.findMatchesForDemand",
+      "type": "queries",
+      "to": "table:BuyerDemand"
+    },
+    {
+      "from": "function:MatchingService.findMatchesForDemand",
+      "type": "queries",
+      "to": "table:ProduceBatch"
+    },
+    {
+      "from": "function:MatchingService.findMatchesForDemand",
+      "type": "calls",
+      "to": "function:MatchingService.calculateDistance"
+    },
+    {
+      "from": "function:MatchingService.findMatchesForDemand",
+      "type": "calls",
+      "to": "function:MatchingService.evaluateBatchSuitability"
+    },
+    {
+      "from": "function:MatchingService.findMatchesForDemand",
+      "type": "calls",
+      "to": "function:MatchingService.buildCollectiveSupplyPool"
+    },
+    {
+      "from": "function:OrderStateMachine.transitionOrder",
+      "type": "queries",
+      "to": "table:Order"
+    },
+    {
+      "from": "function:OrderStateMachine.transitionOrder",
+      "type": "mutates",
+      "to": "table:Order"
+    },
+    {
+      "from": "function:OrderStateMachine.transitionOrder",
+      "type": "mutates",
+      "to": "table:Payment"
+    },
+    {
+      "from": "function:OrderStateMachine.transitionOrder",
+      "type": "mutates",
+      "to": "table:FarmerPayout"
+    },
+    {
+      "from": "function:OrderStateMachine.transitionOrder",
+      "type": "mutates",
+      "to": "table:FarmerProfile"
+    },
+    {
+      "from": "function:OrderStateMachine.transitionOrder",
+      "type": "mutates",
+      "to": "table:ProduceBatch"
+    },
+    {
+      "from": "function:OrderStateMachine.transitionOrder",
+      "type": "mutates",
+      "to": "table:Notification"
+    },
+    {
+      "from": "function:PaymentService.authorizePayment",
+      "type": "queries",
+      "to": "table:Order"
+    },
+    {
+      "from": "function:PaymentService.authorizePayment",
+      "type": "mutates",
+      "to": "table:Payment"
+    },
+    {
+      "from": "function:PaymentService.releasePayment",
+      "type": "queries",
+      "to": "table:Payment"
+    },
+    {
+      "from": "function:PaymentService.releasePayment",
+      "type": "mutates",
+      "to": "table:Payment"
+    },
+    {
+      "from": "function:PaymentService.releasePayment",
+      "type": "mutates",
+      "to": "table:FarmerPayout"
+    },
+    {
+      "from": "function:NotificationService.notify",
+      "type": "mutates",
+      "to": "table:Notification"
+    },
+    {
+      "from": "function:NotificationService.broadcastUrgentSale",
+      "type": "queries",
+      "to": "table:BuyerProfile"
+    },
+    {
+      "from": "function:NotificationService.broadcastUrgentSale",
+      "type": "mutates",
+      "to": "table:Notification"
+    },
+    {
+      "from": "api:POST /api/auth/register",
+      "type": "mutates",
+      "to": "table:User"
+    },
+    {
+      "from": "api:POST /api/auth/register",
+      "type": "mutates",
+      "to": "table:FarmerProfile"
+    },
+    {
+      "from": "api:POST /api/auth/register",
+      "type": "mutates",
+      "to": "table:BuyerProfile"
+    },
+    {
+      "from": "api:POST /api/auth/register",
+      "type": "mutates",
+      "to": "table:CoordinatorProfile"
+    },
+    {
+      "from": "api:POST /api/auth/login",
+      "type": "queries",
+      "to": "table:User"
+    },
+    {
+      "from": "api:GET /api/auth/me",
+      "type": "queries",
+      "to": "table:User"
+    },
+    {
+      "from": "api:POST /api/auth/demo-switch",
+      "type": "queries",
+      "to": "table:User"
+    },
+    {
+      "from": "api:GET /api/farmers/products",
+      "type": "queries",
+      "to": "table:Product"
+    },
+    {
+      "from": "api:GET /api/farmers/products",
+      "type": "queries",
+      "to": "table:FreshnessRule"
+    },
+    {
+      "from": "api:GET /api/farmers/products",
+      "type": "queries",
+      "to": "table:MarketPrice"
+    },
+    {
+      "from": "api:GET /api/farmers/dashboard",
+      "type": "calls",
+      "to": "function:FreshnessService.evaluateAllActiveBatches"
+    },
+    {
+      "from": "api:GET /api/farmers/dashboard",
+      "type": "queries",
+      "to": "table:ProduceBatch"
+    },
+    {
+      "from": "api:GET /api/farmers/dashboard",
+      "type": "queries",
+      "to": "table:Offer"
+    },
+    {
+      "from": "api:GET /api/farmers/dashboard",
+      "type": "queries",
+      "to": "table:OrderItem"
+    },
+    {
+      "from": "api:GET /api/farmers/dashboard",
+      "type": "queries",
+      "to": "table:FarmerPayout"
+    },
+    {
+      "from": "api:POST /api/farmers/batches",
+      "type": "calls",
+      "to": "function:FreshnessService.calculateFreshness"
+    },
+    {
+      "from": "api:POST /api/farmers/batches",
+      "type": "mutates",
+      "to": "table:ProduceBatch"
+    },
+    {
+      "from": "api:POST /api/farmers/batches",
+      "type": "mutates",
+      "to": "table:ProductImage"
+    },
+    {
+      "from": "api:GET /api/farmers/batches",
+      "type": "queries",
+      "to": "table:ProduceBatch"
+    },
+    {
+      "from": "api:GET /api/farmers/batches",
+      "type": "calls",
+      "to": "function:FreshnessService.calculateFreshness"
+    },
+    {
+      "from": "api:GET /api/farmers/offers",
+      "type": "queries",
+      "to": "table:Offer"
+    },
+    {
+      "from": "api:PATCH /api/farmers/offers/:id/accept",
+      "type": "mutates",
+      "to": "table:Offer"
+    },
+    {
+      "from": "api:PATCH /api/farmers/offers/:id/accept",
+      "type": "mutates",
+      "to": "table:Notification"
+    },
+    {
+      "from": "api:PATCH /api/farmers/offers/:id/reject",
+      "type": "mutates",
+      "to": "table:Offer"
+    },
+    {
+      "from": "api:POST /api/farmers/offers/:id/counter",
+      "type": "mutates",
+      "to": "table:Offer"
+    },
+    {
+      "from": "api:POST /api/farmers/offers/:id/counter",
+      "type": "mutates",
+      "to": "table:OfferHistory"
+    },
+    {
+      "from": "api:POST /api/farmers/offers/:id/counter",
+      "type": "mutates",
+      "to": "table:Notification"
+    },
+    {
+      "from": "api:GET /api/farmers/orders",
+      "type": "queries",
+      "to": "table:OrderItem"
+    },
+    {
+      "from": "api:GET /api/farmers/collective-pools",
+      "type": "queries",
+      "to": "table:CollectiveOrderMember"
+    },
+    {
+      "from": "api:GET /api/farmers/earnings",
+      "type": "queries",
+      "to": "table:FarmerPayout"
+    },
+    {
+      "from": "api:GET /api/buyers/marketplace",
+      "type": "calls",
+      "to": "function:FreshnessService.evaluateAllActiveBatches"
+    },
+    {
+      "from": "api:GET /api/buyers/marketplace",
+      "type": "queries",
+      "to": "table:ProduceBatch"
+    },
+    {
+      "from": "api:GET /api/buyers/marketplace",
+      "type": "calls",
+      "to": "function:MatchingService.calculateDistance"
+    },
+    {
+      "from": "api:GET /api/buyers/marketplace",
+      "type": "calls",
+      "to": "function:FreshnessService.calculateFreshness"
+    },
+    {
+      "from": "api:POST /api/buyers/demands",
+      "type": "mutates",
+      "to": "table:BuyerDemand"
+    },
+    {
+      "from": "api:GET /api/buyers/demands",
+      "type": "queries",
+      "to": "table:BuyerDemand"
+    },
+    {
+      "from": "api:GET /api/buyers/demands/:id/matches",
+      "type": "calls",
+      "to": "function:MatchingService.findMatchesForDemand"
+    },
+    {
+      "from": "api:POST /api/buyers/demands/:id/offers",
+      "type": "mutates",
+      "to": "table:Offer"
+    },
+    {
+      "from": "api:POST /api/buyers/demands/:id/offers",
+      "type": "mutates",
+      "to": "table:OfferHistory"
+    },
+    {
+      "from": "api:POST /api/buyers/demands/:id/offers",
+      "type": "mutates",
+      "to": "table:Notification"
+    },
+    {
+      "from": "api:POST /api/buyers/demands/:id/collective-order",
+      "type": "calls",
+      "to": "function:CollectiveSellingService.createCollectiveOrder"
+    },
+    {
+      "from": "api:GET /api/buyers/cart",
+      "type": "queries",
+      "to": "table:Cart"
+    },
+    {
+      "from": "api:GET /api/buyers/cart",
+      "type": "queries",
+      "to": "table:CartItem"
+    },
+    {
+      "from": "api:POST /api/buyers/cart/items",
+      "type": "mutates",
+      "to": "table:CartItem"
+    },
+    {
+      "from": "api:PATCH /api/buyers/cart/items/:id",
+      "type": "mutates",
+      "to": "table:CartItem"
+    },
+    {
+      "from": "api:DELETE /api/buyers/cart/items/:id",
+      "type": "mutates",
+      "to": "table:CartItem"
+    },
+    {
+      "from": "api:DELETE /api/buyers/cart",
+      "type": "mutates",
+      "to": "table:CartItem"
+    },
+    {
+      "from": "api:POST /api/buyers/checkout",
+      "type": "queries",
+      "to": "table:ProduceBatch"
+    },
+    {
+      "from": "api:POST /api/buyers/checkout",
+      "type": "mutates",
+      "to": "table:ProduceBatch"
+    },
+    {
+      "from": "api:POST /api/buyers/checkout",
+      "type": "mutates",
+      "to": "table:Order"
+    },
+    {
+      "from": "api:POST /api/buyers/checkout",
+      "type": "mutates",
+      "to": "table:OrderItem"
+    },
+    {
+      "from": "api:POST /api/buyers/checkout",
+      "type": "mutates",
+      "to": "table:Payment"
+    },
+    {
+      "from": "api:POST /api/buyers/checkout",
+      "type": "mutates",
+      "to": "table:Delivery"
+    },
+    {
+      "from": "api:POST /api/buyers/checkout",
+      "type": "mutates",
+      "to": "table:CartItem"
+    },
+    {
+      "from": "api:POST /api/buyers/checkout",
+      "type": "mutates",
+      "to": "table:Notification"
+    },
+    {
+      "from": "api:GET /api/orders/:id",
+      "type": "queries",
+      "to": "table:Order"
+    },
+    {
+      "from": "api:PATCH /api/orders/:id/status",
+      "type": "calls",
+      "to": "function:OrderStateMachine.transitionOrder"
+    },
+    {
+      "from": "api:POST /api/orders/:id/dispute",
+      "type": "mutates",
+      "to": "table:Dispute"
+    },
+    {
+      "from": "api:POST /api/logistics/pickups",
+      "type": "mutates",
+      "to": "table:PickupRequest"
+    },
+    {
+      "from": "api:POST /api/logistics/pickups",
+      "type": "calls",
+      "to": "function:OrderStateMachine.transitionOrder"
+    },
+    {
+      "from": "api:PATCH /api/logistics/pickups/:id",
+      "type": "mutates",
+      "to": "table:PickupRequest"
+    },
+    {
+      "from": "api:PATCH /api/logistics/pickups/:id",
+      "type": "calls",
+      "to": "function:OrderStateMachine.transitionOrder"
+    },
+    {
+      "from": "api:PATCH /api/logistics/deliveries/:id/status",
+      "type": "mutates",
+      "to": "table:Delivery"
+    },
+    {
+      "from": "api:PATCH /api/logistics/deliveries/:id/status",
+      "type": "calls",
+      "to": "function:OrderStateMachine.transitionOrder"
+    },
+    {
+      "from": "api:POST /api/quality-checks",
+      "type": "mutates",
+      "to": "table:QualityCheck"
+    },
+    {
+      "from": "api:POST /api/quality-checks",
+      "type": "calls",
+      "to": "function:OrderStateMachine.transitionOrder"
+    },
+    {
+      "from": "api:POST /api/payments/create",
+      "type": "calls",
+      "to": "function:PaymentService.authorizePayment"
+    },
+    {
+      "from": "api:POST /api/payments/release/:id",
+      "type": "calls",
+      "to": "function:PaymentService.releasePayment"
+    },
+    {
+      "from": "api:POST /api/ratings",
+      "type": "mutates",
+      "to": "table:Rating"
+    },
+    {
+      "from": "api:POST /api/ratings",
+      "type": "mutates",
+      "to": "table:FarmerProfile"
+    },
+    {
+      "from": "api:POST /api/coordinator/register-farmer",
+      "type": "mutates",
+      "to": "table:User"
+    },
+    {
+      "from": "api:POST /api/coordinator/register-farmer",
+      "type": "mutates",
+      "to": "table:FarmerProfile"
+    },
+    {
+      "from": "api:POST /api/coordinator/create-batch",
+      "type": "calls",
+      "to": "function:FreshnessService.calculateFreshness"
+    },
+    {
+      "from": "api:POST /api/coordinator/create-batch",
+      "type": "mutates",
+      "to": "table:ProduceBatch"
+    },
+    {
+      "from": "api:POST /api/demo/simulate-urgency",
+      "type": "mutates",
+      "to": "table:ProduceBatch"
+    },
+    {
+      "from": "api:POST /api/demo/simulate-urgency",
+      "type": "mutates",
+      "to": "table:Notification"
+    },
+    {
+      "from": "api:POST /api/demo/simulate-urgency",
+      "type": "calls",
+      "to": "function:NotificationService.broadcastUrgentSale"
+    },
+    {
+      "from": "api:POST /api/demo/simulate-expiry",
+      "type": "mutates",
+      "to": "table:ProduceBatch"
+    },
+    {
+      "from": "api:POST /api/demo/simulate-expiry",
+      "type": "mutates",
+      "to": "table:Notification"
+    },
+    {
+      "from": "api:GET /api/market-prices/daily",
+      "type": "calls",
+      "to": "function:MarketPriceService.getDailyRates"
+    },
+    {
+      "from": "api:GET /api/market-prices/ticker",
+      "type": "calls",
+      "to": "function:MarketPriceService.getTickerRates"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:POST /api/auth/login"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:POST /api/auth/register"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:POST /api/auth/demo-switch"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:GET /api/auth/me"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:GET /api/farmers/products"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:GET /api/farmers/dashboard"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:GET /api/farmers/batches"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:POST /api/farmers/batches"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:GET /api/farmers/offers"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:PATCH /api/farmers/offers/:id/accept"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:PATCH /api/farmers/offers/:id/reject"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:POST /api/farmers/offers/:id/counter"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:GET /api/farmers/orders"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:GET /api/farmers/earnings"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:GET /api/buyers/marketplace"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:POST /api/buyers/demands"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:GET /api/buyers/demands"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:GET /api/buyers/demands/:id/matches"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:POST /api/buyers/demands/:id/collective-order"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:GET /api/buyers/orders"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:GET /api/buyers/cart"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:POST /api/buyers/cart/items"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:PATCH /api/buyers/cart/items/:id"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:DELETE /api/buyers/cart/items/:id"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:DELETE /api/buyers/cart"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:POST /api/buyers/checkout"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:GET /api/orders/:id"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:PATCH /api/orders/:id/status"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:POST /api/orders/:id/dispute"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:POST /api/quality-checks"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:POST /api/ratings"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:GET /api/market-prices/daily"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:GET /api/market-prices/ticker"
+    },
+    {
+      "from": "file:client/src/services/api.ts",
+      "type": "invokes_api",
+      "to": "api:POST /api/upload"
+    },
+    {
+      "from": "component:App",
+      "type": "uses_hook",
+      "to": "hook:useAuth"
+    },
+    {
+      "from": "component:App",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:App",
+      "type": "uses_hook",
+      "to": "hook:useCart"
+    },
+    {
+      "from": "component:App",
+      "type": "renders",
+      "to": "component:Navbar"
+    },
+    {
+      "from": "component:App",
+      "type": "renders",
+      "to": "component:DemoScenarioBar"
+    },
+    {
+      "from": "component:App",
+      "type": "renders",
+      "to": "component:CartDrawer"
+    },
+    {
+      "from": "component:App",
+      "type": "renders",
+      "to": "component:CheckoutModal"
+    },
+    {
+      "from": "component:App",
+      "type": "renders",
+      "to": "component:VoiceListingModal"
+    },
+    {
+      "from": "component:Navbar",
+      "type": "uses_hook",
+      "to": "hook:useAuth"
+    },
+    {
+      "from": "component:Navbar",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:Navbar",
+      "type": "uses_hook",
+      "to": "hook:useCart"
+    },
+    {
+      "from": "component:CartDrawer",
+      "type": "uses_hook",
+      "to": "hook:useCart"
+    },
+    {
+      "from": "component:CartDrawer",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:CheckoutModal",
+      "type": "uses_hook",
+      "to": "hook:useCart"
+    },
+    {
+      "from": "component:CheckoutModal",
+      "type": "uses_hook",
+      "to": "hook:useAuth"
+    },
+    {
+      "from": "component:CheckoutModal",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:Marketplace",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:Marketplace",
+      "type": "uses_hook",
+      "to": "hook:useCart"
+    },
+    {
+      "from": "component:Marketplace",
+      "type": "renders",
+      "to": "component:FreshnessBadge"
+    },
+    {
+      "from": "component:SmartMatches",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:SmartMatches",
+      "type": "implements",
+      "to": "feature:smart-matching-algorithm"
+    },
+    {
+      "from": "component:SmartMatches",
+      "type": "implements",
+      "to": "feature:collective-selling"
+    },
+    {
+      "from": "component:BuyerOrders",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:BuyerOrders",
+      "type": "renders",
+      "to": "component:DeliveryMap"
+    },
+    {
+      "from": "component:BuyerOrders",
+      "type": "implements",
+      "to": "feature:escrow-order-state-machine"
+    },
+    {
+      "from": "component:AddProduce",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:AddProduce",
+      "type": "renders",
+      "to": "component:FairPriceGauge"
+    },
+    {
+      "from": "component:AddProduce",
+      "type": "implements",
+      "to": "feature:fair-price-transparency"
+    },
+    {
+      "from": "component:VoiceListingModal",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:VoiceListingModal",
+      "type": "implements",
+      "to": "feature:voice-assisted-listing"
+    },
+    {
+      "from": "workflow:reverse-demand-collective-pooling",
+      "type": "implements",
+      "to": "feature:collective-selling"
+    },
+    {
+      "from": "workflow:reverse-demand-collective-pooling",
+      "type": "implements",
+      "to": "feature:smart-matching-algorithm"
+    },
+    {
+      "from": "workflow:perishable-freshness-decay",
+      "type": "implements",
+      "to": "feature:freshness-decay-engine"
+    },
+    {
+      "from": "workflow:direct-cart-checkout",
+      "type": "implements",
+      "to": "feature:two-tier-checkout"
+    },
+    {
+      "from": "workflow:direct-cart-checkout",
+      "type": "implements",
+      "to": "feature:escrow-order-state-machine"
+    },
+    {
+      "from": "workflow:assisted-voice-listing",
+      "type": "implements",
+      "to": "feature:voice-assisted-listing"
+    },
+    {
+      "from": "workflow:order-fulfillment-state-machine",
+      "type": "implements",
+      "to": "feature:escrow-order-state-machine"
+    },
+    {
+      "from": "workflow:order-fulfillment-state-machine",
+      "type": "implements",
+      "to": "feature:quality-verification-logistics"
+    },
+    {
+      "from": "workflow:bilateral-offer-negotiation",
+      "type": "implements",
+      "to": "feature:fair-price-transparency"
+    },
+    {
+      "from": "workflow:dispute-arbitration",
+      "type": "implements",
+      "to": "feature:escrow-order-state-machine"
+    },
+    {
+      "from": "component:FarmerOffers",
+      "type": "implements",
+      "to": "workflow:bilateral-offer-negotiation"
+    },
+    {
+      "from": "component:AdminDashboard",
+      "type": "implements",
+      "to": "workflow:dispute-arbitration"
+    }
+  ]
+}
