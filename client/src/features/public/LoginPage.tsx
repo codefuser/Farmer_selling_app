@@ -36,6 +36,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
       setLoading(true);
       setError(null);
       await login(identifier, password);
+      onNavigate('home-feed');
     } catch (err: any) {
       setError(
         language === 'ta'
@@ -52,6 +53,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
       setLoading(true);
       setError(null);
       await demoSwitch(role);
+      onNavigate('home-feed');
     } catch (err: any) {
       setError(err.message || 'Demo login failed');
     } finally {

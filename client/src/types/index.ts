@@ -25,6 +25,8 @@ export interface User {
   email: string;
   mobile: string;
   role: UserRole;
+  activeRole?: string;
+  avatarUrl?: string;
   status?: string;
   preferredLanguage: string;
   farmerProfile?: FarmerProfile;
@@ -34,27 +36,149 @@ export interface User {
 
 export interface FarmerProfile {
   id: string;
+  userId?: string;
   farmerId: string;
   village: string;
   district: string;
   state: string;
   landSize?: number;
+  farmingType?: string;
+  mainCrops?: string;
+  experienceYears?: number;
+  bio?: string;
   rating: number;
   completedOrders: number;
   verified: boolean;
+  identityVerificationStatus?: string;
+  farmVerificationStatus?: string;
 }
 
 export interface BuyerProfile {
   id: string;
+  userId?: string;
   businessName: string;
   ownerName: string;
-  businessType: 'HOTEL' | 'RESTAURANT' | 'SUPERMARKET' | 'WHOLESALER' | 'CATERING' | 'LOCAL_SHOP';
+  businessType: 'HOTEL' | 'RESTAURANT' | 'SUPERMARKET' | 'WHOLESALER' | 'CATERING' | 'LOCAL_SHOP' | string;
+  consumerType?: string;
   gstNumber?: string;
   address: string;
   district: string;
   latitude: number;
   longitude: number;
   verified: boolean;
+}
+
+export interface PostMedia {
+  id: string;
+  url: string;
+  type: string;
+}
+
+export interface PostCommentReply {
+  id: string;
+  commentId: string;
+  userId: string;
+  content: string;
+  createdAt: string;
+  user: {
+    id: string;
+    name: string;
+    avatarUrl?: string;
+    role: string;
+  };
+}
+
+export interface PostComment {
+  id: string;
+  postId: string;
+  userId: string;
+  content: string;
+  createdAt: string;
+  user: {
+    id: string;
+    name: string;
+    avatarUrl?: string;
+    role: string;
+  };
+  replies?: PostCommentReply[];
+}
+
+export interface Post {
+  id: string;
+  farmerId: string;
+  farmer: {
+    id: string;
+    name: string;
+    avatarUrl?: string;
+    farmerId: string;
+    village: string;
+    district: string;
+    rating: number;
+    verified: boolean;
+    userId: string;
+  };
+  caption: string;
+  cropName?: string;
+  price?: number;
+  quantity?: number;
+  unit?: string;
+  qualityGrade?: string;
+  harvestDate?: string;
+  location: string;
+  media: PostMedia[];
+  batchId?: string;
+  batch?: {
+    id: string;
+    batchCode: string;
+    freshnessStatus: FreshnessStatus;
+    product?: {
+      name: string;
+      nameTamil: string;
+      imageUrl: string;
+    };
+  } | null;
+  likeCount: number;
+  commentCount: number;
+  isLikedByMe: boolean;
+  createdAt: string;
+}
+
+export interface MessageAttachment {
+  id: string;
+  fileUrl: string;
+  fileType: string;
+  fileName?: string;
+}
+
+export interface Message {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  sender?: {
+    id: string;
+    name: string;
+    avatarUrl?: string;
+  };
+  content: string;
+  attachments?: MessageAttachment[];
+  createdAt: string;
+}
+
+export interface Conversation {
+  id: string;
+  recipient: {
+    id: string;
+    name: string;
+    avatarUrl?: string;
+    role: string;
+  };
+  lastMessage?: {
+    content: string;
+    createdAt: string;
+    isMine: boolean;
+  } | null;
+  unreadCount: number;
+  updatedAt: string;
 }
 
 export interface CoordinatorProfile {

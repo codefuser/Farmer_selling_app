@@ -15,7 +15,8 @@
     "build:client": "npm run build --workspace=client",
     "db:generate": "npm run prisma:generate --workspace=server",
     "db:push": "npm run prisma:push --workspace=server",
-    "db:seed": "npm run prisma:seed --workspace=server"
+    "db:seed": "npm run prisma:seed --workspace=server",
+    "seed": "npm run db:seed"
   },
   "keywords": [
     "agriculture",

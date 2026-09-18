@@ -9,6 +9,8 @@ interface AuthContextType {
   register: (data: any) => Promise<void>;
   logout: () => void;
   demoSwitch: (role: string) => Promise<void>;
+  switchRole: (role: string) => Promise<void>;
+  setupProfile: (data: any) => Promise<void>;
   notifications: NotificationItem[];
   unreadCount: number;
   refreshNotifications: () => Promise<void>;
@@ -83,6 +85,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const switchRole = async (role: string) => {
+    setLoading(true);
+    try {
+      const res = await api.switchRole(role);
+      setUser(res.user);
+    } catch (err) {
+      console.error('Role switch failed:', err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const setupProfile = async (data: any) => {
+    setLoading(true);
+    try {
+      const res = await api.setupProfile(data);
+      setUser(res.user);
+    } catch (err) {
+      console.error('Profile setup failed:', err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   return (
@@ -94,6 +122,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         register,
         logout,
         demoSwitch,
+        switchRole,
+        setupProfile,
         notifications,
         unreadCount,
         refreshNotifications,

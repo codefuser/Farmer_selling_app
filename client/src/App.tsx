@@ -23,6 +23,12 @@ import RegisterPage from './features/public/RegisterPage';
 import MarketRatesPage from './features/public/MarketRatesPage';
 import ProfilePage from './features/public/ProfilePage';
 
+// Phase 1 Social Feed, Public Farmer Profile, Product Detail & Chat
+import HomeFeed from './features/feed/HomeFeed';
+import FarmerPublicProfile from './features/farmer/FarmerPublicProfile';
+import ProductDetailPage from './features/buyer/ProductDetailPage';
+import ChatDrawer from './features/chat/ChatDrawer';
+
 // Farmer Pages
 import FarmerDashboard from './features/farmer/FarmerDashboard';
 import MyProduce from './features/farmer/MyProduce';
@@ -46,9 +52,14 @@ import AdminDashboard from './features/admin/AdminDashboard';
 
 const AppContent: React.FC = () => {
   const { user, demoSwitch } = useAuth();
-  const [currentView, setCurrentView] = useState<string>('landing');
+  const [currentView, setCurrentView] = useState<string>('home-feed');
   const [viewParams, setViewParams] = useState<any>(null);
   const [voiceModalOpen, setVoiceModalOpen] = useState(false);
+
+  // Chat Drawer state
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatConversationId, setChatConversationId] = useState<string | null>(null);
+  const [chatTargetUser, setChatTargetUser] = useState<any>(null);
 
   // Splash & Onboarding state
   const [showSplash, setShowSplash] = useState(true);
@@ -59,15 +70,11 @@ const AppContent: React.FC = () => {
   // Global Checkout Modal state from CartDrawer
   const [isGlobalCheckoutOpen, setIsGlobalCheckoutOpen] = useState(false);
 
-  // Sync initial view to role if authenticated
+  // Sync initial view to home-feed if authenticated
   useEffect(() => {
     if (user) {
       if (currentView === 'landing' || currentView === 'login' || currentView === 'register') {
-        if (user.role === 'FARMER') setCurrentView('farmer-dashboard');
-        else if (user.role === 'BUYER') setCurrentView('buyer-dashboard');
-        else if (user.role === 'COORDINATOR') setCurrentView('coordinator-dashboard');
-        else if (user.role === 'LOGISTICS') setCurrentView('logistics-dashboard');
-        else if (user.role === 'ADMIN') setCurrentView('admin-dashboard');
+        setCurrentView('home-feed');
       }
     }
   }, [user]);
@@ -109,11 +116,53 @@ const AppContent: React.FC = () => {
     localStorage.setItem('kisandirect_onboarded', 'true');
     if (selectedRole) {
       await demoSwitch(selectedRole);
+      navigate('home-feed');
+    } else {
+      navigate('home-feed');
     }
   };
 
   const renderView = () => {
     switch (currentView) {
+      // Social & Farmer-First Primary Feed
+      case 'home-feed':
+      case 'feed':
+        return (
+          <HomeFeed
+            onNavigate={navigate}
+            onOpenChat={(convId, targetUser) => {
+              setChatConversationId(convId || null);
+              setChatTargetUser(targetUser || null);
+              setChatOpen(true);
+            }}
+          />
+        );
+      case 'farmer-profile':
+      case 'farmer-public-profile':
+        return (
+          <FarmerPublicProfile
+            farmerId={viewParams?.farmerId || (user?.role === 'FARMER' ? user?.id : undefined)}
+            onNavigate={navigate}
+            onOpenChat={(targetUser) => {
+              setChatTargetUser(targetUser);
+              setChatConversationId(null);
+              setChatOpen(true);
+            }}
+          />
+        );
+      case 'product-detail':
+        return (
+          <ProductDetailPage
+            productId={viewParams?.productId}
+            onNavigate={navigate}
+            onOpenChat={(targetUser) => {
+              setChatTargetUser(targetUser);
+              setChatConversationId(null);
+              setChatOpen(true);
+            }}
+          />
+        );
+
       // Public Views
       case 'landing':
         return <LandingPage onNavigate={navigate} onOpenVoiceModal={() => setVoiceModalOpen(true)} />;
@@ -178,7 +227,16 @@ const AppContent: React.FC = () => {
         return <AdminDashboard />;
 
       default:
-        return <LandingPage onNavigate={navigate} onOpenVoiceModal={() => setVoiceModalOpen(true)} />;
+        return (
+          <HomeFeed
+            onNavigate={navigate}
+            onOpenChat={(convId, targetUser) => {
+              setChatConversationId(convId || null);
+              setChatTargetUser(targetUser || null);
+              setChatOpen(true);
+            }}
+          />
+        );
     }
   };
 
@@ -204,6 +262,11 @@ const AppContent: React.FC = () => {
         currentView={currentView}
         onNavigate={navigate}
         onOpenVoiceModal={() => setVoiceModalOpen(true)}
+        onOpenChat={() => {
+          setChatConversationId(null);
+          setChatTargetUser(null);
+          setChatOpen(true);
+        }}
       />
 
       {/* Main Page Content */}
@@ -228,7 +291,23 @@ const AppContent: React.FC = () => {
       )}
 
       {/* Mobile Bottom Navigation */}
-      <MobileBottomNav currentView={currentView} onNavigate={navigate} />
+      <MobileBottomNav
+        currentView={currentView}
+        onNavigate={navigate}
+        onOpenChat={() => {
+          setChatConversationId(null);
+          setChatTargetUser(null);
+          setChatOpen(true);
+        }}
+      />
+
+      {/* 1-on-1 Chat Drawer */}
+      <ChatDrawer
+        isOpen={chatOpen}
+        onClose={() => setChatOpen(false)}
+        conversationId={chatConversationId}
+        initialTargetUser={chatTargetUser}
+      />
 
       {/* Global Voice Listing Simulation Modal */}
       <VoiceListingModal

@@ -13,6 +13,20 @@ async function main() {
   console.log('🌱 Starting comprehensive database seed for KisanDirect...');
 
   // Clear existing records in proper relational order
+  try {
+    await prisma.messageRead.deleteMany();
+    await prisma.messageAttachment.deleteMany();
+    await prisma.message.deleteMany();
+    await prisma.conversationMember.deleteMany();
+    await prisma.conversation.deleteMany();
+    await prisma.postCommentReply.deleteMany();
+    await prisma.postComment.deleteMany();
+    await prisma.postLike.deleteMany();
+    await prisma.postMedia.deleteMany();
+    await prisma.post.deleteMany();
+  } catch (e) {
+    // Tables may not be migrated yet
+  }
   await prisma.notification.deleteMany();
   await prisma.dispute.deleteMany();
   await prisma.rating.deleteMany();
@@ -867,6 +881,132 @@ async function main() {
       },
     ],
   });
+
+  // 10. SEED SOCIAL POSTS & DIRECT CHAT CONVERSATIONS
+  console.log('🌾 Seeding Farmer Social Posts & Discussions...');
+  try {
+    const post1 = await prisma.post.create({
+      data: {
+        farmerId: allFarmers[0].id, // Kumar
+        batchId: batchA.id,
+        caption: `இன்று காலை சேலம் ஓமலூர் தோட்டத்தில் நாட்டு தக்காளி அறுவடை நிறைவடைந்தது! 🍅 முற்றிலும் இயற்கை உரம் கொண்டு விளைவிக்கப்பட்டது. மொத்தமாகவும் சில்லறையாகவும் கிடைக்கும்.\n\nHarvested 100kg of fresh country tomatoes this morning in Omalur, Salem! 100% naturally ripened and chemical-free. Direct delivery available.`,
+        cropName: 'Tomato / நாட்டு தக்காளி',
+        price: 22,
+        quantity: 100,
+        unit: 'kg',
+        qualityGrade: 'A',
+        harvestDate: new Date(),
+        location: 'Omalur, Salem',
+        media: {
+          create: [
+            {
+              mediaUrl: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=800&q=80',
+              mediaType: 'IMAGE',
+              orderIndex: 0,
+            },
+          ],
+        },
+      },
+    });
+
+    const post2 = await prisma.post.create({
+      data: {
+        farmerId: allFarmers[1].id,
+        batchId: batchB.id,
+        caption: `வாழப்பாடி கத்தரிக்காய் பறிப்பு தயாராக உள்ளது. பூச்சி மருந்து இல்லாத தரமான கத்தரிக்காய் 150 கிலோ. தேவையான வாங்குபவர்கள் நேரடியாக தொடர்பு கொள்ளவும். 🍆`,
+        cropName: 'Brinjal / கத்தரி',
+        price: 28,
+        quantity: 150,
+        unit: 'kg',
+        qualityGrade: 'A',
+        harvestDate: new Date(),
+        location: 'Valapadi, Salem',
+        media: {
+          create: [
+            {
+              mediaUrl: 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=800&q=80',
+              mediaType: 'IMAGE',
+              orderIndex: 0,
+            },
+          ],
+        },
+      },
+    });
+
+    const post3 = await prisma.post.create({
+      data: {
+        farmerId: allFarmers[2].id,
+        caption: `இன்றைய சேலம் உழவர் சந்தை நிலவரம்: தக்காளி மற்றும் வெங்காய விலை சற்று உயர்ந்துள்ளது. இடைத்தரகர்கள் இன்றி நமது KisanDirect மூலம் நேரடியாக விற்பனை செய்வது விவசாயிகளுக்கு கூடுதல் லாபம் அளிக்கிறது! 🚜🌾`,
+        cropName: 'Mandi / விவசாய நிலவரம்',
+        location: 'Salem Hub',
+      },
+    });
+
+    // Likes
+    await prisma.postLike.createMany({
+      data: [
+        { postId: post1.id, userId: buyerAbcUser.id },
+        { postId: post1.id, userId: allFarmers[1].userId },
+        { postId: post2.id, userId: allFarmers[0].userId },
+      ],
+      skipDuplicates: true,
+    });
+
+    // Comments & Replies
+    const comment1 = await prisma.postComment.create({
+      data: {
+        postId: post1.id,
+        userId: buyerAbcUser.id,
+        content: 'வணக்கம் குமார் ஐயா, நாளை காலை 7 மணிக்குள் எங்களது ஹோட்டலுக்கு 200 கிலோ தக்காளி சப்ளை செய்ய முடியுமா?',
+      },
+    });
+
+    await prisma.postCommentReply.create({
+      data: {
+        commentId: comment1.id,
+        userId: allFarmers[0].userId,
+        content: 'நிச்சயமாக ஐயா, நாளை அதிகாலை பறித்து 6:30க்குள் விநியோகம் செய்கிறேன்!',
+      },
+    });
+
+    // Seed 1-on-1 Conversation between Hotel Buyer and Farmer Kumar
+    const conversation = await prisma.conversation.create({
+      data: {
+        members: {
+          create: [
+            { userId: buyerAbcUser.id },
+            { userId: farmerKumarUser.id },
+          ],
+        },
+      },
+    });
+
+    await prisma.message.createMany({
+      data: [
+        {
+          conversationId: conversation.id,
+          senderId: buyerAbcUser.id,
+          content: 'வணக்கம் குமார் ஐயா! உங்கள் தக்காளி தரம் மிகவும் நன்றாக உள்ளது. நாங்கள் தொடர்ச்சியாக வாரம் 500 கிலோ வாங்க விரும்புகிறோம்.',
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2),
+        },
+        {
+          conversationId: conversation.id,
+          senderId: farmerKumarUser.id,
+          content: 'வணக்கம் ஐயா! மகிழ்ச்சி. எங்கள் கிராம கூட்டமைப்பு (Collective Group) மூலம் வாரம் 500 கிலோ தொடர்ந்து தரமாக சப்ளை செய்ய முடியும்.',
+          createdAt: new Date(Date.now() - 1000 * 60 * 30),
+        },
+        {
+          conversationId: conversation.id,
+          senderId: buyerAbcUser.id,
+          content: 'அருமை! KisanDirect ஆப் மூலம் ஆஃபர் அனுப்பியுள்ளேன், சரிபார்த்து உறுதி செய்யவும்.',
+          createdAt: new Date(Date.now() - 1000 * 60 * 5),
+        },
+      ],
+    });
+    console.log('✅ Social posts and chat messages seeded successfully!');
+  } catch (err: any) {
+    console.log('Social seeding info:', err?.message || err);
+  }
 
   console.log('====================================================');
   console.log('✅ KisanDirect Database Seed Complete!');

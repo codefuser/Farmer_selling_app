@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useCart } from '../../context/CartContext';
+import api from '../../services/api';
 import FreshnessBadge from '../../components/common/FreshnessBadge';
 import {
   X,
@@ -16,22 +17,66 @@ import {
 } from 'lucide-react';
 
 interface ProductDetailPageProps {
-  batch: any;
-  onClose: () => void;
-  onBuyNow: (batch: any, quantity: number) => void;
+  batch?: any;
+  productId?: string;
+  onNavigate?: (view: string, params?: any) => void;
+  onClose?: () => void;
+  onBuyNow?: (batch: any, quantity: number) => void;
+  onOpenChatWithUser?: (targetUserId: string) => void;
+  onOpenChat?: (targetUser?: any) => void;
+  onViewFarmerProfile?: (farmerId: string) => void;
 }
 
 export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
-  batch,
-  onClose,
-  onBuyNow,
+  batch: initialBatch,
+  productId,
+  onNavigate,
+  onClose = () => onNavigate && onNavigate('buyer-marketplace'),
+  onBuyNow = (b, q) => onNavigate && onNavigate('buyer-marketplace'),
+  onOpenChatWithUser,
+  onOpenChat,
+  onViewFarmerProfile = (fId) => onNavigate && onNavigate('farmer-public-profile', { farmerId: fId }),
 }) => {
   const { language, t } = useLanguage();
   const { addToCart } = useCart();
 
-  const [quantity, setQuantity] = useState(Math.min(10, Math.max(1, Math.round(batch.quantity * 0.1) || 5)));
+  const [batch, setBatch] = useState<any>(initialBatch || null);
+  const [loadingBatch, setLoadingBatch] = useState(!initialBatch && !!productId);
+
+  React.useEffect(() => {
+    if (!initialBatch && productId) {
+      setLoadingBatch(true);
+      api
+        .getMarketplaceProduce({})
+        .then((res: any[]) => {
+          const found = (res || []).find((b: any) => b.id === productId || b.productId === productId);
+          if (found) setBatch(found);
+          setLoadingBatch(false);
+        })
+        .catch(() => setLoadingBatch(false));
+    }
+  }, [initialBatch, productId]);
+
+  const [quantity, setQuantity] = useState(
+    batch ? Math.min(10, Math.max(1, Math.round((batch?.quantity || 10) * 0.1) || 5)) : 5
+  );
   const [addingToCart, setAddingToCart] = useState(false);
   const [addedToast, setAddedToast] = useState(false);
+
+  if (loadingBatch) {
+    return (
+      <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="bg-white p-6 rounded-3xl text-center shadow-xl">
+          <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+          <p className="text-xs text-slate-600">Loading harvest details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!batch) {
+    return null;
+  }
 
   const maxQty = batch.quantity;
   const pricePerKg = batch.pricePerKg;
@@ -64,6 +109,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   const village = batch.village || batch.farmer?.village || 'Salem';
   const rating = batch.farmer?.rating || 4.8;
   const distance = batch.distanceKm ? `${batch.distanceKm} km` : '5.2 km';
+  const farmerUserId = batch.farmer?.user?.id || batch.farmer?.userId;
+  const farmerProfileId = batch.farmer?.id;
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
@@ -130,7 +177,15 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
           {/* Farmer & Location Trust Card */}
           <div className="bg-slate-50 rounded-2xl p-3.5 border border-slate-200 flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2.5">
+            <button
+              onClick={() => {
+                if (onViewFarmerProfile && farmerProfileId) {
+                  onClose();
+                  onViewFarmerProfile(farmerProfileId);
+                }
+              }}
+              className="flex items-center gap-2.5 text-left hover:opacity-80 transition"
+            >
               <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-sm">
                 {farmerName.charAt(0)}
               </div>
@@ -144,16 +199,30 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                   <span>{village} ({distance})</span>
                 </div>
               </div>
-            </div>
+            </button>
 
-            <div className="text-right">
-              <div className="flex items-center gap-0.5 text-amber-600 font-bold justify-end">
-                <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                <span>{rating}</span>
+            <div className="flex items-center gap-2">
+              {farmerUserId && onOpenChatWithUser && (
+                <button
+                  onClick={() => {
+                    onClose();
+                    onOpenChatWithUser(farmerUserId);
+                  }}
+                  className="px-2.5 py-1.5 rounded-xl bg-white border border-emerald-300 text-emerald-800 hover:bg-emerald-50 font-bold text-[11px] transition"
+                >
+                  {language === 'ta' ? 'செய்தி' : 'Chat'}
+                </button>
+              )}
+
+              <div className="text-right">
+                <div className="flex items-center gap-0.5 text-amber-600 font-bold justify-end">
+                  <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                  <span>{rating}</span>
+                </div>
+                <span className="text-[10px] text-slate-400">
+                  {language === 'ta' ? 'சரிபார்க்கப்பட்டது' : 'Verified'}
+                </span>
               </div>
-              <span className="text-[10px] text-slate-400">
-                {language === 'ta' ? 'சரிபார்க்கப்பட்டது' : 'Verified Farmer'}
-              </span>
             </div>
           </div>
 

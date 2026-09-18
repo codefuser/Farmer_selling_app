@@ -11,6 +11,10 @@ import {
   VegetableMarketRate,
   MandiMarketSummary,
   MandiInfo,
+  Post,
+  PostComment,
+  Conversation,
+  Message,
 } from '../types';
 
 const API_BASE = import.meta.env.VITE_API_URL
@@ -438,6 +442,154 @@ class ApiService {
     return this.request<any>('/buyers/checkout', {
       method: 'POST',
       body: JSON.stringify(data),
+    });
+  }
+
+  // Multi-Role & Profile Switch APIs
+  public async switchRole(activeRole: string): Promise<{ message: string; token: string; user: User }> {
+    const data = await this.request<{ message: string; token: string; user: User }>('/auth/switch-role', {
+      method: 'POST',
+      body: JSON.stringify({ activeRole }),
+    });
+    this.setToken(data.token);
+    return data;
+  }
+
+  public async setupProfile(profileData: any): Promise<{ message: string; token: string; user: User }> {
+    const data = await this.request<{ message: string; token: string; user: User }>('/auth/setup-profile', {
+      method: 'POST',
+      body: JSON.stringify(profileData),
+    });
+    this.setToken(data.token);
+    return data;
+  }
+
+  // Social Feed & Post APIs
+  public async getFeed(params?: { page?: number; limit?: number; cropName?: string }): Promise<{
+    posts: Post[];
+    page: number;
+    limit: number;
+    totalCount: number;
+    hasMore: boolean;
+  }> {
+    const query = new URLSearchParams();
+    if (params?.page) query.set('page', String(params.page));
+    if (params?.limit) query.set('limit', String(params.limit));
+    if (params?.cropName) query.set('cropName', params.cropName);
+    const qs = query.toString() ? `?${query.toString()}` : '';
+    return this.request<any>(`/posts/feed${qs}`);
+  }
+
+  public async createPost(postData: {
+    caption: string;
+    cropName?: string;
+    price?: number;
+    quantity?: number;
+    unit?: string;
+    qualityGrade?: string;
+    harvestDate?: string;
+    location?: string;
+    batchId?: string;
+    mediaUrls?: string[];
+  }): Promise<{ message: string; post: Post }> {
+    return this.request<any>('/posts', {
+      method: 'POST',
+      body: JSON.stringify(postData),
+    });
+  }
+
+  public async getPost(id: string): Promise<Post> {
+    return this.request<Post>(`/posts/${id}`);
+  }
+
+  public async deletePost(id: string): Promise<{ message: string }> {
+    return this.request<any>(`/posts/${id}`, { method: 'DELETE' });
+  }
+
+  public async likePost(id: string): Promise<{ message: string; liked: boolean; likeCount: number }> {
+    return this.request<any>(`/posts/${id}/like`, { method: 'POST' });
+  }
+
+  public async unlikePost(id: string): Promise<{ message: string; liked: boolean; likeCount: number }> {
+    return this.request<any>(`/posts/${id}/like`, { method: 'DELETE' });
+  }
+
+  public async getPostComments(postId: string, page: number = 1): Promise<{
+    comments: PostComment[];
+    totalCount: number;
+    page: number;
+    hasMore: boolean;
+  }> {
+    return this.request<any>(`/posts/${postId}/comments?page=${page}`);
+  }
+
+  public async addPostComment(postId: string, content: string): Promise<{ message: string; comment: PostComment }> {
+    return this.request<any>(`/posts/${postId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    });
+  }
+
+  public async deletePostComment(commentId: string): Promise<{ message: string }> {
+    return this.request<any>(`/posts/comments/${commentId}`, { method: 'DELETE' });
+  }
+
+  public async replyPostComment(commentId: string, content: string): Promise<{ message: string; reply: any }> {
+    return this.request<any>(`/posts/comments/${commentId}/reply`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    });
+  }
+
+  public async deletePostCommentReply(replyId: string): Promise<{ message: string }> {
+    return this.request<any>(`/posts/comments/replies/${replyId}`, { method: 'DELETE' });
+  }
+
+  // Public Farmer Profile API
+  public async getFarmerPublicProfile(id: string): Promise<{
+    farmer: any;
+    produceBatches: any[];
+    posts: Post[];
+    reviews: any[];
+  }> {
+    return this.request<any>(`/farmers/${id}/public-profile`);
+  }
+
+  // Direct Chat APIs
+  public async getConversations(): Promise<{ conversations: Conversation[] }> {
+    return this.request<any>('/chat/conversations');
+  }
+
+  public async startConversation(targetUserId: string): Promise<{ conversation: any }> {
+    return this.request<any>('/chat/conversations', {
+      method: 'POST',
+      body: JSON.stringify({ targetUserId }),
+    });
+  }
+
+  public async getChatMessages(conversationId: string, page: number = 1): Promise<{
+    messages: Message[];
+    totalCount: number;
+    page: number;
+    hasMore: boolean;
+  }> {
+    return this.request<any>(`/chat/conversations/${conversationId}/messages?page=${page}`);
+  }
+
+  public async sendChatMessage(
+    conversationId: string,
+    content: string,
+    attachments?: any[]
+  ): Promise<{ message: Message }> {
+    return this.request<any>(`/chat/conversations/${conversationId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify({ content, attachments }),
+    });
+  }
+
+  public async markChatRead(conversationId: string): Promise<{ success: boolean }> {
+    return this.request<any>(`/chat/conversations/${conversationId}/read`, {
+      method: 'PATCH',
     });
   }
 }

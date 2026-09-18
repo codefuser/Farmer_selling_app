@@ -17,14 +17,16 @@ import {
   Search,
   ShoppingCart,
   TrendingUp,
+  MessageCircle,
 } from 'lucide-react';
 
 interface MobileBottomNavProps {
   currentView: string;
-  onNavigate: (view: string) => void;
+  onNavigate: (view: string, params?: any) => void;
+  onOpenChat?: () => void;
 }
 
-export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ currentView, onNavigate }) => {
+export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ currentView, onNavigate, onOpenChat }) => {
   const { user } = useAuth();
   const { t, language } = useLanguage();
   const { cartCount, openCart } = useCart();
@@ -33,8 +35,8 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ currentView, o
   const getNavItems = () => {
     if (!user) {
       return [
-        { id: 'landing', label: t('home'), icon: Home },
-        { id: 'market-rates', label: language === 'ta' ? 'மண்டி விலை' : 'Mandi Rates', icon: TrendingUp },
+        { id: 'home-feed', label: language === 'ta' ? 'முகப்பு' : 'Feed', icon: Home },
+        { id: 'market-rates', label: language === 'ta' ? 'மண்டி விலை' : 'Mandi', icon: TrendingUp },
         { id: 'buyer-marketplace', label: t('marketplace'), icon: Store },
         { id: 'login', label: t('login'), icon: User },
       ];
@@ -43,18 +45,28 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ currentView, o
     switch (user.role) {
       case 'FARMER':
         return [
-          { id: 'farmer-dashboard', label: t('home'), icon: Home },
+          { id: 'home-feed', label: language === 'ta' ? 'முகப்பு' : 'Feed', icon: Home },
           { id: 'farmer-produce', label: language === 'ta' ? 'பொருட்கள்' : 'Produce', icon: Package },
           { id: 'farmer-offers', label: language === 'ta' ? 'வாய்ப்புகள்' : 'Offers', icon: Inbox },
-          { id: 'farmer-orders', label: language === 'ta' ? 'ஆர்டர்கள்' : 'Orders', icon: ShoppingBag },
+          {
+            id: 'chat',
+            label: language === 'ta' ? 'அரட்டை' : 'Chat',
+            icon: MessageCircle,
+            onClick: () => onOpenChat && onOpenChat(),
+          },
           { id: 'profile', label: t('profile'), icon: User },
         ];
 
       case 'BUYER':
         return [
-          { id: 'buyer-dashboard', label: t('home'), icon: Home },
+          { id: 'home-feed', label: language === 'ta' ? 'முகப்பு' : 'Feed', icon: Home },
           { id: 'buyer-marketplace', label: language === 'ta' ? 'சந்தை' : 'Explore', icon: Store },
-          { id: 'buyer-orders', label: language === 'ta' ? 'ஆர்டர்கள்' : 'Orders', icon: ShoppingBag },
+          {
+            id: 'chat',
+            label: language === 'ta' ? 'அரட்டை' : 'Chat',
+            icon: MessageCircle,
+            onClick: () => onOpenChat && onOpenChat(),
+          },
           {
             id: 'cart',
             label: t('cart'),
@@ -67,25 +79,31 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ currentView, o
 
       case 'COORDINATOR':
         return [
-          { id: 'coordinator-dashboard', label: t('home'), icon: Home },
+          { id: 'home-feed', label: language === 'ta' ? 'முகப்பு' : 'Feed', icon: Home },
+          { id: 'coordinator-dashboard', label: language === 'ta' ? 'மையம்' : 'Hub', icon: Store },
           { id: 'coordinator-farmers', label: language === 'ta' ? 'விவசாயிகள்' : 'Farmers', icon: Users },
-          { id: 'coordinator-voice', label: language === 'ta' ? 'குரல் உதவி' : 'Voice', icon: Mic },
+          {
+            id: 'chat',
+            label: language === 'ta' ? 'அரட்டை' : 'Chat',
+            icon: MessageCircle,
+            onClick: () => onOpenChat && onOpenChat(),
+          },
           { id: 'profile', label: t('profile'), icon: User },
         ];
 
       case 'LOGISTICS':
         return [
-          { id: 'logistics-dashboard', label: t('home'), icon: Home },
+          { id: 'home-feed', label: language === 'ta' ? 'முகப்பு' : 'Feed', icon: Home },
+          { id: 'logistics-dashboard', label: language === 'ta' ? 'விநியோகம்' : 'Logistics', icon: Truck },
           { id: 'logistics-pickups', label: language === 'ta' ? 'சேகரிப்பு' : 'Pickups', icon: Package },
-          { id: 'logistics-tracking', label: language === 'ta' ? 'வழியில்' : 'Tracking', icon: Truck },
           { id: 'profile', label: t('profile'), icon: User },
         ];
 
       case 'ADMIN':
         return [
-          { id: 'admin-dashboard', label: t('home'), icon: Home },
+          { id: 'home-feed', label: language === 'ta' ? 'முகப்பு' : 'Feed', icon: Home },
+          { id: 'admin-dashboard', label: language === 'ta' ? 'நிர்வாகம்' : 'Admin', icon: BarChart3 },
           { id: 'admin-users', label: language === 'ta' ? 'பயனர்கள்' : 'Users', icon: Users },
-          { id: 'admin-disputes', label: language === 'ta' ? 'பிணக்குகள்' : 'Disputes', icon: ShieldCheck },
           { id: 'profile', label: t('profile'), icon: User },
         ];
 

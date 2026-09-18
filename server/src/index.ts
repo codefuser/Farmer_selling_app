@@ -15,6 +15,8 @@ import notificationRoutes from './routes/notificationRoutes.js';
 import demoRoutes from './routes/demoRoutes.js';
 import marketPriceRoutes from './routes/marketPriceRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
+import postRoutes from './routes/postRoutes.js';
+import chatRoutes from './routes/chatRoutes.js';
 import path from 'path';
 
 const app = express();
@@ -33,6 +35,8 @@ app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/posts', postRoutes);
+app.use('/api/chat', chatRoutes);
 app.use('/api/farmers', farmerRoutes);
 app.use('/api/buyers', buyerRoutes);
 app.use('/api/orders', orderRoutes);

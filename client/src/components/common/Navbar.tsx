@@ -14,19 +14,22 @@ import {
   MapPin,
   ShoppingCart,
   User as UserIcon,
+  MessageCircle,
 } from 'lucide-react';
 import api from '../../services/api';
 
 interface NavbarProps {
   currentView: string;
-  onNavigate: (view: string) => void;
+  onNavigate: (view: string, params?: any) => void;
   onOpenVoiceModal: () => void;
+  onOpenChat?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   currentView,
   onNavigate,
   onOpenVoiceModal,
+  onOpenChat,
 }) => {
   const { user, logout, notifications, unreadCount, refreshNotifications } = useAuth();
   const { language, setLanguage, t } = useLanguage();
@@ -74,15 +77,19 @@ export const Navbar: React.FC<NavbarProps> = ({
 
     if (!user) {
       return [
-        { id: 'landing', label: t('home') },
+        { id: 'home-feed', label: language === 'ta' ? 'விவசாய முகப்பு' : 'Farm Feed' },
+        { id: 'landing', label: language === 'ta' ? 'அறிமுகம்' : 'About' },
         { id: 'market-rates', label: marketRatesLabel },
         { id: 'buyer-marketplace', label: t('marketplace') },
       ];
     }
 
+    const homeFeedLink = { id: 'home-feed', label: language === 'ta' ? 'முகப்பு' : 'Home Feed' };
+
     switch (user.role) {
       case 'FARMER':
         return [
+          homeFeedLink,
           { id: 'farmer-dashboard', label: t('dashboard') },
           { id: 'farmer-produce', label: t('myProduce') },
           { id: 'farmer-add-produce', label: t('addProduce') },
@@ -93,6 +100,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         ];
       case 'BUYER':
         return [
+          homeFeedLink,
           { id: 'buyer-dashboard', label: t('dashboard') },
           { id: 'buyer-marketplace', label: t('marketplace') },
           { id: 'buyer-post-demand', label: t('postDemand') },
@@ -101,19 +109,22 @@ export const Navbar: React.FC<NavbarProps> = ({
         ];
       case 'COORDINATOR':
         return [
+          homeFeedLink,
           { id: 'coordinator-dashboard', label: language === 'ta' ? 'கிராம மையம்' : 'Village Hub' },
           { id: 'market-rates', label: marketRatesLabel },
         ];
       case 'LOGISTICS':
         return [
+          homeFeedLink,
           { id: 'logistics-dashboard', label: language === 'ta' ? 'விநியோகம் & தரம்' : 'Logistics & Quality' },
         ];
       case 'ADMIN':
         return [
+          homeFeedLink,
           { id: 'admin-dashboard', label: language === 'ta' ? 'நிர்வாக புள்ளிவிவரம்' : 'Admin Analytics' },
         ];
       default:
-        return [];
+        return [homeFeedLink];
     }
   };
 
@@ -179,7 +190,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Logo & Brand Identity */}
           <div className="flex items-center gap-3">
             <button
-              onClick={() => onNavigate(user ? `${user.role.toLowerCase()}-dashboard` : 'landing')}
+              onClick={() => onNavigate(user ? 'home-feed' : 'landing')}
               className="flex items-center gap-2 text-left group"
             >
               <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-700 flex items-center justify-center text-white shadow-sm transition-colors group-hover:bg-emerald-800 shrink-0">
@@ -314,6 +325,17 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
             )}
 
+            {/* Chat / Messages Button */}
+            {user && onOpenChat && (
+              <button
+                onClick={onOpenChat}
+                className="w-9 h-9 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 flex items-center justify-center transition relative"
+                title={language === 'ta' ? 'அரட்டை மற்றும் செய்திகள்' : 'Chat & Messages'}
+              >
+                <MessageCircle className="w-4 h-4 text-slate-700" />
+              </button>
+            )}
+
             {/* Profile Avatar / Auth Controls */}
             {user ? (
               <div className="flex items-center gap-1.5 sm:gap-2 pl-1.5 sm:pl-2 border-l border-slate-200">
@@ -329,8 +351,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                     <div className="text-xs font-bold text-slate-900 leading-tight truncate max-w-[120px]">
                       {user.name}
                     </div>
-                    <div className="text-[10px] font-semibold text-emerald-700 uppercase">
-                      {user.role}
+                    <div className="text-[10px] font-bold text-emerald-700 uppercase flex items-center gap-1">
+                      {user.activeRole ? (
+                        user.activeRole === 'FARMER' ? '🌾 Farmer' : '🛒 Consumer'
+                      ) : (
+                        user.role
+                      )}
                     </div>
                   </div>
                 </button>

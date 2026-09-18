@@ -32,6 +32,23 @@ export const authenticateToken = (req: AuthenticatedRequest, res: Response, next
   }
 };
 
+export const optionalAuthenticateToken = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return next();
+  }
+
+  try {
+    const decoded = jwt.verify(token, ENV.JWT_SECRET) as AuthUser;
+    req.user = decoded;
+  } catch (err) {
+    // Ignore invalid token for optional auth
+  }
+  next();
+};
+
 export const requireRole = (roles: string[]) => {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
     if (!req.user) {

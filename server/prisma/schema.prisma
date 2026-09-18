@@ -17,6 +17,8 @@ model User {
   role              String             // FARMER, BUYER, COORDINATOR, LOGISTICS, ADMIN
   status            String             @default("ACTIVE") // ACTIVE, SUSPENDED, PENDING_VERIFICATION
   preferredLanguage String             @default("en") // en, ta
+  avatarUrl         String?
+  activeRole        String             @default("FARMER") // FARMER, BUYER, COORDINATOR, LOGISTICS, ADMIN
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
 
@@ -28,27 +30,40 @@ model User {
   ratingsReceived   Rating[]           @relation("RatingsReceived")
   disputesRaised    Dispute[]          @relation("DisputesRaised")
   cart              Cart?
+  postsLiked        PostLike[]
+  postComments      PostComment[]
+  postCommentReplies PostCommentReply[]
+  conversationMembers ConversationMember[]
+  messagesSent      Message[]
+  messagesRead      MessageRead[]
 }
 
 model FarmerProfile {
-  id              String         @id @default(cuid())
-  userId          String         @unique
-  farmerId        String         @unique // e.g. FD-1024
-  village         String
-  district        String
-  state           String         @default("Tamil Nadu")
-  landSize        Float?         // in acres
-  rating          Float          @default(4.8)
-  completedOrders Int            @default(0)
-  verified        Boolean        @default(true)
-  joinedDate      DateTime       @default(now())
+  id                         String         @id @default(cuid())
+  userId                     String         @unique
+  farmerId                   String         @unique // e.g. FD-1024
+  village                    String
+  district                   String
+  state                      String         @default("Tamil Nadu")
+  landSize                   Float?         // in acres
+  farmingType                String?        // Organic, Conventional, Natural, Mixed
+  mainCrops                  String?        // e.g. "தக்காளி, கத்தரி, வெங்காயம்"
+  experienceYears            Int?           @default(5)
+  bio                        String?
+  identityVerificationStatus String         @default("VERIFIED") // PENDING, VERIFIED, REJECTED
+  farmVerificationStatus     String         @default("VERIFIED") // PENDING, VERIFIED, REJECTED
+  rating                     Float          @default(4.8)
+  completedOrders            Int            @default(0)
+  verified                   Boolean        @default(true)
+  joinedDate                 DateTime       @default(now())
 
-  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  batches         ProduceBatch[]
-  offers          Offer[]
-  orderItems      OrderItem[]
-  collectiveMembers CollectiveOrderMember[]
-  payouts         FarmerPayout[]
+  user                       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  batches                    ProduceBatch[]
+  offers                     Offer[]
+  orderItems                 OrderItem[]
+  collectiveMembers          CollectiveOrderMember[]
+  payouts                    FarmerPayout[]
+  posts                      Post[]
 }
 
 model BuyerProfile {
@@ -57,6 +72,7 @@ model BuyerProfile {
   businessName String
   ownerName    String
   businessType String        // HOTEL, RESTAURANT, SUPERMARKET, WHOLESALER, CATERING, LOCAL_SHOP
+  consumerType String?       // INDIVIDUAL, RESTAURANT, HOTEL, SUPERMARKET, WHOLESALER, CATERING, LOCAL_SHOP, OTHER
   gstNumber    String?
   address      String
   village      String?
@@ -157,6 +173,7 @@ model ProduceBatch {
   qualityChecks   QualityCheck[]
   images          ProductImage[]
   cartItems       CartItem[]
+  posts           Post[]
 }
 
 model BuyerDemand {
@@ -470,4 +487,158 @@ model CartItem {
   batch     ProduceBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
 
   @@unique([cartId, batchId])
+}
+
+model Post {
+  id           String        @id @default(cuid())
+  farmerId     String
+  batchId      String?
+  caption      String
+  cropName     String?
+  price        Float?
+  quantity     Float?
+  unit         String        @default("kg")
+  qualityGrade String?
+  harvestDate  DateTime?
+  location     String
+  status       String        @default("ACTIVE") // ACTIVE, ARCHIVED, DELETED
+  visibility   String        @default("PUBLIC") // PUBLIC, RESTRICTED
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  farmer       FarmerProfile @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  batch        ProduceBatch? @relation(fields: [batchId], references: [id], onDelete: SetNull)
+  media        PostMedia[]
+  likes        PostLike[]
+  comments     PostComment[]
+
+  @@index([farmerId])
+  @@index([createdAt])
+  @@index([status])
+}
+
+model PostMedia {
+  id         String   @id @default(cuid())
+  postId     String
+  mediaUrl   String
+  mediaType  String   @default("IMAGE") // IMAGE, VIDEO
+  orderIndex Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+}
+
+model PostLike {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
+}
+
+model PostComment {
+  id        String             @id @default(cuid())
+  postId    String
+  userId    String
+  content   String
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  post      Post               @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  replies   PostCommentReply[]
+
+  @@index([postId])
+  @@index([userId])
+}
+
+model PostCommentReply {
+  id        String      @id @default(cuid())
+  commentId String
+  userId    String
+  content   String
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  comment   PostComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([commentId])
+  @@index([userId])
+}
+
+model Conversation {
+  id        String               @id @default(cuid())
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+
+  members   ConversationMember[]
+  messages  Message[]
+}
+
+model ConversationMember {
+  id             String       @id @default(cuid())
+  conversationId String
+  userId         String
+  lastReadAt     DateTime     @default(now())
+  createdAt      DateTime     @default(now())
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+  @@index([conversationId])
+}
+
+model Message {
+  id             String              @id @default(cuid())
+  conversationId String
+  senderId       String
+  content        String
+  createdAt      DateTime            @default(now())
+
+  conversation   Conversation        @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User                @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  attachments    MessageAttachment[]
+  reads          MessageRead[]
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([createdAt])
+}
+
+model MessageAttachment {
+  id        String   @id @default(cuid())
+  messageId String
+  fileUrl   String
+  fileType  String   @default("IMAGE") // IMAGE, DOCUMENT, AUDIO
+  fileName  String?
+  createdAt DateTime @default(now())
+
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+}
+
+model MessageRead {
+  id        String   @id @default(cuid())
+  messageId String
+  userId    String
+  readAt    DateTime @default(now())
+
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@index([messageId])
+  @@index([userId])
 }

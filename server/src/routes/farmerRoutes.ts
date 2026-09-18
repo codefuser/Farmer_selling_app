@@ -490,4 +490,94 @@ router.get('/earnings', async (req: AuthenticatedRequest, res: Response): Promis
   }
 });
 
+// Public Farmer Profile (accessible by consumers & fellow farmers)
+router.get('/:id/public-profile', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const farmer = await prisma.farmerProfile.findFirst({
+      where: {
+        OR: [{ id }, { userId: id }],
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            avatarUrl: true,
+            mobile: true,
+            createdAt: true,
+          },
+        },
+        batches: {
+          where: { status: 'ACTIVE', quantity: { gt: 0 } },
+          include: {
+            product: { include: { freshnessRules: true } },
+          },
+          orderBy: { createdAt: 'desc' },
+        },
+        posts: {
+          where: { status: 'ACTIVE' },
+          include: {
+            media: { orderBy: { orderIndex: 'asc' } },
+            _count: { select: { likes: true, comments: true } },
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 20,
+        },
+      },
+    });
+
+    if (!farmer) {
+      res.status(404).json({ error: 'Farmer profile not found' });
+      return;
+    }
+
+    const reviews = await prisma.rating.findMany({
+      where: { toUserId: farmer.userId },
+      include: {
+        fromUser: {
+          select: { id: true, name: true, avatarUrl: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 15,
+    });
+
+    res.json({
+      farmer: {
+        id: farmer.id,
+        userId: farmer.userId,
+        farmerId: farmer.farmerId,
+        name: farmer.user.name,
+        avatarUrl: farmer.user.avatarUrl,
+        village: farmer.village,
+        district: farmer.district,
+        state: farmer.state,
+        landSize: farmer.landSize,
+        farmingType: farmer.farmingType || 'Conventional',
+        mainCrops: farmer.mainCrops || 'Tomato, Brinjal, Onion',
+        experienceYears: farmer.experienceYears || 5,
+        bio: farmer.bio || `Passionate farmer from ${farmer.village}, dedicated to providing fresh harvests directly to buyers.`,
+        rating: farmer.rating,
+        completedOrders: farmer.completedOrders,
+        verified: farmer.verified,
+        identityVerificationStatus: farmer.identityVerificationStatus,
+        farmVerificationStatus: farmer.farmVerificationStatus,
+        joinedDate: farmer.joinedDate,
+      },
+      produceBatches: farmer.batches,
+      posts: farmer.posts.map((p) => ({
+        ...p,
+        likeCount: p._count.likes,
+        commentCount: p._count.comments,
+      })),
+      reviews,
+    });
+  } catch (err: any) {
+    console.error('Farmer public profile error:', err);
+    res.status(500).json({ error: err.message || 'Failed to fetch farmer profile' });
+  }
+});
+
 export default router;
