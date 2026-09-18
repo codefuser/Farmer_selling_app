@@ -223,8 +223,8 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
             </h1>
             <p className="text-[11px] text-slate-500 mt-0.5">
               {language === 'ta'
-                ? 'சேலம் விவசாயிகளின் புதிய அறுவடைகள் மற்றும் நேரடி விலைகள்'
-                : 'Direct harvests and fair farm prices across Salem district'}
+                ? 'விவசாயிகளின் நேரடி அறுவடைகள் மற்றும் உழவர் சந்தை நிலவரம்'
+                : 'Direct farm harvests and live mandi market updates'}
             </p>
           </div>
 
@@ -393,7 +393,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
           <p className="text-xs text-slate-500 max-w-xs mx-auto">
             {t('noPostsDesc')}
           </p>
-          {isFarmer && (
+          {isFarmer ? (
             <button
               onClick={() => setCreateModalOpen(true)}
               className="mt-2 inline-flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-xs transition"
@@ -401,6 +401,21 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
               <Plus className="w-4 h-4" />
               <span>{t('createPost')}</span>
             </button>
+          ) : (
+            <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
+              <button
+                onClick={() => onNavigate('register')}
+                className="inline-flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-xs transition"
+              >
+                <span>{language === 'ta' ? 'விவசாயியாகப் பதிவு செய்' : 'Register as Farmer'}</span>
+              </button>
+              <button
+                onClick={() => onNavigate('market-rates')}
+                className="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-xs transition"
+              >
+                <span>{language === 'ta' ? 'அரசு மண்டி விலை பார்க்க' : 'View Govt Mandi Rates'}</span>
+              </button>
+            </div>
           )}
         </div>
       )}

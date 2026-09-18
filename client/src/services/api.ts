@@ -382,6 +382,12 @@ class ApiService {
     return this.request<{ mandis: MandiInfo[] }>('/market-prices/mandis');
   }
 
+  public async syncMarketPrices(): Promise<{ success: boolean; message: string; syncedCount: number; summary: MandiMarketSummary }> {
+    return this.request<{ success: boolean; message: string; syncedCount: number; summary: MandiMarketSummary }>('/market-prices/sync', {
+      method: 'POST',
+    });
+  }
+
   // Photo Upload API
   public async uploadImage(imageBase64: string, filename?: string): Promise<{ url: string; filename: string }> {
     return this.request<{ url: string; filename: string }>('/upload', {

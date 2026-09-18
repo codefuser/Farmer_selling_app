@@ -49,7 +49,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   useEffect(() => {
     let mounted = true;
     api
-      .getMarketTicker('Salem')
+      .getMarketTicker('All')
       .then((res) => {
         if (mounted && res && res.ticker && res.ticker.length > 0) {
           setTicker(res.ticker);

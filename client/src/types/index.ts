@@ -411,6 +411,8 @@ export interface VegetableMarketRate {
   unit: string;
   district: string;
   mandi: string;
+  variety?: string;
+  grade?: string;
   date: string;
   minPrice: number;
   modalPrice: number;
@@ -422,6 +424,8 @@ export interface VegetableMarketRate {
   farmerBenefitPerKg: number;
   buyerSavingsPerKg: number;
   imageUrl: string;
+  isGovVerified?: boolean;
+  source?: string;
 }
 
 export interface MandiMarketSummary {
@@ -432,6 +436,11 @@ export interface MandiMarketSummary {
   topGainers: { name: string; trend: number }[];
   topDecliners: { name: string; trend: number }[];
   rates: VegetableMarketRate[];
+  isLiveGovData?: boolean;
+  source?: string;
+  lastSyncedAt?: string;
+  totalRecords?: number;
+  availableDistricts?: string[];
 }
 
 export interface MandiInfo {
