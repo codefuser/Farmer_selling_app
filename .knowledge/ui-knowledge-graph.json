@@ -1,0 +1,2225 @@
+{
+  "version": "1.0.0",
+  "title": "KisanDirect Full UI Knowledge Graph",
+  "generatedAt": "2026-09-18T11:20:49.588Z",
+  "stats": {
+    "totalUiNodes": 67,
+    "totalUiRelationships": 172,
+    "breakdown": {
+      "ui_view": 24,
+      "ui_overlay": 6,
+      "ui_component": 37
+    }
+  },
+  "nodes": [
+    {
+      "id": "view:landing",
+      "type": "ui_view",
+      "name": "Landing Page View",
+      "slug": "landing",
+      "role": "PUBLIC",
+      "description": "Public entry point featuring hero, key innovations, APMC rates snapshot, and role cards"
+    },
+    {
+      "id": "view:how-it-works",
+      "type": "ui_view",
+      "name": "How It Works View",
+      "slug": "how-it-works",
+      "role": "PUBLIC",
+      "description": "Illustrated 4-step direct agricultural supply chain explanation"
+    },
+    {
+      "id": "view:market-rates",
+      "type": "ui_view",
+      "name": "Live Market Rates View",
+      "slug": "market-rates",
+      "role": "PUBLIC",
+      "description": "Real-time 13-mandi APMC daily rates explorer with category filters and grid/table views"
+    },
+    {
+      "id": "view:for-farmers",
+      "type": "ui_view",
+      "name": "For Farmers View",
+      "slug": "for-farmers",
+      "role": "PUBLIC",
+      "description": "Value proposition and fair price guarantee for smallholder producers"
+    },
+    {
+      "id": "view:for-buyers",
+      "type": "ui_view",
+      "name": "For Buyers View",
+      "slug": "for-buyers",
+      "role": "PUBLIC",
+      "description": "Value proposition, bulk collective supply, and freshness guarantee for B2B buyers"
+    },
+    {
+      "id": "view:impact",
+      "type": "ui_view",
+      "name": "Impact Telemetry View",
+      "slug": "impact",
+      "role": "PUBLIC",
+      "description": "Social and economic impact metrics, wastage reduction, and middlemen savings"
+    },
+    {
+      "id": "view:login",
+      "type": "ui_view",
+      "name": "Login View",
+      "slug": "login",
+      "role": "PUBLIC",
+      "description": "User login form with password/mobile and quick persona switcher pills"
+    },
+    {
+      "id": "view:register",
+      "type": "ui_view",
+      "name": "Registration View",
+      "slug": "register",
+      "role": "PUBLIC",
+      "description": "Role-based registration wizard for Farmers, Buyers, and Coordinators"
+    },
+    {
+      "id": "view:profile",
+      "type": "ui_view",
+      "name": "User Profile View",
+      "slug": "profile",
+      "role": "AUTHENTICATED",
+      "description": "User profile management, verified badges, and contact credentials"
+    },
+    {
+      "id": "view:farmer-dashboard",
+      "type": "ui_view",
+      "name": "Farmer Dashboard View",
+      "slug": "farmer-dashboard",
+      "role": "FARMER",
+      "description": "Farmer hub overview: quick actions, pending offers, stock breakdown, and earnings telemetry"
+    },
+    {
+      "id": "view:farmer-produce",
+      "type": "ui_view",
+      "name": "My Produce View",
+      "slug": "farmer-produce",
+      "role": "FARMER",
+      "description": "Produce batch inventory showing cards with freshness countdowns and status indicators"
+    },
+    {
+      "id": "view:farmer-add-produce",
+      "type": "ui_view",
+      "name": "Add Produce View",
+      "slug": "farmer-add-produce",
+      "role": "FARMER",
+      "description": "5-step listing wizard with photo capture, grade selection, price gauge, and freshness preview"
+    },
+    {
+      "id": "view:farmer-offers",
+      "type": "ui_view",
+      "name": "Farmer Offers Inbox View",
+      "slug": "farmer-offers",
+      "role": "FARMER",
+      "description": "Incoming buyer negotiation offers with Accept, Reject, and Counter-Offer actions"
+    },
+    {
+      "id": "view:farmer-collective",
+      "type": "ui_view",
+      "name": "Farmer Collective Pools View",
+      "slug": "farmer-collective",
+      "role": "FARMER",
+      "description": "History of pooled collective orders farmer participates in"
+    },
+    {
+      "id": "view:farmer-orders",
+      "type": "ui_view",
+      "name": "Farmer Orders View",
+      "slug": "farmer-orders",
+      "role": "FARMER",
+      "description": "Farmer order fulfillment tracking and collection depot drop-off status"
+    },
+    {
+      "id": "view:farmer-earnings",
+      "type": "ui_view",
+      "name": "Farmer Earnings View",
+      "slug": "farmer-earnings",
+      "role": "FARMER",
+      "description": "Payout analytics, monthly volume/earnings chart, and middlemen savings comparison"
+    },
+    {
+      "id": "view:buyer-dashboard",
+      "type": "ui_view",
+      "name": "Buyer Dashboard View",
+      "slug": "buyer-dashboard",
+      "role": "BUYER",
+      "description": "Buyer overview showing active demands, orders in transit, and total spend"
+    },
+    {
+      "id": "view:buyer-marketplace",
+      "type": "ui_view",
+      "name": "Marketplace View",
+      "slug": "buyer-marketplace",
+      "role": "BUYER",
+      "description": "Live produce catalog with filters (crop, grade, freshness, price), sorting, and cart/buy now actions"
+    },
+    {
+      "id": "view:buyer-post-demand",
+      "type": "ui_view",
+      "name": "Post Demand View",
+      "slug": "buyer-post-demand",
+      "role": "BUYER",
+      "description": "Form for commercial buyers to post bulk produce requirements (500kg-2000kg)"
+    },
+    {
+      "id": "view:buyer-smart-matches",
+      "type": "ui_view",
+      "name": "Smart Matches View",
+      "slug": "buyer-smart-matches",
+      "role": "BUYER",
+      "description": "Multi-factor suitability matches and collective supply pooling view"
+    },
+    {
+      "id": "view:buyer-orders",
+      "type": "ui_view",
+      "name": "Buyer Orders View",
+      "slug": "buyer-orders",
+      "role": "BUYER",
+      "description": "10-stage order lifecycle tracking with interactive SVG route map and review feedback"
+    },
+    {
+      "id": "view:coordinator-dashboard",
+      "type": "ui_view",
+      "name": "Coordinator Dashboard View",
+      "slug": "coordinator-dashboard",
+      "role": "COORDINATOR",
+      "description": "Village Digital Hub desk for assisted farmer registration and voice produce listing"
+    },
+    {
+      "id": "view:logistics-dashboard",
+      "type": "ui_view",
+      "name": "Logistics Dashboard View",
+      "slug": "logistics-dashboard",
+      "role": "LOGISTICS",
+      "description": "Fleet management desk with pickup scheduling, GPS updates, and hub quality inspections"
+    },
+    {
+      "id": "view:admin-dashboard",
+      "type": "ui_view",
+      "name": "Admin Dashboard View",
+      "slug": "admin-dashboard",
+      "role": "ADMIN",
+      "description": "Governance control center with financial telemetry, dispute arbitration, and user moderation"
+    },
+    {
+      "id": "overlay:CartDrawer",
+      "type": "ui_overlay",
+      "name": "Cart Slide-Over Drawer",
+      "file": "client/src/features/buyer/CartDrawer.tsx",
+      "description": "Slide-over cart drawer displaying selected items, quantities, subtotal, delivery fee, and checkout CTA"
+    },
+    {
+      "id": "overlay:CheckoutModal",
+      "type": "ui_overlay",
+      "name": "Direct Checkout Modal",
+      "file": "client/src/features/buyer/CheckoutModal.tsx",
+      "description": "Dialog confirming delivery address, phone, and escrow payment authorization"
+    },
+    {
+      "id": "overlay:ProductDetailPage",
+      "type": "ui_overlay",
+      "name": "Product Detail Modal",
+      "file": "client/src/features/buyer/ProductDetailPage.tsx",
+      "description": "Full produce batch modal with freshness countdown, farmer rating, and quantity selector"
+    },
+    {
+      "id": "overlay:VoiceListingModal",
+      "type": "ui_overlay",
+      "name": "Bilingual Voice Listing Modal",
+      "file": "client/src/components/common/VoiceListingModal.tsx",
+      "description": "Simulated speech-to-text dialog in Tamil and English extracting crop, quantity, and price"
+    },
+    {
+      "id": "overlay:OnboardingView",
+      "type": "ui_overlay",
+      "name": "First-Time Onboarding Carousel",
+      "file": "client/src/components/common/OnboardingView.tsx",
+      "description": "4-step onboarding carousel with persona role selection"
+    },
+    {
+      "id": "overlay:SplashScreen",
+      "type": "ui_overlay",
+      "name": "Startup Splash Screen",
+      "file": "client/src/components/common/SplashScreen.tsx",
+      "description": "Startup animated splash screen with problem statement branding"
+    },
+    {
+      "id": "component:App",
+      "type": "ui_component",
+      "name": "App",
+      "file": "client/src/App.tsx",
+      "source": "client/src/App.tsx",
+      "props": [],
+      "state": [
+        "currentView",
+        "viewParams",
+        "voiceModalOpen",
+        "showSplash",
+        "hasOnboarded",
+        "isGlobalCheckoutOpen"
+      ],
+      "events": [
+        "navigate(view, params)",
+        "handleTriggerScenario1",
+        "handleTriggerScenario2",
+        "handleTriggerScenario3",
+        "handleOnboardingComplete"
+      ],
+      "hooks": [
+        "useAuth",
+        "useLanguage",
+        "useCart"
+      ],
+      "apisCalled": [
+        "api.simulateUrgency"
+      ],
+      "children": [
+        "component:SplashScreen",
+        "component:OnboardingView",
+        "component:DemoScenarioBar",
+        "component:Navbar",
+        "component:MobileBottomNav",
+        "component:CartDrawer",
+        "component:CheckoutModal",
+        "component:VoiceListingModal"
+      ],
+      "description": "UI Component App in client/src/App.tsx"
+    },
+    {
+      "id": "component:Navbar",
+      "type": "ui_component",
+      "name": "Navbar",
+      "file": "client/src/components/common/Navbar.tsx",
+      "source": "client/src/components/common/Navbar.tsx",
+      "props": [
+        "currentView: string",
+        "onNavigate: (view: string) => void",
+        "onOpenVoiceModal: () => void"
+      ],
+      "state": [
+        "showNotifDropdown: boolean",
+        "mobileMenuOpen: boolean",
+        "ticker: Array"
+      ],
+      "events": [
+        "onNavigate",
+        "onOpenVoiceModal",
+        "logout",
+        "setLanguage",
+        "openCart"
+      ],
+      "hooks": [
+        "useAuth",
+        "useLanguage",
+        "useCart"
+      ],
+      "apisCalled": [
+        "api.getMarketTicker"
+      ],
+      "children": [],
+      "description": "UI Component Navbar in client/src/components/common/Navbar.tsx"
+    },
+    {
+      "id": "component:DemoScenarioBar",
+      "type": "ui_component",
+      "name": "DemoScenarioBar",
+      "file": "client/src/components/common/DemoScenarioBar.tsx",
+      "source": "client/src/components/common/DemoScenarioBar.tsx",
+      "props": [
+        "onTriggerScenario1: () => void",
+        "onTriggerScenario2: () => void",
+        "onTriggerScenario3: () => void"
+      ],
+      "state": [
+        "isOpen: boolean",
+        "statusMsg: string | null"
+      ],
+      "events": [
+        "handleSwitch(role, name)",
+        "onTriggerScenario1",
+        "onTriggerScenario2",
+        "onTriggerScenario3"
+      ],
+      "hooks": [
+        "useAuth",
+        "useLanguage"
+      ],
+      "apisCalled": [],
+      "children": [],
+      "description": "UI Component DemoScenarioBar in client/src/components/common/DemoScenarioBar.tsx"
+    },
+    {
+      "id": "component:FreshnessBadge",
+      "type": "ui_component",
+      "name": "FreshnessBadge",
+      "file": "client/src/components/common/FreshnessBadge.tsx",
+      "source": "client/src/components/common/FreshnessBadge.tsx",
+      "props": [
+        "status: FreshnessStatus",
+        "remainingText?: string",
+        "hoursRemaining?: number",
+        "minutesRemaining?: number",
+        "showIcon?: boolean",
+        "size?: \"sm\" | \"md\" | \"lg\""
+      ],
+      "state": [],
+      "events": [],
+      "hooks": [
+        "useLanguage"
+      ],
+      "apisCalled": [],
+      "children": [],
+      "description": "UI Component FreshnessBadge in client/src/components/common/FreshnessBadge.tsx"
+    },
+    {
+      "id": "component:FairPriceGauge",
+      "type": "ui_component",
+      "name": "FairPriceGauge",
+      "file": "client/src/components/common/FairPriceGauge.tsx",
+      "source": "client/src/components/common/FairPriceGauge.tsx",
+      "props": [
+        "modalPrice: number",
+        "currentPrice: number",
+        "minPrice?: number",
+        "maxPrice?: number",
+        "compact?: boolean"
+      ],
+      "state": [],
+      "events": [],
+      "hooks": [
+        "useLanguage"
+      ],
+      "apisCalled": [],
+      "children": [],
+      "description": "UI Component FairPriceGauge in client/src/components/common/FairPriceGauge.tsx"
+    },
+    {
+      "id": "component:DeliveryMap",
+      "type": "ui_component",
+      "name": "DeliveryMap",
+      "file": "client/src/components/common/DeliveryMap.tsx",
+      "source": "client/src/components/common/DeliveryMap.tsx",
+      "props": [
+        "orderStatus: OrderStatus",
+        "deliveryAddress?: string",
+        "compact?: boolean"
+      ],
+      "state": [],
+      "events": [],
+      "hooks": [
+        "useLanguage"
+      ],
+      "apisCalled": [],
+      "children": [],
+      "description": "UI Component DeliveryMap in client/src/components/common/DeliveryMap.tsx"
+    },
+    {
+      "id": "component:VoiceListingModal",
+      "type": "ui_component",
+      "name": "VoiceListingModal",
+      "file": "client/src/components/common/VoiceListingModal.tsx",
+      "source": "client/src/components/common/VoiceListingModal.tsx",
+      "props": [
+        "isOpen: boolean",
+        "onClose: () => void",
+        "onBatchCreated?: () => void"
+      ],
+      "state": [
+        "isListening: boolean",
+        "spokenText: string",
+        "parsedProduce: any",
+        "detectedLanguage: string",
+        "isSubmitting: boolean",
+        "error: string | null",
+        "statusMessage: string | null"
+      ],
+      "events": [
+        "startListening",
+        "stopListening",
+        "handleConfirmAndPublish",
+        "handleSimulateSpeech"
+      ],
+      "hooks": [
+        "useLanguage",
+        "useAuth"
+      ],
+      "apisCalled": [
+        "api.coordinatorCreateBatch",
+        "api.createFarmerBatch"
+      ],
+      "children": [],
+      "description": "UI Component VoiceListingModal in client/src/components/common/VoiceListingModal.tsx"
+    },
+    {
+      "id": "component:MobileBottomNav",
+      "type": "ui_component",
+      "name": "MobileBottomNav",
+      "file": "client/src/components/common/MobileBottomNav.tsx",
+      "source": "client/src/components/common/MobileBottomNav.tsx",
+      "props": [
+        "currentView: string",
+        "onNavigate: (view: string) => void"
+      ],
+      "state": [],
+      "events": [
+        "onNavigate",
+        "openCart"
+      ],
+      "hooks": [
+        "useAuth",
+        "useLanguage",
+        "useCart"
+      ],
+      "apisCalled": [],
+      "children": [],
+      "description": "UI Component MobileBottomNav in client/src/components/common/MobileBottomNav.tsx"
+    },
+    {
+      "id": "component:OnboardingView",
+      "type": "ui_component",
+      "name": "OnboardingView",
+      "file": "client/src/components/common/OnboardingView.tsx",
+      "source": "client/src/components/common/OnboardingView.tsx",
+      "props": [
+        "onComplete: (selectedRole?: string) => void"
+      ],
+      "state": [
+        "currentSlide: number",
+        "selectedRole: string | null"
+      ],
+      "events": [
+        "handleNext",
+        "handleSkip",
+        "handleRoleSelect"
+      ],
+      "hooks": [
+        "useLanguage"
+      ],
+      "apisCalled": [],
+      "children": [],
+      "description": "UI Component OnboardingView in client/src/components/common/OnboardingView.tsx"
+    },
+    {
+      "id": "component:SplashScreen",
+      "type": "ui_component",
+      "name": "SplashScreen",
+      "file": "client/src/components/common/SplashScreen.tsx",
+      "source": "client/src/components/common/SplashScreen.tsx",
+      "props": [
+        "onFinish: () => void"
+      ],
+      "state": [],
+      "events": [
+        "onFinish"
+      ],
+      "hooks": [],
+      "apisCalled": [],
+      "children": [],
+      "description": "UI Component SplashScreen in client/src/components/common/SplashScreen.tsx"
+    },
+    {
+      "id": "component:FarmerDashboard",
+      "type": "ui_component",
+      "name": "FarmerDashboard",
+      "file": "client/src/features/farmer/FarmerDashboard.tsx",
+      "source": "client/src/features/farmer/FarmerDashboard.tsx",
+      "props": [
+        "onNavigate: (view: string) => void",
+        "onOpenVoiceModal: () => void"
+      ],
+      "state": [
+        "stats: any",
+        "recentBatches: any[]",
+        "loading: boolean"
+      ],
+      "events": [
+        "onNavigate",
+        "onOpenVoiceModal",
+        "loadDashboard"
+      ],
+      "hooks": [
+        "useLanguage",
+        "useAuth"
+      ],
+      "apisCalled": [
+        "api.getFarmerDashboard"
+      ],
+      "children": [
+        "component:FreshnessBadge"
+      ],
+      "description": "UI Component FarmerDashboard in client/src/features/farmer/FarmerDashboard.tsx"
+    },
+    {
+      "id": "component:AddProduce",
+      "type": "ui_component",
+      "name": "AddProduce",
+      "file": "client/src/features/farmer/AddProduce.tsx",
+      "source": "client/src/features/farmer/AddProduce.tsx",
+      "props": [
+        "onNavigate: (view: string) => void"
+      ],
+      "state": [
+        "step: number",
+        "products: Product[]",
+        "selectedProduct: Product | null",
+        "quantity: string",
+        "qualityGrade: \"A\" | \"B\" | \"C\"",
+        "expectedPrice: string",
+        "harvestTime: string",
+        "sellByHours: number",
+        "uploadedImageUrl: string | null",
+        "imagePreview: string | null",
+        "isUploadingImage: boolean",
+        "isSubmitting: boolean",
+        "error: string | null",
+        "createdBatch: any"
+      ],
+      "events": [
+        "handleProductSelect",
+        "handleFileChange",
+        "handlePublish",
+        "onNavigate"
+      ],
+      "hooks": [
+        "useLanguage"
+      ],
+      "apisCalled": [
+        "api.getFarmerProducts",
+        "api.uploadImage",
+        "api.createFarmerBatch"
+      ],
+      "children": [
+        "component:FairPriceGauge",
+        "component:FreshnessBadge"
+      ],
+      "description": "UI Component AddProduce in client/src/features/farmer/AddProduce.tsx"
+    },
+    {
+      "id": "component:MyProduce",
+      "type": "ui_component",
+      "name": "MyProduce",
+      "file": "client/src/features/farmer/MyProduce.tsx",
+      "source": "client/src/features/farmer/MyProduce.tsx",
+      "props": [
+        "onNavigate: (view: string) => void",
+        "onOpenVoiceModal: () => void"
+      ],
+      "state": [
+        "batches: ProduceBatch[]",
+        "loading: boolean"
+      ],
+      "events": [
+        "loadBatches",
+        "onNavigate",
+        "onOpenVoiceModal"
+      ],
+      "hooks": [
+        "useLanguage"
+      ],
+      "apisCalled": [
+        "api.getFarmerBatches"
+      ],
+      "children": [
+        "component:FreshnessBadge"
+      ],
+      "description": "UI Component MyProduce in client/src/features/farmer/MyProduce.tsx"
+    },
+    {
+      "id": "component:FarmerOffers",
+      "type": "ui_component",
+      "name": "FarmerOffers",
+      "file": "client/src/features/farmer/FarmerOffers.tsx",
+      "source": "client/src/features/farmer/FarmerOffers.tsx",
+      "props": [],
+      "state": [
+        "offers: Offer[]",
+        "loading: boolean",
+        "counterModalOffer: Offer | null",
+        "counterPrice: string",
+        "counterNotes: string",
+        "isSubmitting: boolean",
+        "statusMsg: string | null"
+      ],
+      "events": [
+        "handleAccept(offerId)",
+        "handleReject(offerId)",
+        "handleCounterSubmit"
+      ],
+      "hooks": [
+        "useLanguage"
+      ],
+      "apisCalled": [
+        "api.getFarmerOffers",
+        "api.acceptFarmerOffer",
+        "api.rejectFarmerOffer",
+        "api.counterFarmerOffer"
+      ],
+      "children": [],
+      "description": "UI Component FarmerOffers in client/src/features/farmer/FarmerOffers.tsx"
+    },
+    {
+      "id": "component:FarmerCollective",
+      "type": "ui_component",
+      "name": "FarmerCollective",
+      "file": "client/src/features/farmer/FarmerCollective.tsx",
+      "source": "client/src/features/farmer/FarmerCollective.tsx",
+      "props": [],
+      "state": [
+        "pools: any[]",
+        "loading: boolean"
+      ],
+      "events": [
+        "loadPools"
+      ],
+      "hooks": [
+        "useLanguage"
+      ],
+      "apisCalled": [
+        "api.getFarmerCollectivePools"
+      ],
+      "children": [],
+      "description": "UI Component FarmerCollective in client/src/features/farmer/FarmerCollective.tsx"
+    },
+    {
+      "id": "component:FarmerOrders",
+      "type": "ui_component",
+      "name": "FarmerOrders",
+      "file": "client/src/features/farmer/FarmerOrders.tsx",
+      "source": "client/src/features/farmer/FarmerOrders.tsx",
+      "props": [],
+      "state": [
+        "orders: any[]",
+        "loading: boolean"
+      ],
+      "events": [
+        "loadOrders"
+      ],
+      "hooks": [
+        "useLanguage"
+      ],
+      "apisCalled": [
+        "api.getFarmerOrders"
+      ],
+      "children": [],
+      "description": "UI Component FarmerOrders in client/src/features/farmer/FarmerOrders.tsx"
+    },
+    {
+      "id": "component:FarmerEarnings",
+      "type": "ui_component",
+      "name": "FarmerEarnings",
+      "file": "client/src/features/farmer/FarmerEarnings.tsx",
+      "source": "client/src/features/farmer/FarmerEarnings.tsx",
+      "props": [],
+      "state": [
+        "data: any",
+        "loading: boolean"
+      ],
+      "events": [
+        "loadEarnings"
+      ],
+      "hooks": [
+        "useLanguage"
+      ],
+      "apisCalled": [
+        "api.getFarmerEarnings"
+      ],
+      "children": [],
+      "description": "UI Component FarmerEarnings in client/src/features/farmer/FarmerEarnings.tsx"
+    },
+    {
+      "id": "component:BuyerDashboard",
+      "type": "ui_component",
+      "name": "BuyerDashboard",
+      "file": "client/src/features/buyer/BuyerDashboard.tsx",
+      "source": "client/src/features/buyer/BuyerDashboard.tsx",
+      "props": [
+        "onNavigate: (view: string, params?: any) => void"
+      ],
+      "state": [
+        "data: any",
+        "loading: boolean"
+      ],
+      "events": [
+        "loadDashboard",
+        "onNavigate"
+      ],
+      "hooks": [
+        "useLanguage"
+      ],
+      "apisCalled": [
+        "api.getBuyerDashboard"
+      ],
+      "children": [],
+      "description": "UI Component BuyerDashboard in client/src/features/buyer/BuyerDashboard.tsx"
+    },
+    {
+      "id": "component:Marketplace",
+      "type": "ui_component",
+      "name": "Marketplace",
+      "file": "client/src/features/buyer/Marketplace.tsx",
+      "source": "client/src/features/buyer/Marketplace.tsx",
+      "props": [
+        "onNavigate: (view: string, params?: any) => void"
+      ],
+      "state": [
+        "batches: ProduceBatch[]",
+        "products: Product[]",
+        "loading: boolean",
+        "searchQuery: string",
+        "selectedCategory: string",
+        "selectedGrade: string",
+        "selectedFreshness: string",
+        "maxPrice: string",
+        "sortBy: string",
+        "isFilterDrawerOpen: boolean",
+        "activeDetailBatch: ProduceBatch | null",
+        "directCheckoutItem: DirectCheckoutItem | null",
+        "isCheckoutModalOpen: boolean",
+        "selectedBatchForOffer: ProduceBatch | null",
+        "offerPrice: string",
+        "offerQuantity: string",
+        "offerNotes: string",
+        "submittingOffer: boolean",
+        "toastMessage: string | null"
+      ],
+      "events": [
+        "handleAddToCart",
+        "handleBuyNow",
+        "handleOpenOfferModal",
+        "handleSendOffer",
+        "onNavigate"
+      ],
+      "hooks": [
+        "useLanguage",
+        "useCart"
+      ],
+      "apisCalled": [
+        "api.getMarketplaceProduce",
+        "api.getFarmerProducts",
+        "api.sendBuyerOffer"
+      ],
+      "children": [
+        "component:FreshnessBadge",
+        "component:ProductDetailPage",
+        "component:CheckoutModal"
+      ],
+      "description": "UI Component Marketplace in client/src/features/buyer/Marketplace.tsx"
+    },
+    {
+      "id": "component:PostDemand",
+      "type": "ui_component",
+      "name": "PostDemand",
+      "file": "client/src/features/buyer/PostDemand.tsx",
+      "source": "client/src/features/buyer/PostDemand.tsx",
+      "props": [
+        "onNavigate: (view: string, params?: any) => void"
+      ],
+      "state": [
+        "products: Product[]",
+        "selectedProductId: string",
+        "requiredQuantity: string",
+        "minBudget: string",
+        "maxBudget: string",
+        "requiredGrade: string",
+        "maxDistanceKm: string",
+        "deliveryDeadline: string",
+        "location: string",
+        "notes: string",
+        "loading: boolean",
+        "searchingMatches: boolean",
+        "error: string | null"
+      ],
+      "events": [
+        "handleProductChange",
+        "handleSubmit",
+        "onNavigate"
+      ],
+      "hooks": [
+        "useLanguage"
+      ],
+      "apisCalled": [
+        "api.getFarmerProducts",
+        "api.postBuyerDemand"
+      ],
+      "children": [],
+      "description": "UI Component PostDemand in client/src/features/buyer/PostDemand.tsx"
+    },
+    {
+      "id": "component:SmartMatches",
+      "type": "ui_component",
+      "name": "SmartMatches",
+      "file": "client/src/features/buyer/SmartMatches.tsx",
+      "source": "client/src/features/buyer/SmartMatches.tsx",
+      "props": [
+        "demandId?: string",
+        "onNavigate: (view: string, params?: any) => void"
+      ],
+      "state": [
+        "demand: BuyerDemand | null",
+        "individualMatches: MatchedBatch[]",
+        "collectiveGroup: CollectiveMatchGroup | null",
+        "loading: boolean",
+        "establishingOrder: boolean",
+        "agreedPrice: string",
+        "error: string | null"
+      ],
+      "events": [
+        "loadMatches",
+        "handleEstablishCollectiveOrder",
+        "onNavigate"
+      ],
+      "hooks": [
+        "useLanguage"
+      ],
+      "apisCalled": [
+        "api.getBuyerDemands",
+        "api.getDemandMatches",
+        "api.createCollectiveOrder"
+      ],
+      "children": [],
+      "description": "UI Component SmartMatches in client/src/features/buyer/SmartMatches.tsx"
+    },
+    {
+      "id": "component:ProductDetailPage",
+      "type": "ui_component",
+      "name": "ProductDetailPage",
+      "file": "client/src/features/buyer/ProductDetailPage.tsx",
+      "source": "client/src/features/buyer/ProductDetailPage.tsx",
+      "props": [
+        "batch: any",
+        "onClose: () => void",
+        "onBuyNow: (batch: any, quantity: number) => void"
+      ],
+      "state": [
+        "quantity: number",
+        "addingToCart: boolean",
+        "addedToast: boolean"
+      ],
+      "events": [
+        "handleIncrement",
+        "handleDecrement",
+        "handleAddToCart",
+        "onBuyNow",
+        "onClose"
+      ],
+      "hooks": [
+        "useLanguage",
+        "useCart"
+      ],
+      "apisCalled": [],
+      "children": [
+        "component:FreshnessBadge"
+      ],
+      "description": "UI Component ProductDetailPage in client/src/features/buyer/ProductDetailPage.tsx"
+    },
+    {
+      "id": "component:CartDrawer",
+      "type": "ui_component",
+      "name": "CartDrawer",
+      "file": "client/src/features/buyer/CartDrawer.tsx",
+      "source": "client/src/features/buyer/CartDrawer.tsx",
+      "props": [
+        "onProceedToCheckout: () => void",
+        "onExplore: () => void"
+      ],
+      "state": [],
+      "events": [
+        "updateQuantity",
+        "removeItem",
+        "clearCart",
+        "closeCart",
+        "onProceedToCheckout",
+        "onExplore"
+      ],
+      "hooks": [
+        "useLanguage",
+        "useCart"
+      ],
+      "apisCalled": [],
+      "children": [],
+      "description": "UI Component CartDrawer in client/src/features/buyer/CartDrawer.tsx"
+    },
+    {
+      "id": "component:CheckoutModal",
+      "type": "ui_component",
+      "name": "CheckoutModal",
+      "file": "client/src/features/buyer/CheckoutModal.tsx",
+      "source": "client/src/features/buyer/CheckoutModal.tsx",
+      "props": [
+        "isOpen: boolean",
+        "onClose: () => void",
+        "directItem?: DirectCheckoutItem | null",
+        "onOrderSuccess: (orderId: string) => void"
+      ],
+      "state": [
+        "address: string",
+        "phone: string",
+        "paymentMethod: \"UPI\" | \"NET_BANKING\" | \"ESCROW\" | \"COD\"",
+        "notes: string",
+        "isSubmitting: boolean",
+        "errorMessage: string | null"
+      ],
+      "events": [
+        "handleSubmitOrder",
+        "onClose"
+      ],
+      "hooks": [
+        "useLanguage",
+        "useCart",
+        "useAuth"
+      ],
+      "apisCalled": [
+        "api.checkout"
+      ],
+      "children": [],
+      "description": "UI Component CheckoutModal in client/src/features/buyer/CheckoutModal.tsx"
+    },
+    {
+      "id": "component:BuyerOrders",
+      "type": "ui_component",
+      "name": "BuyerOrders",
+      "file": "client/src/features/buyer/BuyerOrders.tsx",
+      "source": "client/src/features/buyer/BuyerOrders.tsx",
+      "props": [
+        "highlightOrderId?: string",
+        "onNavigate: (view: string, params?: any) => void"
+      ],
+      "state": [
+        "orders: Order[]",
+        "expandedOrderId: string | null",
+        "loading: boolean",
+        "advancingStatus: boolean",
+        "ratingScore: number",
+        "ratingComment: string",
+        "ratingSubmitted: boolean"
+      ],
+      "events": [
+        "handleAdvanceOrder",
+        "handleRatingSubmit",
+        "onNavigate"
+      ],
+      "hooks": [
+        "useLanguage"
+      ],
+      "apisCalled": [
+        "api.getBuyerOrders",
+        "api.updateOrderStatus",
+        "api.submitRating"
+      ],
+      "children": [
+        "component:DeliveryMap"
+      ],
+      "description": "UI Component BuyerOrders in client/src/features/buyer/BuyerOrders.tsx"
+    },
+    {
+      "id": "component:CoordinatorDashboard",
+      "type": "ui_component",
+      "name": "CoordinatorDashboard",
+      "file": "client/src/features/coordinator/CoordinatorDashboard.tsx",
+      "source": "client/src/features/coordinator/CoordinatorDashboard.tsx",
+      "props": [],
+      "state": [
+        "farmers: any[]",
+        "loading: boolean",
+        "showRegModal: boolean",
+        "newFarmerName: string",
+        "newFarmerMobile: string",
+        "newFarmerVillage: string",
+        "newFarmerLand: string",
+        "regSuccess: any",
+        "voiceFarmerId: string | null",
+        "showVoiceModal: boolean"
+      ],
+      "events": [
+        "handleRegisterFarmer",
+        "loadFarmers"
+      ],
+      "hooks": [
+        "useLanguage"
+      ],
+      "apisCalled": [
+        "api.getCoordinatorFarmers",
+        "api.coordinatorRegisterFarmer"
+      ],
+      "children": [
+        "component:VoiceListingModal"
+      ],
+      "description": "UI Component CoordinatorDashboard in client/src/features/coordinator/CoordinatorDashboard.tsx"
+    },
+    {
+      "id": "component:LogisticsDashboard",
+      "type": "ui_component",
+      "name": "LogisticsDashboard",
+      "file": "client/src/features/logistics/LogisticsDashboard.tsx",
+      "source": "client/src/features/logistics/LogisticsDashboard.tsx",
+      "props": [],
+      "state": [
+        "pickups: any[]",
+        "deliveries: any[]",
+        "vehicles: any[]",
+        "centers: any[]",
+        "loading: boolean",
+        "showQcModal: boolean",
+        "qcOrderId: string",
+        "qcBatchId: string",
+        "qcExpectedQty: string",
+        "qcActualQty: string",
+        "qcDamagedQty: string",
+        "qcGrade: string",
+        "qcRemarks: string",
+        "qcSuccessMsg: string | null"
+      ],
+      "events": [
+        "handleQualityCheckSubmit",
+        "loadData"
+      ],
+      "hooks": [
+        "useLanguage"
+      ],
+      "apisCalled": [
+        "api.getPickups",
+        "api.getDeliveries",
+        "api.getVehicles",
+        "api.getCollectionCenters",
+        "api.submitQualityCheck"
+      ],
+      "children": [
+        "component:DeliveryMap"
+      ],
+      "description": "UI Component LogisticsDashboard in client/src/features/logistics/LogisticsDashboard.tsx"
+    },
+    {
+      "id": "component:AdminDashboard",
+      "type": "ui_component",
+      "name": "AdminDashboard",
+      "file": "client/src/features/admin/AdminDashboard.tsx",
+      "source": "client/src/features/admin/AdminDashboard.tsx",
+      "props": [],
+      "state": [
+        "data: any",
+        "farmers: any[]",
+        "buyers: any[]",
+        "disputes: any[]",
+        "activeTab: \"overview\" | \"farmers\" | \"buyers\" | \"disputes\"",
+        "loading: boolean",
+        "resolvingDisputeId: string | null",
+        "resolutionNotes: string"
+      ],
+      "events": [
+        "handleResolveDispute",
+        "loadData"
+      ],
+      "hooks": [
+        "useLanguage"
+      ],
+      "apisCalled": [
+        "api.getAdminDashboard",
+        "api.getAdminFarmers",
+        "api.getAdminBuyers",
+        "api.getAdminDisputes",
+        "api.resolveDispute"
+      ],
+      "children": [],
+      "description": "UI Component AdminDashboard in client/src/features/admin/AdminDashboard.tsx"
+    },
+    {
+      "id": "component:LandingPage",
+      "type": "ui_component",
+      "name": "LandingPage",
+      "file": "client/src/features/public/LandingPage.tsx",
+      "source": "client/src/features/public/LandingPage.tsx",
+      "props": [
+        "onNavigate: (view: string) => void",
+        "onOpenVoiceModal: () => void"
+      ],
+      "state": [
+        "mandis: MandiInfo[]",
+        "selectedMandiId: string",
+        "searchQuery: string",
+        "ratesData: VegetableMarketRate[]",
+        "summaryMeta: any",
+        "loadingRates: boolean"
+      ],
+      "events": [
+        "fetchMarketRates",
+        "onNavigate",
+        "onOpenVoiceModal"
+      ],
+      "hooks": [
+        "useLanguage"
+      ],
+      "apisCalled": [
+        "api.getDailyMarketPrices"
+      ],
+      "children": [],
+      "description": "UI Component LandingPage in client/src/features/public/LandingPage.tsx"
+    },
+    {
+      "id": "component:HowItWorksPage",
+      "type": "ui_component",
+      "name": "HowItWorksPage",
+      "file": "client/src/features/public/HowItWorksPage.tsx",
+      "source": "client/src/features/public/HowItWorksPage.tsx",
+      "props": [
+        "onNavigate: (view: string) => void"
+      ],
+      "state": [],
+      "events": [
+        "onNavigate"
+      ],
+      "hooks": [
+        "useLanguage"
+      ],
+      "apisCalled": [],
+      "children": [],
+      "description": "UI Component HowItWorksPage in client/src/features/public/HowItWorksPage.tsx"
+    },
+    {
+      "id": "component:MarketRatesPage",
+      "type": "ui_component",
+      "name": "MarketRatesPage",
+      "file": "client/src/features/public/MarketRatesPage.tsx",
+      "source": "client/src/features/public/MarketRatesPage.tsx",
+      "props": [
+        "onNavigate: (view: string) => void"
+      ],
+      "state": [
+        "mandis: MandiInfo[]",
+        "selectedMandiId: string",
+        "selectedCategory: string",
+        "searchQuery: string",
+        "viewMode: \"grid\" | \"table\"",
+        "ratesData: VegetableMarketRate[]",
+        "summaryMeta: any",
+        "loading: boolean"
+      ],
+      "events": [
+        "fetchRates",
+        "onNavigate"
+      ],
+      "hooks": [
+        "useLanguage"
+      ],
+      "apisCalled": [
+        "api.getDailyMarketPrices"
+      ],
+      "children": [],
+      "description": "UI Component MarketRatesPage in client/src/features/public/MarketRatesPage.tsx"
+    },
+    {
+      "id": "component:ForFarmersPage",
+      "type": "ui_component",
+      "name": "ForFarmersPage",
+      "file": "client/src/features/public/ForFarmersPage.tsx",
+      "source": "client/src/features/public/ForFarmersPage.tsx",
+      "props": [
+        "onNavigate: (view: string) => void",
+        "onOpenVoiceModal: () => void"
+      ],
+      "state": [],
+      "events": [
+        "onNavigate",
+        "onOpenVoiceModal"
+      ],
+      "hooks": [
+        "useLanguage"
+      ],
+      "apisCalled": [],
+      "children": [],
+      "description": "UI Component ForFarmersPage in client/src/features/public/ForFarmersPage.tsx"
+    },
+    {
+      "id": "component:ForBuyersPage",
+      "type": "ui_component",
+      "name": "ForBuyersPage",
+      "file": "client/src/features/public/ForBuyersPage.tsx",
+      "source": "client/src/features/public/ForBuyersPage.tsx",
+      "props": [
+        "onNavigate: (view: string) => void"
+      ],
+      "state": [],
+      "events": [
+        "onNavigate"
+      ],
+      "hooks": [
+        "useLanguage"
+      ],
+      "apisCalled": [],
+      "children": [],
+      "description": "UI Component ForBuyersPage in client/src/features/public/ForBuyersPage.tsx"
+    },
+    {
+      "id": "component:ImpactPage",
+      "type": "ui_component",
+      "name": "ImpactPage",
+      "file": "client/src/features/public/ImpactPage.tsx",
+      "source": "client/src/features/public/ImpactPage.tsx",
+      "props": [],
+      "state": [],
+      "events": [],
+      "hooks": [
+        "useLanguage"
+      ],
+      "apisCalled": [],
+      "children": [],
+      "description": "UI Component ImpactPage in client/src/features/public/ImpactPage.tsx"
+    },
+    {
+      "id": "component:LoginPage",
+      "type": "ui_component",
+      "name": "LoginPage",
+      "file": "client/src/features/public/LoginPage.tsx",
+      "source": "client/src/features/public/LoginPage.tsx",
+      "props": [
+        "onNavigate: (view: string) => void"
+      ],
+      "state": [
+        "emailOrMobile: string",
+        "password: string",
+        "loading: boolean",
+        "error: string | null"
+      ],
+      "events": [
+        "handleLogin",
+        "handleQuickPersona",
+        "onNavigate"
+      ],
+      "hooks": [
+        "useAuth",
+        "useLanguage"
+      ],
+      "apisCalled": [
+        "api.login",
+        "api.demoSwitch"
+      ],
+      "children": [],
+      "description": "UI Component LoginPage in client/src/features/public/LoginPage.tsx"
+    },
+    {
+      "id": "component:RegisterPage",
+      "type": "ui_component",
+      "name": "RegisterPage",
+      "file": "client/src/features/public/RegisterPage.tsx",
+      "source": "client/src/features/public/RegisterPage.tsx",
+      "props": [
+        "onNavigate: (view: string) => void"
+      ],
+      "state": [
+        "role: \"FARMER\" | \"BUYER\" | \"COORDINATOR\"",
+        "name: string",
+        "email: string",
+        "mobile: string",
+        "password: string",
+        "village: string",
+        "district: string",
+        "landSize: string",
+        "businessName: string",
+        "businessType: string",
+        "gstNumber: string",
+        "address: string",
+        "loading: boolean",
+        "error: string | null"
+      ],
+      "events": [
+        "handleSubmit",
+        "onNavigate"
+      ],
+      "hooks": [
+        "useAuth",
+        "useLanguage"
+      ],
+      "apisCalled": [
+        "api.register"
+      ],
+      "children": [],
+      "description": "UI Component RegisterPage in client/src/features/public/RegisterPage.tsx"
+    },
+    {
+      "id": "component:ProfilePage",
+      "type": "ui_component",
+      "name": "ProfilePage",
+      "file": "client/src/features/public/ProfilePage.tsx",
+      "source": "client/src/features/public/ProfilePage.tsx",
+      "props": [
+        "onNavigate: (view: string) => void"
+      ],
+      "state": [],
+      "events": [
+        "onNavigate",
+        "logout"
+      ],
+      "hooks": [
+        "useAuth",
+        "useLanguage"
+      ],
+      "apisCalled": [],
+      "children": [],
+      "description": "UI Component ProfilePage in client/src/features/public/ProfilePage.tsx"
+    }
+  ],
+  "relationships": [
+    {
+      "from": "component:App",
+      "type": "routes_to",
+      "to": "view:landing"
+    },
+    {
+      "from": "view:landing",
+      "type": "renders_component",
+      "to": "component:LandingPage"
+    },
+    {
+      "from": "component:App",
+      "type": "routes_to",
+      "to": "view:how-it-works"
+    },
+    {
+      "from": "view:how-it-works",
+      "type": "renders_component",
+      "to": "component:HowItWorksPage"
+    },
+    {
+      "from": "component:App",
+      "type": "routes_to",
+      "to": "view:market-rates"
+    },
+    {
+      "from": "view:market-rates",
+      "type": "renders_component",
+      "to": "component:MarketRatesPage"
+    },
+    {
+      "from": "component:App",
+      "type": "routes_to",
+      "to": "view:for-farmers"
+    },
+    {
+      "from": "view:for-farmers",
+      "type": "renders_component",
+      "to": "component:ForFarmersPage"
+    },
+    {
+      "from": "component:App",
+      "type": "routes_to",
+      "to": "view:for-buyers"
+    },
+    {
+      "from": "view:for-buyers",
+      "type": "renders_component",
+      "to": "component:ForBuyersPage"
+    },
+    {
+      "from": "component:App",
+      "type": "routes_to",
+      "to": "view:impact"
+    },
+    {
+      "from": "view:impact",
+      "type": "renders_component",
+      "to": "component:ImpactPage"
+    },
+    {
+      "from": "component:App",
+      "type": "routes_to",
+      "to": "view:login"
+    },
+    {
+      "from": "view:login",
+      "type": "renders_component",
+      "to": "component:LoginPage"
+    },
+    {
+      "from": "component:App",
+      "type": "routes_to",
+      "to": "view:register"
+    },
+    {
+      "from": "view:register",
+      "type": "renders_component",
+      "to": "component:RegisterPage"
+    },
+    {
+      "from": "component:App",
+      "type": "routes_to",
+      "to": "view:profile"
+    },
+    {
+      "from": "view:profile",
+      "type": "renders_component",
+      "to": "component:ProfilePage"
+    },
+    {
+      "from": "component:App",
+      "type": "routes_to",
+      "to": "view:farmer-dashboard"
+    },
+    {
+      "from": "view:farmer-dashboard",
+      "type": "renders_component",
+      "to": "component:FarmerDashboard"
+    },
+    {
+      "from": "component:App",
+      "type": "routes_to",
+      "to": "view:farmer-produce"
+    },
+    {
+      "from": "view:farmer-produce",
+      "type": "renders_component",
+      "to": "component:MyProduce"
+    },
+    {
+      "from": "component:App",
+      "type": "routes_to",
+      "to": "view:farmer-add-produce"
+    },
+    {
+      "from": "view:farmer-add-produce",
+      "type": "renders_component",
+      "to": "component:AddProduce"
+    },
+    {
+      "from": "component:App",
+      "type": "routes_to",
+      "to": "view:farmer-offers"
+    },
+    {
+      "from": "view:farmer-offers",
+      "type": "renders_component",
+      "to": "component:FarmerOffers"
+    },
+    {
+      "from": "component:App",
+      "type": "routes_to",
+      "to": "view:farmer-collective"
+    },
+    {
+      "from": "view:farmer-collective",
+      "type": "renders_component",
+      "to": "component:FarmerCollective"
+    },
+    {
+      "from": "component:App",
+      "type": "routes_to",
+      "to": "view:farmer-orders"
+    },
+    {
+      "from": "view:farmer-orders",
+      "type": "renders_component",
+      "to": "component:FarmerOrders"
+    },
+    {
+      "from": "component:App",
+      "type": "routes_to",
+      "to": "view:farmer-earnings"
+    },
+    {
+      "from": "view:farmer-earnings",
+      "type": "renders_component",
+      "to": "component:FarmerEarnings"
+    },
+    {
+      "from": "component:App",
+      "type": "routes_to",
+      "to": "view:buyer-dashboard"
+    },
+    {
+      "from": "view:buyer-dashboard",
+      "type": "renders_component",
+      "to": "component:BuyerDashboard"
+    },
+    {
+      "from": "component:App",
+      "type": "routes_to",
+      "to": "view:buyer-marketplace"
+    },
+    {
+      "from": "view:buyer-marketplace",
+      "type": "renders_component",
+      "to": "component:Marketplace"
+    },
+    {
+      "from": "component:App",
+      "type": "routes_to",
+      "to": "view:buyer-post-demand"
+    },
+    {
+      "from": "view:buyer-post-demand",
+      "type": "renders_component",
+      "to": "component:PostDemand"
+    },
+    {
+      "from": "component:App",
+      "type": "routes_to",
+      "to": "view:buyer-smart-matches"
+    },
+    {
+      "from": "view:buyer-smart-matches",
+      "type": "renders_component",
+      "to": "component:SmartMatches"
+    },
+    {
+      "from": "component:App",
+      "type": "routes_to",
+      "to": "view:buyer-orders"
+    },
+    {
+      "from": "view:buyer-orders",
+      "type": "renders_component",
+      "to": "component:BuyerOrders"
+    },
+    {
+      "from": "component:App",
+      "type": "routes_to",
+      "to": "view:coordinator-dashboard"
+    },
+    {
+      "from": "view:coordinator-dashboard",
+      "type": "renders_component",
+      "to": "component:CoordinatorDashboard"
+    },
+    {
+      "from": "component:App",
+      "type": "routes_to",
+      "to": "view:logistics-dashboard"
+    },
+    {
+      "from": "view:logistics-dashboard",
+      "type": "renders_component",
+      "to": "component:LogisticsDashboard"
+    },
+    {
+      "from": "component:App",
+      "type": "routes_to",
+      "to": "view:admin-dashboard"
+    },
+    {
+      "from": "view:admin-dashboard",
+      "type": "renders_component",
+      "to": "component:AdminDashboard"
+    },
+    {
+      "from": "component:App",
+      "type": "hosts_overlay",
+      "to": "overlay:CartDrawer"
+    },
+    {
+      "from": "component:App",
+      "type": "hosts_overlay",
+      "to": "overlay:CheckoutModal"
+    },
+    {
+      "from": "component:App",
+      "type": "hosts_overlay",
+      "to": "overlay:ProductDetailPage"
+    },
+    {
+      "from": "component:App",
+      "type": "hosts_overlay",
+      "to": "overlay:VoiceListingModal"
+    },
+    {
+      "from": "component:App",
+      "type": "hosts_overlay",
+      "to": "overlay:OnboardingView"
+    },
+    {
+      "from": "component:App",
+      "type": "hosts_overlay",
+      "to": "overlay:SplashScreen"
+    },
+    {
+      "from": "component:App",
+      "type": "uses_hook",
+      "to": "hook:useAuth"
+    },
+    {
+      "from": "component:App",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:App",
+      "type": "uses_hook",
+      "to": "hook:useCart"
+    },
+    {
+      "from": "component:App",
+      "type": "renders",
+      "to": "component:SplashScreen"
+    },
+    {
+      "from": "component:App",
+      "type": "renders",
+      "to": "component:OnboardingView"
+    },
+    {
+      "from": "component:App",
+      "type": "renders",
+      "to": "component:DemoScenarioBar"
+    },
+    {
+      "from": "component:App",
+      "type": "renders",
+      "to": "component:Navbar"
+    },
+    {
+      "from": "component:App",
+      "type": "renders",
+      "to": "component:MobileBottomNav"
+    },
+    {
+      "from": "component:App",
+      "type": "renders",
+      "to": "component:CartDrawer"
+    },
+    {
+      "from": "component:App",
+      "type": "renders",
+      "to": "component:CheckoutModal"
+    },
+    {
+      "from": "component:App",
+      "type": "renders",
+      "to": "component:VoiceListingModal"
+    },
+    {
+      "from": "component:App",
+      "type": "invokes_client_api",
+      "to": "api.simulateUrgency"
+    },
+    {
+      "from": "component:Navbar",
+      "type": "uses_hook",
+      "to": "hook:useAuth"
+    },
+    {
+      "from": "component:Navbar",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:Navbar",
+      "type": "uses_hook",
+      "to": "hook:useCart"
+    },
+    {
+      "from": "component:Navbar",
+      "type": "invokes_client_api",
+      "to": "api.getMarketTicker"
+    },
+    {
+      "from": "component:DemoScenarioBar",
+      "type": "uses_hook",
+      "to": "hook:useAuth"
+    },
+    {
+      "from": "component:DemoScenarioBar",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:FreshnessBadge",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:FairPriceGauge",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:DeliveryMap",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:VoiceListingModal",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:VoiceListingModal",
+      "type": "uses_hook",
+      "to": "hook:useAuth"
+    },
+    {
+      "from": "component:VoiceListingModal",
+      "type": "invokes_client_api",
+      "to": "api.coordinatorCreateBatch"
+    },
+    {
+      "from": "component:VoiceListingModal",
+      "type": "invokes_client_api",
+      "to": "api.createFarmerBatch"
+    },
+    {
+      "from": "component:MobileBottomNav",
+      "type": "uses_hook",
+      "to": "hook:useAuth"
+    },
+    {
+      "from": "component:MobileBottomNav",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:MobileBottomNav",
+      "type": "uses_hook",
+      "to": "hook:useCart"
+    },
+    {
+      "from": "component:OnboardingView",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:FarmerDashboard",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:FarmerDashboard",
+      "type": "uses_hook",
+      "to": "hook:useAuth"
+    },
+    {
+      "from": "component:FarmerDashboard",
+      "type": "renders",
+      "to": "component:FreshnessBadge"
+    },
+    {
+      "from": "component:FarmerDashboard",
+      "type": "invokes_client_api",
+      "to": "api.getFarmerDashboard"
+    },
+    {
+      "from": "component:AddProduce",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:AddProduce",
+      "type": "renders",
+      "to": "component:FairPriceGauge"
+    },
+    {
+      "from": "component:AddProduce",
+      "type": "renders",
+      "to": "component:FreshnessBadge"
+    },
+    {
+      "from": "component:AddProduce",
+      "type": "invokes_client_api",
+      "to": "api.getFarmerProducts"
+    },
+    {
+      "from": "component:AddProduce",
+      "type": "invokes_client_api",
+      "to": "api.uploadImage"
+    },
+    {
+      "from": "component:AddProduce",
+      "type": "invokes_client_api",
+      "to": "api.createFarmerBatch"
+    },
+    {
+      "from": "component:MyProduce",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:MyProduce",
+      "type": "renders",
+      "to": "component:FreshnessBadge"
+    },
+    {
+      "from": "component:MyProduce",
+      "type": "invokes_client_api",
+      "to": "api.getFarmerBatches"
+    },
+    {
+      "from": "component:FarmerOffers",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:FarmerOffers",
+      "type": "invokes_client_api",
+      "to": "api.getFarmerOffers"
+    },
+    {
+      "from": "component:FarmerOffers",
+      "type": "invokes_client_api",
+      "to": "api.acceptFarmerOffer"
+    },
+    {
+      "from": "component:FarmerOffers",
+      "type": "invokes_client_api",
+      "to": "api.rejectFarmerOffer"
+    },
+    {
+      "from": "component:FarmerOffers",
+      "type": "invokes_client_api",
+      "to": "api.counterFarmerOffer"
+    },
+    {
+      "from": "component:FarmerCollective",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:FarmerCollective",
+      "type": "invokes_client_api",
+      "to": "api.getFarmerCollectivePools"
+    },
+    {
+      "from": "component:FarmerOrders",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:FarmerOrders",
+      "type": "invokes_client_api",
+      "to": "api.getFarmerOrders"
+    },
+    {
+      "from": "component:FarmerEarnings",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:FarmerEarnings",
+      "type": "invokes_client_api",
+      "to": "api.getFarmerEarnings"
+    },
+    {
+      "from": "component:BuyerDashboard",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:BuyerDashboard",
+      "type": "invokes_client_api",
+      "to": "api.getBuyerDashboard"
+    },
+    {
+      "from": "component:Marketplace",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:Marketplace",
+      "type": "uses_hook",
+      "to": "hook:useCart"
+    },
+    {
+      "from": "component:Marketplace",
+      "type": "renders",
+      "to": "component:FreshnessBadge"
+    },
+    {
+      "from": "component:Marketplace",
+      "type": "renders",
+      "to": "component:ProductDetailPage"
+    },
+    {
+      "from": "component:Marketplace",
+      "type": "renders",
+      "to": "component:CheckoutModal"
+    },
+    {
+      "from": "component:Marketplace",
+      "type": "invokes_client_api",
+      "to": "api.getMarketplaceProduce"
+    },
+    {
+      "from": "component:Marketplace",
+      "type": "invokes_client_api",
+      "to": "api.getFarmerProducts"
+    },
+    {
+      "from": "component:Marketplace",
+      "type": "invokes_client_api",
+      "to": "api.sendBuyerOffer"
+    },
+    {
+      "from": "component:PostDemand",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:PostDemand",
+      "type": "invokes_client_api",
+      "to": "api.getFarmerProducts"
+    },
+    {
+      "from": "component:PostDemand",
+      "type": "invokes_client_api",
+      "to": "api.postBuyerDemand"
+    },
+    {
+      "from": "component:SmartMatches",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:SmartMatches",
+      "type": "invokes_client_api",
+      "to": "api.getBuyerDemands"
+    },
+    {
+      "from": "component:SmartMatches",
+      "type": "invokes_client_api",
+      "to": "api.getDemandMatches"
+    },
+    {
+      "from": "component:SmartMatches",
+      "type": "invokes_client_api",
+      "to": "api.createCollectiveOrder"
+    },
+    {
+      "from": "component:ProductDetailPage",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:ProductDetailPage",
+      "type": "uses_hook",
+      "to": "hook:useCart"
+    },
+    {
+      "from": "component:ProductDetailPage",
+      "type": "renders",
+      "to": "component:FreshnessBadge"
+    },
+    {
+      "from": "component:CartDrawer",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:CartDrawer",
+      "type": "uses_hook",
+      "to": "hook:useCart"
+    },
+    {
+      "from": "component:CheckoutModal",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:CheckoutModal",
+      "type": "uses_hook",
+      "to": "hook:useCart"
+    },
+    {
+      "from": "component:CheckoutModal",
+      "type": "uses_hook",
+      "to": "hook:useAuth"
+    },
+    {
+      "from": "component:CheckoutModal",
+      "type": "invokes_client_api",
+      "to": "api.checkout"
+    },
+    {
+      "from": "component:BuyerOrders",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:BuyerOrders",
+      "type": "renders",
+      "to": "component:DeliveryMap"
+    },
+    {
+      "from": "component:BuyerOrders",
+      "type": "invokes_client_api",
+      "to": "api.getBuyerOrders"
+    },
+    {
+      "from": "component:BuyerOrders",
+      "type": "invokes_client_api",
+      "to": "api.updateOrderStatus"
+    },
+    {
+      "from": "component:BuyerOrders",
+      "type": "invokes_client_api",
+      "to": "api.submitRating"
+    },
+    {
+      "from": "component:CoordinatorDashboard",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:CoordinatorDashboard",
+      "type": "renders",
+      "to": "component:VoiceListingModal"
+    },
+    {
+      "from": "component:CoordinatorDashboard",
+      "type": "invokes_client_api",
+      "to": "api.getCoordinatorFarmers"
+    },
+    {
+      "from": "component:CoordinatorDashboard",
+      "type": "invokes_client_api",
+      "to": "api.coordinatorRegisterFarmer"
+    },
+    {
+      "from": "component:LogisticsDashboard",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:LogisticsDashboard",
+      "type": "renders",
+      "to": "component:DeliveryMap"
+    },
+    {
+      "from": "component:LogisticsDashboard",
+      "type": "invokes_client_api",
+      "to": "api.getPickups"
+    },
+    {
+      "from": "component:LogisticsDashboard",
+      "type": "invokes_client_api",
+      "to": "api.getDeliveries"
+    },
+    {
+      "from": "component:LogisticsDashboard",
+      "type": "invokes_client_api",
+      "to": "api.getVehicles"
+    },
+    {
+      "from": "component:LogisticsDashboard",
+      "type": "invokes_client_api",
+      "to": "api.getCollectionCenters"
+    },
+    {
+      "from": "component:LogisticsDashboard",
+      "type": "invokes_client_api",
+      "to": "api.submitQualityCheck"
+    },
+    {
+      "from": "component:AdminDashboard",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:AdminDashboard",
+      "type": "invokes_client_api",
+      "to": "api.getAdminDashboard"
+    },
+    {
+      "from": "component:AdminDashboard",
+      "type": "invokes_client_api",
+      "to": "api.getAdminFarmers"
+    },
+    {
+      "from": "component:AdminDashboard",
+      "type": "invokes_client_api",
+      "to": "api.getAdminBuyers"
+    },
+    {
+      "from": "component:AdminDashboard",
+      "type": "invokes_client_api",
+      "to": "api.getAdminDisputes"
+    },
+    {
+      "from": "component:AdminDashboard",
+      "type": "invokes_client_api",
+      "to": "api.resolveDispute"
+    },
+    {
+      "from": "component:LandingPage",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:LandingPage",
+      "type": "invokes_client_api",
+      "to": "api.getDailyMarketPrices"
+    },
+    {
+      "from": "component:HowItWorksPage",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:MarketRatesPage",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:MarketRatesPage",
+      "type": "invokes_client_api",
+      "to": "api.getDailyMarketPrices"
+    },
+    {
+      "from": "component:ForFarmersPage",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:ForBuyersPage",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:ImpactPage",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:LoginPage",
+      "type": "uses_hook",
+      "to": "hook:useAuth"
+    },
+    {
+      "from": "component:LoginPage",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:LoginPage",
+      "type": "invokes_client_api",
+      "to": "api.login"
+    },
+    {
+      "from": "component:LoginPage",
+      "type": "invokes_client_api",
+      "to": "api.demoSwitch"
+    },
+    {
+      "from": "component:RegisterPage",
+      "type": "uses_hook",
+      "to": "hook:useAuth"
+    },
+    {
+      "from": "component:RegisterPage",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    },
+    {
+      "from": "component:RegisterPage",
+      "type": "invokes_client_api",
+      "to": "api.register"
+    },
+    {
+      "from": "component:ProfilePage",
+      "type": "uses_hook",
+      "to": "hook:useAuth"
+    },
+    {
+      "from": "component:ProfilePage",
+      "type": "uses_hook",
+      "to": "hook:useLanguage"
+    }
+  ]
+}

@@ -36,6 +36,7 @@ When tasked with fixing, implementing, or analyzing any feature in KisanDirect:
 | Document | Purpose & Contents | Primary Consumers |
 | :--- | :--- | :--- |
 | **[`index.md`](file:///d:/Projects/Farmer_selling_app/.knowledge/index.md)** | Master entry point, quick reference, and knowledge map | All AI agents, engineers |
+| **[`ui-architecture.md`](file:///d:/Projects/Farmer_selling_app/.knowledge/ui-architecture.md)** | **Full UI Knowledge Graph Guide**: 24 views, 6 overlays, 37 components (props, state, events, hooks, APIs) | Frontend engineers, UI designers |
 | **[`architecture.md`](file:///d:/Projects/Farmer_selling_app/.knowledge/architecture.md)** | High-level system architecture, client/server boundaries, security, and data flow diagrams | Architects, AI planning mode |
 | **[`modules.md`](file:///d:/Projects/Farmer_selling_app/.knowledge/modules.md)** | Module-level catalog of client and server packages, duties, and file manifests | Feature engineers |
 | **[`features.md`](file:///d:/Projects/Farmer_selling_app/.knowledge/features.md)** | Feature-to-code mapping: UI -> Components -> Hooks -> API -> Service -> Database | Feature developers |
@@ -99,20 +100,27 @@ When tasked with fixing, implementing, or analyzing any feature in KisanDirect:
 All tools live in [`.knowledge/scripts/`](file:///d:/Projects/Farmer_selling_app/.knowledge/scripts/):
 
 ```bash
-# 1. Interactive Graph Queries
+# 1. Interactive Graph Queries (Full-Stack & UI)
 node .knowledge/scripts/query.js --ask "where is login"
 node .knowledge/scripts/query.js --info "table:ProduceBatch"
 node .knowledge/scripts/query.js --impact "table:Order"
 node .knowledge/scripts/query.js --type api_endpoint
 
-# 2. Referential Integrity Validation
+# 2. UI Knowledge Graph Queries
+node .knowledge/scripts/query.js --ui "Marketplace"
+node .knowledge/scripts/query.js --ui "CartDrawer"
+node .knowledge/scripts/query.js --views
+node .knowledge/scripts/query.js --overlays
+
+# 3. Referential Integrity Validation
 node .knowledge/scripts/validate-graph.js
 
-# 3. Incremental Drift Check & Updates
+# 4. Incremental Drift Check & Updates
 node .knowledge/scripts/update-graph.js --check
 node .knowledge/scripts/update-graph.js --add-file "path/to/file.ts"
 node .knowledge/scripts/update-graph.js --link --from "nodeA" --type "contains" --to "nodeB"
 
-# 4. Rebuild Entire Graph
+# 5. Rebuild Entire Graphs
 node .knowledge/scripts/build-graph.js
+node .knowledge/scripts/build-ui-graph.js
 ```

@@ -16,6 +16,12 @@ if (!fs.existsSync(knowledgeGraphPath)) {
 const graph = JSON.parse(fs.readFileSync(knowledgeGraphPath, 'utf-8'));
 const { nodes, relationships } = graph;
 
+const uiGraphPath = path.resolve(__dirname, '../ui-knowledge-graph.json');
+let uiGraph = null;
+if (fs.existsSync(uiGraphPath)) {
+  uiGraph = JSON.parse(fs.readFileSync(uiGraphPath, 'utf-8'));
+}
+
 const nodeMap = new Map();
 nodes.forEach(n => nodeMap.set(n.id, n));
 
@@ -38,7 +44,7 @@ function showHelp() {
 Usage:
   node .knowledge/scripts/query.js [OPTIONS]
 
-Options:
+Full-Stack Options:
   --info <id>          Show detailed node specifications and connected edges
   --type <type>        List all nodes of a specific type (e.g., file, feature, api_endpoint, database_table, component, workflow)
   --feature <id>       List all components, APIs, services, and tables implementing a feature
@@ -46,14 +52,21 @@ Options:
   --impact <id>        Perform impact analysis: traverse what depends on or calls this node
   --ask "<question>"   Answer common architectural and workflow questions
   --stats              Display high-level graph summary statistics
+
+UI Knowledge Graph Options:
+  --ui <name>          Inspect UI component / view / overlay (props, state, events, hooks, APIs, children)
+  --views              List all 24 state-based views grouped by user persona / role
+  --overlays           List all modals, slide-over drawers, and startup overlays
   --help               Display this help guide
 
 Examples:
   node .knowledge/scripts/query.js --info "table:ProduceBatch"
   node .knowledge/scripts/query.js --feature "feature:collective-selling"
-  node .knowledge/scripts/query.js --impact "table:Order"
+  node .knowledge/scripts/query.js --ui "Marketplace"
+  node .knowledge/scripts/query.js --ui "CartDrawer"
+  node .knowledge/scripts/query.js --views
+  node .knowledge/scripts/query.js --overlays
   node .knowledge/scripts/query.js --ask "where is login implemented"
-  node .knowledge/scripts/query.js --ask "what happens when user checks out"
 `);
 }
 
@@ -269,6 +282,128 @@ function askQuestion(q) {
   console.log('');
 }
 
+// 7. UI Query
+function queryUi(targetName) {
+  if (!uiGraph) {
+    console.log('❌ ui-knowledge-graph.json not found! Run node .knowledge/scripts/build-ui-graph.js first.');
+    return;
+  }
+  if (!targetName) {
+    console.log('❌ Please specify a component, view, or overlay name. Example: --ui "Marketplace"');
+    return;
+  }
+
+  const q = targetName.toLowerCase().trim();
+  const matched = uiGraph.nodes.filter(n =>
+    n.id.toLowerCase() === q ||
+    n.id.toLowerCase() === `component:${q}` ||
+    n.id.toLowerCase() === `view:${q}` ||
+    n.id.toLowerCase() === `overlay:${q}` ||
+    (n.name && n.name.toLowerCase() === q) ||
+    (n.slug && n.slug.toLowerCase() === q) ||
+    (n.name && n.name.toLowerCase().includes(q))
+  );
+
+  if (matched.length === 0) {
+    console.log(`❌ No UI entity found matching "${targetName}".`);
+    console.log('Available components/views can be listed with --views or --overlays.');
+    return;
+  }
+
+  matched.forEach(node => {
+    console.log('\n======================================================');
+    console.log(`🖥️  UI Entity: ${node.id} (${node.name})`);
+    console.log('======================================================');
+    console.log(`Type:        ${node.type}`);
+    if (node.slug) console.log(`Slug:        ${node.slug}`);
+    if (node.role) console.log(`Role:        ${node.role}`);
+    if (node.file || node.source) console.log(`Source File: ${node.file || node.source}`);
+    if (node.description) console.log(`Description: ${node.description}`);
+
+    if (node.props && node.props.length > 0) {
+      console.log('\n📋 Props:');
+      node.props.forEach(p => console.log(`  • ${p}`));
+    }
+
+    if (node.state && node.state.length > 0) {
+      console.log('\n💾 State:');
+      node.state.forEach(s => console.log(`  • ${s}`));
+    }
+
+    if (node.events && node.events.length > 0) {
+      console.log('\n⚡ Events & Handlers:');
+      node.events.forEach(e => console.log(`  • ${e}`));
+    }
+
+    if (node.hooks && node.hooks.length > 0) {
+      console.log('\n🪝 React Hooks Used:');
+      node.hooks.forEach(h => console.log(`  • ${h}`));
+    }
+
+    if (node.apisCalled && node.apisCalled.length > 0) {
+      console.log('\n🌐 Client APIs Invoked:');
+      node.apisCalled.forEach(a => console.log(`  • ${a}`));
+    }
+
+    if (node.children && node.children.length > 0) {
+      console.log('\n👶 Children Components Rendered:');
+      node.children.forEach(c => console.log(`  • ${c}`));
+    }
+
+    const outRels = uiGraph.relationships.filter(r => r.from === node.id);
+    if (outRels.length > 0) {
+      console.log('\n➡️  UI Graph Connections:');
+      outRels.forEach(r => console.log(`  --[${r.type}]--> ${r.to}`));
+    }
+
+    const inRels = uiGraph.relationships.filter(r => r.to === node.id);
+    if (inRels.length > 0) {
+      console.log('\n⬅️  Parent References:');
+      inRels.forEach(r => console.log(`  <--[${r.type}]-- ${r.from}`));
+    }
+    console.log('======================================================\n');
+  });
+}
+
+// 8. List Views
+function listViews() {
+  if (!uiGraph) {
+    console.log('❌ ui-knowledge-graph.json not found! Run build-ui-graph.js first.');
+    return;
+  }
+  const views = uiGraph.nodes.filter(n => n.type === 'ui_view');
+  console.log(`\n🗺️  KisanDirect UI State-Based Views (${views.length} total):\n`);
+
+  const roles = ['PUBLIC', 'AUTHENTICATED', 'FARMER', 'BUYER', 'COORDINATOR', 'LOGISTICS', 'ADMIN'];
+  roles.forEach(role => {
+    const roleViews = views.filter(v => v.role === role);
+    if (roleViews.length > 0) {
+      console.log(`📁 [${role}] Views:`);
+      roleViews.forEach(v => {
+        console.log(`  • slug: "${v.slug.padEnd(20)}" | ID: ${v.id.padEnd(26)} | ${v.name}`);
+        if (v.description) console.log(`      ↳ ${v.description}`);
+      });
+      console.log('');
+    }
+  });
+}
+
+// 9. List Overlays
+function listOverlays() {
+  if (!uiGraph) {
+    console.log('❌ ui-knowledge-graph.json not found! Run build-ui-graph.js first.');
+    return;
+  }
+  const overlays = uiGraph.nodes.filter(n => n.type === 'ui_overlay');
+  console.log(`\n🪟 KisanDirect Modals, Drawers & Overlays (${overlays.length} total):\n`);
+  overlays.forEach(o => {
+    console.log(`• ${o.name} (${o.id})`);
+    console.log(`    File:        ${o.file}`);
+    console.log(`    Description: ${o.description}`);
+  });
+  console.log('');
+}
+
 // CLI Arg Parsing
 const args = process.argv.slice(2);
 if (args.length === 0 || args.includes('--help')) {
@@ -279,6 +414,10 @@ if (args.length === 0 || args.includes('--help')) {
 if (args.includes('--stats')) {
   console.log('\n📊 KisanDirect Knowledge Graph Stats:');
   console.log(JSON.stringify(graph.stats, null, 2));
+  if (uiGraph) {
+    console.log('\n📊 UI Knowledge Graph Stats:');
+    console.log(JSON.stringify(uiGraph.stats, null, 2));
+  }
   console.log('');
 } else if (args.includes('--info')) {
   const idx = args.indexOf('--info');
@@ -298,6 +437,13 @@ if (args.includes('--stats')) {
 } else if (args.includes('--ask')) {
   const idx = args.indexOf('--ask');
   askQuestion(args[idx + 1]);
+} else if (args.includes('--ui')) {
+  const idx = args.indexOf('--ui');
+  queryUi(args[idx + 1]);
+} else if (args.includes('--views')) {
+  listViews();
+} else if (args.includes('--overlays')) {
+  listOverlays();
 } else {
   showHelp();
 }
