@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useCart } from '../../context/CartContext';
 import { Post, PostComment } from '../../types';
-import api from '../../services/api';
+import api, { getMediaUrl } from '../../services/api';
 import CreatePostModal from './CreatePostModal';
 import FreshnessBadge from '../../components/common/FreshnessBadge';
 import {
@@ -537,7 +537,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                 <div className="bg-slate-100 relative">
                   {post.media.length === 1 ? (
                     <img
-                      src={post.media[0].url}
+                      src={getMediaUrl(post.media[0].url)}
                       alt="Harvest"
                       className="w-full max-h-96 object-cover"
                       loading="lazy"
@@ -547,7 +547,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                       {post.media.slice(0, 4).map((m, idx) => (
                         <img
                           key={idx}
-                          src={m.url}
+                          src={getMediaUrl(m.url)}
                           alt="Harvest"
                           className="w-full h-48 object-cover"
                           loading="lazy"

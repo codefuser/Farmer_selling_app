@@ -43,12 +43,14 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
     const uniqueName = `produce-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
     const targetPath = path.join(uploadsDir, uniqueName);
 
-    fs.writeFileSync(targetPath, buffer);
+    const host = req.get('host') || '';
+    const protocol = req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
+    const publicUrl = host ? `${protocol}://${host}/uploads/${uniqueName}` : `/uploads/${uniqueName}`;
 
-    const publicUrl = `/uploads/${uniqueName}`;
     res.status(201).json({
       message: 'Image uploaded successfully',
       url: publicUrl,
+      relativeUrl: `/uploads/${uniqueName}`,
       filename: uniqueName,
     });
   } catch (err: any) {

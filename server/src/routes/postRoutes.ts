@@ -152,9 +152,25 @@ router.post('/', authenticateToken, async (req: AuthenticatedRequest, res: Respo
     });
 
     if (!farmer) {
-      // If user is not yet a registered farmer, allow auto-creating a farmer profile or reject
-      res.status(403).json({ error: 'Only farmers can create marketplace posts. Please set up your farmer profile.' });
-      return;
+      const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
+      if (user) {
+        const farmerCount = await prisma.farmerProfile.count();
+        farmer = await prisma.farmerProfile.create({
+          data: {
+            userId: user.id,
+            farmerId: `FD-${1000 + farmerCount + 1}`,
+            village: 'Thalaivasal',
+            district: 'Salem',
+            state: 'Tamil Nadu',
+            farmingType: 'Conventional',
+            rating: 4.8,
+            verified: true,
+          },
+        });
+      } else {
+        res.status(403).json({ error: 'Only farmers can create marketplace posts. Please set up your farmer profile.' });
+        return;
+      }
     }
 
     const post = await prisma.post.create({

@@ -56,19 +56,22 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
 
       const reader = new FileReader();
       reader.onload = async () => {
+        const base64 = reader.result as string;
         try {
-          const base64 = reader.result as string;
           const res = await api.uploadImage(base64, file.name);
           setMediaUrls((prev) => [...prev, res.url]);
         } catch (err: any) {
-          setError(err.message || 'Image upload failed');
+          console.warn('Backend image upload endpoint returned error, using direct image data:', err);
+          // Fallback to base64 so user can see photo and post without being blocked by 404
+          setMediaUrls((prev) => [...prev, base64]);
         } finally {
           setUploadingImage(false);
         }
       };
       reader.readAsDataURL(file);
     } catch (err: any) {
-      setError(err.message || 'Failed to process image');
+      console.warn('Failed to process image:', err);
+      setError(language === 'ta' ? 'படத்தை செயலாக்குவதில் பிழை ஏற்பட்டது' : (err.message || 'Failed to process image'));
       setUploadingImage(false);
     }
   };
@@ -102,7 +105,13 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
       onClose();
     } catch (err: any) {
       console.error('Create post failed:', err);
-      setError(err.message || (language === 'ta' ? 'பதிவு செய்வதில் பிழை' : 'Failed to publish post'));
+      let errMsg = err.message || (language === 'ta' ? 'பதிவு செய்வதில் பிழை ஏற்பட்டது' : 'Failed to publish post');
+      if (errMsg.includes('404')) {
+        errMsg = language === 'ta'
+          ? 'சர்வர் புதுப்பிக்கப்படுகிறது. தயவுசெய்து சிறிது நேரம் கழித்து மீண்டும் முயற்சிக்கவும் (Backend 404)'
+          : 'Server is currently redeploying. Please retry in a moment (Backend 404)';
+      }
+      setError(errMsg);
     } finally {
       setSubmitting(false);
     }

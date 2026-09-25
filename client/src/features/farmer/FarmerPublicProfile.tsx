@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
-import api from '../../services/api';
+import api, { getMediaUrl } from '../../services/api';
 import FreshnessBadge from '../../components/common/FreshnessBadge';
 import {
   ArrowLeft,
@@ -319,7 +319,7 @@ export const FarmerPublicProfile: React.FC<FarmerPublicProfileProps> = ({
                 <p className="text-slate-800 leading-relaxed">{post.caption}</p>
                 {post.media && post.media.length > 0 && (
                   <div className="rounded-2xl overflow-hidden bg-slate-100 max-h-56">
-                    <img src={post.media[0].mediaUrl || post.media[0].url} alt="Harvest" className="w-full h-full object-cover" />
+                    <img src={getMediaUrl(post.media[0].mediaUrl || post.media[0].url)} alt="Harvest" className="w-full h-full object-cover" />
                   </div>
                 )}
                 <div className="flex items-center gap-4 text-slate-500 font-bold pt-1">

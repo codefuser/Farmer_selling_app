@@ -21,6 +21,20 @@ const API_BASE = import.meta.env.VITE_API_URL
   ? `${import.meta.env.VITE_API_URL.replace(/\/$/, '')}/api`
   : '/api';
 
+export const getMediaUrl = (url?: string | null): string => {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
+    return url;
+  }
+  const backendBase = import.meta.env.VITE_API_URL
+    ? import.meta.env.VITE_API_URL.replace(/\/$/, '')
+    : 'https://farmer-selling-app.onrender.com';
+  if (url.startsWith('/uploads')) {
+    return `${backendBase}${url}`;
+  }
+  return url;
+};
+
 class ApiService {
   private token: string | null = null;
 
