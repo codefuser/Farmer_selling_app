@@ -77,48 +77,42 @@ export const Navbar: React.FC<NavbarProps> = ({
 
     if (!user) {
       return [
-        { id: 'landing', label: language === 'ta' ? 'முகப்பு' : 'Home' },
-        { id: 'buyer-marketplace', label: language === 'ta' ? 'அங்காடி / பொருட்கள்' : 'Shop' },
-        { id: 'how-it-works', label: language === 'ta' ? 'செயல்முறை' : 'How It Works' },
+        { id: 'buyer-marketplace', label: language === 'ta' ? 'அங்காடி' : 'Shop Produce' },
         { id: 'market-rates', label: marketRatesLabel },
+        { id: 'how-it-works', label: language === 'ta' ? 'செயல்முறை' : 'How It Works' },
       ];
     }
 
     switch (user.role) {
       case 'FARMER':
         return [
-          { id: 'landing', label: language === 'ta' ? 'முகப்பு' : 'Home' },
-          { id: 'farmer-dashboard', label: language === 'ta' ? 'விவசாயி அறை' : 'Farmer Dashboard' },
+          { id: 'buyer-marketplace', label: language === 'ta' ? 'அங்காடி' : 'Shop' },
           { id: 'farmer-add-produce', label: language === 'ta' ? 'விளைபொருள் சமர்ப்பிக்க' : 'Submit Produce' },
           { id: 'farmer-produce', label: language === 'ta' ? 'என் சமர்ப்பிப்புகள்' : 'My Submissions' },
           { id: 'farmer-earnings', label: language === 'ta' ? 'கொள்முதல் வரலாறு' : 'Procurements' },
-          { id: 'buyer-marketplace', label: language === 'ta' ? 'அங்காடி' : 'Shop' },
+          { id: 'farmer-dashboard', label: language === 'ta' ? 'விவசாயி அறை' : 'Farmer Dashboard' },
         ];
       case 'BUYER':
       case 'CUSTOMER' as any:
         return [
-          { id: 'landing', label: language === 'ta' ? 'முகப்பு' : 'Home' },
-          { id: 'buyer-marketplace', label: language === 'ta' ? 'அங்காடி' : 'Shop Products' },
+          { id: 'buyer-marketplace', label: language === 'ta' ? 'அங்காடி' : 'Shop Produce' },
           { id: 'buyer-orders', label: language === 'ta' ? 'என் ஆர்டர்கள்' : 'My Orders' },
-          { id: 'how-it-works', label: language === 'ta' ? 'செயல்முறை' : 'How It Works' },
+          { id: 'market-rates', label: marketRatesLabel },
         ];
       case 'DELIVERY_PARTNER' as any:
       case 'LOGISTICS':
         return [
-          { id: 'landing', label: language === 'ta' ? 'முகப்பு' : 'Home' },
-          { id: 'logistics-dashboard', label: language === 'ta' ? 'விநியோக மையம்' : 'Delivery Portal' },
           { id: 'buyer-marketplace', label: language === 'ta' ? 'அங்காடி' : 'Shop' },
+          { id: 'logistics-dashboard', label: language === 'ta' ? 'விநியோக மையம்' : 'Delivery Portal' },
         ];
       case 'ADMIN':
         return [
-          { id: 'landing', label: language === 'ta' ? 'முகப்பு' : 'Home' },
+          { id: 'buyer-marketplace', label: language === 'ta' ? 'அங்காடி பார்வை' : 'Storefront' },
           { id: 'admin-dashboard', label: language === 'ta' ? 'நிர்வாக மையம்' : 'Admin Operations' },
-          { id: 'buyer-marketplace', label: language === 'ta' ? 'அங்காடி பார்வை' : 'Storefront View' },
           { id: 'market-rates', label: marketRatesLabel },
         ];
       default:
         return [
-          { id: 'landing', label: language === 'ta' ? 'முகப்பு' : 'Home' },
           { id: 'buyer-marketplace', label: language === 'ta' ? 'அங்காடி' : 'Shop' },
         ];
     }
@@ -186,7 +180,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Logo & Brand Identity */}
           <div className="flex items-center gap-3">
             <button
-              onClick={() => onNavigate(user ? 'home-feed' : 'landing')}
+              onClick={() => onNavigate('buyer-marketplace')}
               className="flex items-center gap-2 text-left group"
             >
               <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-700 flex items-center justify-center text-white shadow-sm transition-colors group-hover:bg-emerald-800 shrink-0">

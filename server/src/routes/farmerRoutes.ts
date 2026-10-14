@@ -3,6 +3,7 @@ import { prisma } from '../config/db.js';
 import { authenticateToken, AuthenticatedRequest, requireRole } from '../middleware/auth.js';
 import { FreshnessService } from '../services/freshnessService.js';
 import { ProfitCalculationService } from '../services/profitCalculationService.js';
+import { RealtimeService } from '../services/realtimeService.js';
 
 const router = Router();
 
@@ -865,6 +866,13 @@ router.post('/submissions', async (req: AuthenticatedRequest, res: Response): Pr
         imageUrl: imageUrl || null,
         status: 'SUBMITTED',
       },
+    });
+
+    RealtimeService.broadcast('submission_created', {
+      submissionId: submission.id,
+      submission,
+      produceName: submission.produceName,
+      farmerId: farmer.id,
     });
 
     res.status(201).json({

@@ -184,46 +184,25 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
           </button>
         </form>
 
-        {/* Demo Persona Quick Switcher (Accordion) */}
+        {/* Administrator Fast Fill (For Authorized Store Managers) */}
         <div className="mt-5 pt-4 border-t border-slate-100">
           <button
             type="button"
-            onClick={() => setShowDemoAccordion(!showDemoAccordion)}
-            className="w-full flex items-center justify-between text-xs font-bold text-emerald-800 bg-emerald-50/60 hover:bg-emerald-50 px-3.5 py-2.5 rounded-xl border border-emerald-200/80 transition"
+            onClick={() => {
+              setAuthMode('email');
+              setEmail('admin@ulavar2ulagam.com');
+              setPassword('Admin@123');
+            }}
+            className="w-full flex items-center justify-between text-xs font-bold text-slate-700 bg-slate-50 hover:bg-emerald-50 hover:text-emerald-900 px-3.5 py-2.5 rounded-xl border border-slate-200 hover:border-emerald-300 transition"
           >
             <span className="flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-              <span>{t('tryDemo')}</span>
+              <span>👑</span>
+              <span>Fill Admin Operations Credentials</span>
             </span>
-            {showDemoAccordion ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            <span className="text-[10px] text-emerald-700 font-extrabold uppercase">
+              Auto-fill
+            </span>
           </button>
-
-          {showDemoAccordion && (
-            <div className="mt-2 space-y-1.5 bg-slate-50 p-2.5 rounded-xl border border-slate-200 animate-in fade-in duration-150 text-xs">
-              {[
-                { role: 'FARMER', label: language === 'ta' ? 'விவசாயி (குமார்)' : 'Farmer (Kumar)', icon: '🌾' },
-                { role: 'BUYER', label: language === 'ta' ? 'வாங்குபவர் (ஹோட்டல்)' : 'Buyer (ABC Hotel)', icon: '🏨' },
-                { role: 'COORDINATOR', label: language === 'ta' ? 'ஒருங்கிணைப்பாளர் (செல்வம்)' : 'Coordinator (Selvam)', icon: '🤝' },
-                { role: 'LOGISTICS', label: language === 'ta' ? 'விநியோகம் (ரவி குமார்)' : 'Logistics (Ravi)', icon: '🚚' },
-                { role: 'ADMIN', label: language === 'ta' ? 'நிர்வாகி (லட்சுமி)' : 'Admin (Lakshmi)', icon: '👑' },
-              ].map((persona) => (
-                <button
-                  key={persona.role}
-                  type="button"
-                  onClick={() => handleDemoPersona(persona.role)}
-                  className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-white border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/50 text-slate-700 transition"
-                >
-                  <span className="flex items-center gap-2">
-                    <span>{persona.icon}</span>
-                    <span className="font-semibold">{persona.label}</span>
-                  </span>
-                  <span className="text-[10px] text-emerald-700 font-bold uppercase">
-                    {language === 'ta' ? 'உள்நுழை' : 'Login'}
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
         </div>
       </div>
 

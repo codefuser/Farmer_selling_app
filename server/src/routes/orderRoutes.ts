@@ -729,15 +729,6 @@ router.post('/checkout', async (req: AuthenticatedRequest, res: Response): Promi
       let totalQty = 0;
       const orderItemsData: any[] = [];
 
-      // Find fallback batch & farmer for backward compatibility relation
-      const fallbackBatch = await tx.produceBatch.findFirst({
-        include: { farmer: true },
-      });
-
-      if (!fallbackBatch) {
-        throw new Error('No baseline batch found. Please seed the database.');
-      }
-
       for (const item of items) {
         const product = await tx.product.findUnique({
           where: { id: item.productId },
@@ -779,8 +770,8 @@ router.post('/checkout', async (req: AuthenticatedRequest, res: Response): Promi
           unit: product.unit || 'kg',
           pricePerKg: product.sellingPrice,
           total: itemTotal,
-          farmerId: fallbackBatch.farmerId,
-          batchId: fallbackBatch.id,
+          farmerId: null,
+          batchId: null,
         });
       }
 
@@ -853,6 +844,13 @@ router.post('/checkout', async (req: AuthenticatedRequest, res: Response): Promi
       });
 
       return newOrder;
+    });
+
+    // Realtime notification to all storefront viewers
+    RealtimeService.broadcast('inventory_update', {
+      orderId: orderResult.id,
+      items: items.map((i: any) => i.productId),
+      action: 'purchased',
     });
 
     res.status(201).json({

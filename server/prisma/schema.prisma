@@ -330,21 +330,21 @@ model Order {
 }
 
 model OrderItem {
-  id          String        @id @default(cuid())
+  id          String         @id @default(cuid())
   orderId     String
-  farmerId    String
-  batchId     String
+  farmerId    String?
+  batchId     String?
   productId   String?
   productName String?
-  unit        String        @default("kg")
+  unit        String         @default("kg")
   quantity    Float
   pricePerKg  Float
   total       Float
 
-  order       Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  farmer      FarmerProfile @relation(fields: [farmerId], references: [id], onDelete: Cascade)
-  batch       ProduceBatch  @relation(fields: [batchId], references: [id], onDelete: Cascade)
-  product     Product?      @relation(fields: [productId], references: [id], onDelete: SetNull)
+  order       Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  farmer      FarmerProfile? @relation(fields: [farmerId], references: [id], onDelete: SetNull)
+  batch       ProduceBatch?  @relation(fields: [batchId], references: [id], onDelete: SetNull)
+  product     Product?       @relation(fields: [productId], references: [id], onDelete: SetNull)
 }
 
 model CollectionCenter {

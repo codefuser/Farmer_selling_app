@@ -5,10 +5,7 @@ import { CartProvider, useCart } from './context/CartContext';
 import { RealtimeProvider } from './context/RealtimeContext';
 import Navbar from './components/common/Navbar';
 import MobileBottomNav from './components/common/MobileBottomNav';
-import DemoScenarioBar from './components/common/DemoScenarioBar';
 import VoiceListingModal from './components/common/VoiceListingModal';
-import SplashScreen from './components/common/SplashScreen';
-import OnboardingView from './components/common/OnboardingView';
 import CartDrawer from './features/buyer/CartDrawer';
 import CheckoutModal from './features/buyer/CheckoutModal';
 import api from './services/api';
@@ -52,8 +49,8 @@ import LogisticsDashboard from './features/logistics/LogisticsDashboard';
 import AdminDashboard from './features/admin/AdminDashboard';
 
 const AppContent: React.FC = () => {
-  const { user, demoSwitch } = useAuth();
-  const [currentView, setCurrentView] = useState<string>('home-feed');
+  const { user } = useAuth();
+  const [currentView, setCurrentView] = useState<string>('buyer-marketplace');
   const [viewParams, setViewParams] = useState<any>(null);
   const [voiceModalOpen, setVoiceModalOpen] = useState(false);
 
@@ -61,12 +58,6 @@ const AppContent: React.FC = () => {
   const [chatOpen, setChatOpen] = useState(false);
   const [chatConversationId, setChatConversationId] = useState<string | null>(null);
   const [chatTargetUser, setChatTargetUser] = useState<any>(null);
-
-  // Splash & Onboarding state
-  const [showSplash, setShowSplash] = useState(true);
-  const [hasOnboarded, setHasOnboarded] = useState<boolean>(() => {
-    return !!localStorage.getItem('kisandirect_onboarded');
-  });
 
   // Global Checkout Modal state from CartDrawer
   const [isGlobalCheckoutOpen, setIsGlobalCheckoutOpen] = useState(false);
@@ -94,42 +85,7 @@ const AppContent: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Scenario 1: Hotel Needs 500kg Tomatoes (Bulk Demand & Collective Supply)
-  const handleTriggerScenario1 = async () => {
-    await demoSwitch('BUYER');
-    navigate('buyer-smart-matches');
-  };
 
-  // Scenario 2: Perishable Freshness & Urgent Sale Decay Simulation
-  const handleTriggerScenario2 = async () => {
-    try {
-      await api.simulateUrgency();
-      await demoSwitch('FARMER');
-      navigate('farmer-produce');
-    } catch (err) {
-      console.error(err);
-      navigate('farmer-produce');
-    }
-  };
-
-  // Scenario 3: Village Coordinator Assisted Voice Listing
-  const handleTriggerScenario3 = async () => {
-    await demoSwitch('COORDINATOR');
-    navigate('coordinator-dashboard');
-    setVoiceModalOpen(true);
-  };
-
-  // Onboarding completion
-  const handleOnboardingComplete = async (selectedRole?: string) => {
-    setHasOnboarded(true);
-    localStorage.setItem('kisandirect_onboarded', 'true');
-    if (selectedRole) {
-      await demoSwitch(selectedRole);
-      navigate('home-feed');
-    } else {
-      navigate('home-feed');
-    }
-  };
 
   const renderView = () => {
     switch (currentView) {
@@ -236,37 +192,12 @@ const AppContent: React.FC = () => {
         return <AdminDashboard />;
 
       default:
-        return (
-          <HomeFeed
-            onNavigate={navigate}
-            onOpenChat={(convId, targetUser) => {
-              setChatConversationId(convId || null);
-              setChatTargetUser(targetUser || null);
-              setChatOpen(true);
-            }}
-          />
-        );
+        return <Marketplace onNavigate={navigate} />;
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f8faf9] text-slate-800">
-      {/* Splash Screen */}
-      {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
-
-      {/* Onboarding View (first time visitors who haven't completed onboarding) */}
-      {!showSplash && !hasOnboarded && !user && (
-        <OnboardingView onComplete={handleOnboardingComplete} />
-      )}
-
-      {/* Top Demo Presentation Bar */}
-      <DemoScenarioBar
-        onNavigate={navigate}
-        onTriggerScenario1={handleTriggerScenario1}
-        onTriggerScenario2={handleTriggerScenario2}
-        onTriggerScenario3={handleTriggerScenario3}
-      />
-
       {/* Main Navbar */}
       <Navbar
         currentView={currentView}

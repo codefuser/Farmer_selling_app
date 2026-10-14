@@ -13,21 +13,20 @@ const router = Router();
 router.get('/stream', (req: Request, res: Response): void => {
   const token = (req.query.token as string) || (req.headers['authorization']?.split(' ')[1]);
 
-  if (!token) {
-    res.status(401).json({ error: 'Authentication token required for realtime stream' });
-    return;
-  }
-
-  let user: AuthUser;
-  try {
-    user = jwt.verify(token, ENV.JWT_SECRET) as AuthUser;
-  } catch {
-    res.status(403).json({ error: 'Invalid or expired stream token' });
-    return;
+  let clientId = `guest_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  if (token && token !== 'guest' && token !== 'undefined' && token !== 'null') {
+    try {
+      const user = jwt.verify(token, ENV.JWT_SECRET) as AuthUser;
+      if (user && user.id) {
+        clientId = user.id;
+      }
+    } catch {
+      // Continue as guest
+    }
   }
 
   // Register client with RealtimeService
-  RealtimeService.addClient(user.id, res);
+  RealtimeService.addClient(clientId, res);
 });
 
 /**

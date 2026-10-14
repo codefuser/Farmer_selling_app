@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { prisma } from '../config/db.js';
 import { authenticateToken, AuthenticatedRequest } from '../middleware/auth.js';
+import { RealtimeService } from '../services/realtimeService.js';
 
 const router = Router();
 
@@ -419,6 +420,14 @@ router.post('/procurements', async (req: AuthenticatedRequest, res: Response): P
       return { procurement, product };
     });
 
+    // Realtime notification of newly procured or updated inventory
+    RealtimeService.broadcast('inventory_update', {
+      productId: result.product.id,
+      product: result.product,
+      action: 'procured',
+    });
+    RealtimeService.broadcast('product_updated', result.product);
+
     res.status(201).json({
       message: 'Procurement recorded successfully and Central Inventory updated!',
       ...result,
@@ -481,7 +490,98 @@ router.put('/inventory/:id', async (req: AuthenticatedRequest, res: Response): P
       data,
     });
 
+    RealtimeService.broadcast('inventory_update', {
+      productId: updated.id,
+      product: updated,
+      action: 'updated',
+    });
+    RealtimeService.broadcast('product_updated', updated);
+
     res.json({ message: 'Product updated successfully', product: updated });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Direct Add Product to Central Inventory
+router.post('/inventory/product', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const {
+      name,
+      nameTamil,
+      category,
+      unit = 'kg',
+      stockQuantity = 0,
+      sellingPrice,
+      lowStockThreshold = 20,
+      avgProcurementCost,
+      imageUrl,
+      description,
+    } = req.body;
+
+    if (!name || !category || sellingPrice === undefined) {
+      res.status(400).json({ error: 'name, category, and sellingPrice are required.' });
+      return;
+    }
+
+    const price = parseFloat(String(sellingPrice));
+    const stock = parseFloat(String(stockQuantity));
+    const cost = avgProcurementCost !== undefined ? parseFloat(String(avgProcurementCost)) : Math.round(price * 0.7);
+
+    const product = await prisma.product.create({
+      data: {
+        name,
+        nameTamil: nameTamil || name,
+        category: String(category).toUpperCase(),
+        unit: unit || 'kg',
+        stockQuantity: stock,
+        sellingPrice: price,
+        lowStockThreshold: parseFloat(String(lowStockThreshold)),
+        avgProcurementCost: cost,
+        referenceMinPrice: cost,
+        referenceMaxPrice: price,
+        imageUrl: imageUrl || 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600',
+        description: description || '',
+        status: stock > 0 ? 'IN_STOCK' : 'OUT_OF_STOCK',
+        isPublished: true,
+      },
+    });
+
+    // Add baseline market price
+    await prisma.marketPrice.create({
+      data: {
+        productId: product.id,
+        district: 'Salem',
+        date: new Date().toISOString().split('T')[0],
+        minPrice: cost,
+        modalPrice: Math.round((cost + price) / 2),
+        maxPrice: price,
+      },
+    });
+
+    RealtimeService.broadcast('product_added', product);
+    RealtimeService.broadcast('inventory_update', {
+      productId: product.id,
+      product,
+      action: 'added',
+    });
+
+    res.status(201).json({ message: 'Product listed successfully in inventory!', product });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete Product from Inventory
+router.delete('/inventory/:id', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    await prisma.product.delete({ where: { id } });
+
+    RealtimeService.broadcast('product_deleted', { productId: id });
+    RealtimeService.broadcast('inventory_update', { productId: id, action: 'deleted' });
+
+    res.json({ message: 'Product deleted from inventory.' });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -527,6 +627,13 @@ router.post('/inventory/adjust', async (req: AuthenticatedRequest, res: Response
 
       return updated;
     });
+
+    RealtimeService.broadcast('inventory_update', {
+      productId: result.id,
+      product: result,
+      action: 'adjusted',
+    });
+    RealtimeService.broadcast('product_updated', result);
 
     res.json({ message: 'Stock adjusted successfully', product: result });
   } catch (err: any) {

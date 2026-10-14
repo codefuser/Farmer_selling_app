@@ -44,15 +44,6 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, []);
 
   const connect = useCallback(() => {
-    if (!token || !user) {
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-        eventSourceRef.current = null;
-      }
-      setIsConnected(false);
-      return;
-    }
-
     if (eventSourceRef.current) {
       eventSourceRef.current.close();
     }
@@ -61,7 +52,8 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       ? `${import.meta.env.VITE_API_URL.replace(/\/$/, '')}/api`
       : '/api';
 
-    const url = `${apiBase}/realtime/stream?token=${encodeURIComponent(token)}`;
+    const authToken = token || 'guest';
+    const url = `${apiBase}/realtime/stream?token=${encodeURIComponent(authToken)}`;
 
     try {
       const es = new EventSource(url);
@@ -77,49 +69,45 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         // Retry after 5 seconds
         if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
         reconnectTimeoutRef.current = setTimeout(() => {
-          if (token) connect();
+          connect();
         }, 5000);
       };
 
       // Built-in event listeners
-      es.addEventListener('connected', (e: MessageEvent) => {
+      es.addEventListener('connected', () => {
         setIsConnected(true);
       });
 
-      es.addEventListener('order_status_update', (e: MessageEvent) => {
-        try {
-          const data = JSON.parse(e.data);
-          const eventItem: RealtimeEvent = {
-            event: 'order_status_update',
-            data,
-            timestamp: new Date().toISOString(),
-          };
-          setLastEvent(eventItem);
-          notifyListeners('order_status_update', data);
-        } catch (err) {
-          console.error('Failed to parse order_status_update event:', err);
-        }
-      });
+      const registerEvent = (name: string) => {
+        es.addEventListener(name, (e: MessageEvent) => {
+          try {
+            const data = JSON.parse(e.data);
+            const eventItem: RealtimeEvent = {
+              event: name,
+              data,
+              timestamp: new Date().toISOString(),
+            };
+            setLastEvent(eventItem);
+            notifyListeners(name, data);
+          } catch (err) {
+            console.error(`Failed to parse ${name} event:`, err);
+          }
+        });
+      };
 
-      es.addEventListener('notification', (e: MessageEvent) => {
-        try {
-          const data = JSON.parse(e.data);
-          const eventItem: RealtimeEvent = {
-            event: 'notification',
-            data,
-            timestamp: new Date().toISOString(),
-          };
-          setLastEvent(eventItem);
-          notifyListeners('notification', data);
-        } catch (err) {
-          console.error('Failed to parse notification event:', err);
-        }
-      });
+      registerEvent('inventory_update');
+      registerEvent('product_updated');
+      registerEvent('product_added');
+      registerEvent('product_deleted');
+      registerEvent('submission_created');
+      registerEvent('order_status_update');
+      registerEvent('notification');
+
     } catch (err) {
       console.warn('EventSource initialization error:', err);
       setIsConnected(false);
     }
-  }, [token, user, notifyListeners]);
+  }, [token, notifyListeners]);
 
   useEffect(() => {
     connect();

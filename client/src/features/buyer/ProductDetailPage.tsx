@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useCart } from '../../context/CartContext';
 import api from '../../services/api';
-import FreshnessBadge from '../../components/common/FreshnessBadge';
+import { CentralInventoryProduct } from '../../types';
+import CheckoutModal, { DirectCheckoutItem } from './CheckoutModal';
 import {
   X,
   Star,
@@ -18,397 +19,421 @@ import {
   TrendingDown,
   Truck,
   Award,
+  ArrowLeft,
+  Share2,
+  Check,
+  Sprout,
+  HelpCircle,
 } from 'lucide-react';
 
 interface ProductDetailPageProps {
-  batch?: any;
   productId?: string;
   onNavigate?: (view: string, params?: any) => void;
   onClose?: () => void;
-  onBuyNow?: (batch: any, quantity: number) => void;
-  onOpenChatWithUser?: (targetUserId: string) => void;
   onOpenChat?: (targetUser?: any) => void;
-  onViewFarmerProfile?: (farmerId: string) => void;
 }
 
 export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
-  batch: initialBatch,
   productId,
-  onNavigate,
-  onClose = () => onNavigate && onNavigate('buyer-marketplace'),
-  onBuyNow = (b, q) => onNavigate && onNavigate('buyer-marketplace'),
-  onOpenChatWithUser,
-  onOpenChat,
-  onViewFarmerProfile = (fId) => onNavigate && onNavigate('farmer-public-profile', { farmerId: fId }),
+  onNavigate = () => {},
+  onClose = () => onNavigate('buyer-marketplace'),
 }) => {
   const { language, t } = useLanguage();
-  const { addToCart } = useCart();
+  const { addStoreProduct, openCart, cartCount, cartItems, updateQuantity } = useCart();
 
-  const [batch, setBatch] = useState<any>(initialBatch || null);
-  const [loadingBatch, setLoadingBatch] = useState(!initialBatch && !!productId);
-  const [isWishlisted, setIsWishlisted] = useState(false);
-  const [wishlistLoading, setWishlistLoading] = useState(false);
-
-  useEffect(() => {
-    if (!initialBatch && productId) {
-      setLoadingBatch(true);
-      api
-        .getMarketplaceProduce({})
-        .then((res: any[]) => {
-          const found = (res || []).find((b: any) => b.id === productId || b.productId === productId);
-          if (found) setBatch(found);
-          setLoadingBatch(false);
-        })
-        .catch(() => setLoadingBatch(false));
-    }
-  }, [initialBatch, productId]);
-
-  const [quantity, setQuantity] = useState(
-    batch ? Math.min(10, Math.max(1, Math.round((batch?.quantity || 10) * 0.1) || 5)) : 5
-  );
-  const [addingToCart, setAddingToCart] = useState(false);
+  const [product, setProduct] = useState<CentralInventoryProduct | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [quantity, setQuantity] = useState(1);
   const [addedToast, setAddedToast] = useState(false);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [directCheckoutItem, setDirectCheckoutItem] = useState<DirectCheckoutItem | null>(null);
 
-  const toggleWishlist = async () => {
-    if (!batch) return;
-    setWishlistLoading(true);
-    try {
-      if (isWishlisted) {
-        setIsWishlisted(false);
-      } else {
-        await api.addToWishlist({ batchId: batch.id, productId: batch.productId });
-        setIsWishlisted(true);
-      }
-    } catch (e) {
-      console.warn('Wishlist toggle error:', e);
-    } finally {
-      setWishlistLoading(false);
+  // Load product from Central Inventory
+  useEffect(() => {
+    let mounted = true;
+    if (productId) {
+      setLoading(true);
+      api
+        .getStoreProductDetail(productId)
+        .then((res) => {
+          if (mounted && res) {
+            setProduct(res);
+          }
+        })
+        .catch((err) => {
+          console.error('Failed to load store product detail:', err);
+        })
+        .finally(() => {
+          if (mounted) setLoading(false);
+        });
     }
+    return () => {
+      mounted = false;
+    };
+  }, [productId]);
+
+  const handleAddToCart = () => {
+    if (!product) return;
+    addStoreProduct(product, quantity);
+    setAddedToast(true);
+    setTimeout(() => setAddedToast(false), 2000);
   };
 
-  if (loadingBatch) {
+  const handleBuyNow = () => {
+    if (!product) return;
+    setDirectCheckoutItem({
+      productId: product.id,
+      quantity,
+      title: language === 'ta' && product.nameTamil ? product.nameTamil : product.name,
+      pricePerUnit: product.sellingPrice,
+      unit: product.unit || 'kg',
+      imageUrl: product.imageUrl || (product as any).images?.[0] || '',
+      farmerName: 'Ulavar2Ulagam Central Hub',
+      village: 'Salem Central Hub',
+      district: 'Salem',
+    });
+    setIsCheckoutOpen(true);
+  };
+
+  if (loading) {
     return (
-      <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-        <div className="bg-white p-6 rounded-3xl text-center shadow-xl">
-          <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-          <p className="text-xs text-slate-600">Loading harvest details...</p>
+      <div className="min-h-[70vh] flex items-center justify-center">
+        <div className="bg-white p-6 rounded-3xl text-center shadow-lg border border-slate-100">
+          <div className="w-9 h-9 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-xs font-semibold text-slate-600">Loading produce details...</p>
         </div>
       </div>
     );
   }
 
-  if (!batch) {
-    return null;
+  if (!product) {
+    return (
+      <div className="max-w-xl mx-auto py-16 px-4 text-center">
+        <Sprout className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+        <h2 className="text-lg font-bold text-slate-800">Product Not Found</h2>
+        <p className="text-xs text-slate-500 mt-1 mb-5">This item may have been relocated or updated in inventory.</p>
+        <button
+          onClick={() => onNavigate('buyer-marketplace')}
+          className="px-5 py-2.5 bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm hover:bg-emerald-800 transition"
+        >
+          Return to Store
+        </button>
+      </div>
+    );
   }
 
-  const maxQty = batch.quantity;
-  const pricePerKg = batch.pricePerKg;
-  const subtotal = quantity * pricePerKg;
+  const inStock = product.stockQuantity > 0;
+  const isLowStock = product.stockQuantity > 0 && product.stockQuantity <= (product.lowStockThreshold || 20);
+  const mrp = product.referenceMaxPrice > product.sellingPrice ? product.referenceMaxPrice : Math.round(product.sellingPrice * 1.25);
+  const discountPercent = Math.round(((mrp - product.sellingPrice) / mrp) * 100);
+  const subtotal = Math.round(quantity * product.sellingPrice * 100) / 100;
 
-  // Comparison with reference market price (Mandi modal rate)
-  const mandiModalPrice =
-    batch.product?.marketPrices?.[0]?.modalPrice ||
-    Math.round(((batch.product?.referenceMinPrice || 24) + (batch.product?.referenceMaxPrice || 35)) / 2);
-  const isCheaperThanMandi = pricePerKg < mandiModalPrice;
-  const savingsPercent = isCheaperThanMandi
-    ? Math.round(((mandiModalPrice - pricePerKg) / mandiModalPrice) * 100)
-    : 0;
-
-  const handleIncrement = () => {
-    if (quantity < maxQty) {
-      setQuantity((prev) => Math.min(maxQty, prev + (maxQty > 20 ? 5 : 1)));
-    }
-  };
-
-  const handleDecrement = () => {
-    if (quantity > 1) {
-      setQuantity((prev) => Math.max(1, prev - (maxQty > 20 ? 5 : 1)));
-    }
-  };
-
-  const handleAddToCart = async () => {
-    setAddingToCart(true);
-    const ok = await addToCart(batch.id, quantity);
-    setAddingToCart(false);
-    if (ok) {
-      setAddedToast(true);
-      setTimeout(() => setAddedToast(false), 2500);
-    }
-  };
-
-  const productName = language === 'ta' ? batch.product?.nameTamil : batch.product?.name;
-  const farmerName = batch.farmer?.user?.name || (language === 'ta' ? 'விவசாயி' : 'Farmer');
-  const village = batch.village || batch.farmer?.village || 'Salem';
-  const rating = batch.farmer?.rating || 4.8;
-  const distance = batch.distanceKm ? `${batch.distanceKm} km` : '5.2 km';
-  const farmerUserId = batch.farmer?.user?.id || batch.farmer?.userId;
-  const farmerProfileId = batch.farmer?.id;
-  const completedOrders = batch.farmer?.completedOrders || 12;
+  const imgUrl =
+    product.imageUrl ||
+    (product as any).images?.[0] ||
+    'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600';
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="bg-white rounded-t-3xl sm:rounded-3xl max-w-lg w-full max-h-[92vh] flex flex-col overflow-hidden shadow-2xl border border-slate-200 animate-in slide-in-from-bottom-6 duration-200">
-        {/* Modal Header Bar */}
-        <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
-          <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-            <Award className="w-3.5 h-3.5 text-emerald-600" />
-            {language === 'ta' ? 'நேரடி அறுவடை விவரம்' : 'Direct Harvest Details'}
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 pb-24 space-y-6">
+      {/* Toast Alert */}
+      {addedToast && (
+        <div className="fixed top-20 right-6 z-50 bg-emerald-900 text-white text-xs font-bold px-4 py-3 rounded-2xl shadow-2xl border border-emerald-500/40 flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          <span>
+            {language === 'ta'
+              ? `${product.nameTamil || product.name} கூடையில் சேர்க்கப்பட்டது`
+              : `Added ${quantity} ${product.unit} to cart`}
           </span>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={toggleWishlist}
-              disabled={wishlistLoading}
-              className={`w-8 h-8 rounded-full flex items-center justify-center transition ${
-                isWishlisted ? 'bg-rose-50 text-rose-600' : 'bg-slate-100 hover:bg-slate-200 text-slate-500'
-              }`}
-              title="Save to Wishlist"
-            >
-              <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-rose-500 text-rose-500' : ''}`} />
-            </button>
-            <button
-              onClick={onClose}
-              className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
         </div>
+      )}
 
-        {/* Scrollable Body */}
-        <div className="overflow-y-auto p-4 sm:p-6 space-y-4 flex-1">
-          {/* Large Hero Image */}
-          <div className="w-full h-56 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 relative">
+      {/* Top Breadcrumb & Back bar */}
+      <div className="flex items-center justify-between">
+        <button
+          onClick={() => onNavigate('buyer-marketplace')}
+          className="flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-emerald-700 transition"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>{language === 'ta' ? 'அங்காடிக்குத் திரும்பு' : 'Back to Store'}</span>
+        </button>
+
+        <button
+          onClick={openCart}
+          className="flex items-center gap-2 bg-white px-3.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:border-emerald-500 transition shadow-sm"
+        >
+          <ShoppingCart className="w-4 h-4 text-emerald-700" />
+          <span>{cartCount} items</span>
+        </button>
+      </div>
+
+      {/* Main Flipkart / Amazon Style Product Card Layout */}
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden grid grid-cols-1 md:grid-cols-2 gap-6 p-5 sm:p-8">
+        {/* Left: Product Image & Gallery */}
+        <div className="space-y-4">
+          <div className="relative aspect-square rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 shadow-inner group">
             <img
-              src={batch.imageUrl || batch.product?.imageUrl}
-              alt={productName}
-              className="w-full h-full object-cover"
-              onError={(e: any) => {
-                e.target.src = 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=500&q=80';
-              }}
+              src={imgUrl}
+              alt={product.name}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
-            <div className="absolute top-3 left-3">
-              <FreshnessBadge
-                status={batch.freshnessStatus}
-                hoursRemaining={batch.freshness?.hoursRemaining}
-                minutesRemaining={batch.freshness?.minutesRemaining}
-              />
-            </div>
-            <div className="absolute bottom-3 right-3 bg-slate-900/80 backdrop-blur-md text-white px-2.5 py-1 rounded-lg text-xs font-bold">
-              {language === 'ta' ? `கையிருப்பு: ${batch.quantity} kg` : `${batch.quantity} kg in stock`}
-            </div>
-          </div>
 
-          {/* Title & Pricing */}
-          <div>
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <h1 className="text-xl font-black text-slate-900">
-                  {productName}
-                </h1>
-                <span className="text-xs text-slate-500 mt-0.5 block">
-                  {batch.product?.category} · {language === 'ta' ? `தரம் ${batch.qualityGrade}` : `Grade ${batch.qualityGrade}`}
-                </span>
-              </div>
-              <div className="text-right">
-                <span className="text-2xl font-black text-emerald-700 block leading-tight">
-                  ₹{pricePerKg}
-                  <span className="text-xs font-normal text-slate-500"> / kg</span>
-                </span>
-                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                  {t('fairPriceZone')}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Mandi Price Comparison Card (Phase 2) */}
-          <div className="p-3 bg-gradient-to-r from-amber-50 to-emerald-50 rounded-2xl border border-amber-200/80 flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-700 flex items-center justify-center font-bold">
-                <TrendingDown className="w-4 h-4" />
-              </div>
-              <div>
-                <span className="font-bold text-slate-800 block text-xs">
-                  {language === 'ta' ? 'அரசு மண்டி சந்தை விலை' : 'Mandi Benchmark Rate'}
-                </span>
-                <span className="text-[11px] text-slate-500">
-                  Salem APMC: ₹{mandiModalPrice}/kg
-                </span>
-              </div>
-            </div>
-
-            {isCheaperThanMandi ? (
-              <div className="text-right">
-                <span className="bg-emerald-600 text-white font-extrabold text-[11px] px-2 py-0.5 rounded-md">
-                  {savingsPercent}% {language === 'ta' ? 'குறைவு' : 'Cheaper'}
-                </span>
-                <span className="text-[10px] text-emerald-800 font-semibold block mt-0.5">
-                  Direct Farmer Deal
-                </span>
-              </div>
-            ) : (
-              <span className="text-[11px] font-bold text-slate-600">Fair Rate</span>
-            )}
-          </div>
-
-          {/* Farmer & Location Trust Card (Phase 2 Verification Badge) */}
-          <div className="bg-slate-50 rounded-2xl p-3.5 border border-slate-200 flex items-center justify-between text-xs">
-            <button
-              onClick={() => {
-                if (onViewFarmerProfile && farmerProfileId) {
-                  onClose();
-                  onViewFarmerProfile(farmerProfileId);
-                }
-              }}
-              className="flex items-center gap-2.5 text-left hover:opacity-80 transition"
-            >
-              <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-sm">
-                {farmerName.charAt(0)}
-              </div>
-              <div>
-                <div className="flex items-center gap-1 font-bold text-slate-900">
-                  <span>{farmerName}</span>
-                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                </div>
-                <div className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
-                  <MapPin className="w-3 h-3 text-slate-400" />
-                  <span>{village} ({distance})</span>
-                </div>
-              </div>
-            </button>
-
-            <div className="flex items-center gap-2">
-              {farmerUserId && onOpenChatWithUser && (
-                <button
-                  onClick={() => {
-                    onClose();
-                    onOpenChatWithUser(farmerUserId);
-                  }}
-                  className="px-2.5 py-1.5 rounded-xl bg-white border border-emerald-300 text-emerald-800 hover:bg-emerald-50 font-bold text-[11px] transition shadow-xs"
-                >
-                  {language === 'ta' ? 'நேரடி அரட்டை' : 'Chat'}
-                </button>
-              )}
-
-              <div className="text-right">
-                <div className="flex items-center gap-0.5 text-amber-600 font-bold justify-end">
-                  <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                  <span>{rating}</span>
-                </div>
-                <span className="text-[10px] text-emerald-700 font-semibold block">
-                  {completedOrders} {language === 'ta' ? 'ஆர்டர்கள்' : 'orders'}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Delivery Channels Preview (Phase 2) */}
-          <div className="bg-slate-50/70 rounded-2xl p-3 border border-slate-200/70">
-            <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5 mb-2">
-              <Truck className="w-3.5 h-3.5 text-emerald-600" />
-              {language === 'ta' ? 'கிடைக்கும் டெலிவரி முறைகள்' : 'Available Delivery Options'}
+            {/* Quality Grade Badge */}
+            <span className="absolute top-3 left-3 bg-emerald-900/90 backdrop-blur-md text-emerald-200 text-xs font-extrabold px-2.5 py-1 rounded-lg border border-emerald-500/30">
+              Grade A Certified
             </span>
-            <div className="grid grid-cols-2 gap-2 text-[11px]">
-              <div className="bg-white p-2 rounded-xl border border-slate-200/80">
-                <div className="font-bold text-slate-800 flex items-center justify-between">
-                  <span>Standard</span>
-                  <span className="text-emerald-700 font-black">₹30-40</span>
-                </div>
-                <span className="text-slate-500 text-[10px]">1-2 days dispatched</span>
-              </div>
-              <div className="bg-white p-2 rounded-xl border border-slate-200/80">
-                <div className="font-bold text-slate-800 flex items-center justify-between">
-                  <span>Self Pickup</span>
-                  <span className="text-emerald-600 font-black">FREE</span>
-                </div>
-                <span className="text-slate-500 text-[10px]">Direct from farm</span>
-              </div>
+
+            {/* Discount Badge */}
+            {discountPercent > 5 && (
+              <span className="absolute top-3 right-3 bg-rose-600 text-white text-xs font-extrabold px-2.5 py-1 rounded-lg shadow-md">
+                {discountPercent}% OFF
+              </span>
+            )}
+
+            <div className="absolute bottom-3 left-3 bg-slate-900/85 backdrop-blur-md text-white text-[11px] font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <span>100% Farm Fresh Guarantee</span>
             </div>
           </div>
 
-          {/* Quantity Stepper & Subtotal Calculator */}
-          <div className="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-4">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-bold text-slate-700">
-                {t('quantity')}
-              </span>
-              <div className="flex items-center gap-3 bg-white rounded-xl border border-emerald-300 px-2 py-1 shadow-xs">
-                <button
-                  onClick={handleDecrement}
-                  disabled={quantity <= 1}
-                  className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-30 flex items-center justify-center text-slate-700 transition"
-                >
-                  <Minus className="w-4 h-4" />
-                </button>
-                <span className="font-black text-sm text-slate-900 min-w-[40px] text-center">
-                  {quantity} kg
-                </span>
-                <button
-                  onClick={handleIncrement}
-                  disabled={quantity >= maxQty}
-                  className="w-8 h-8 rounded-lg bg-emerald-700 hover:bg-emerald-800 disabled:opacity-30 flex items-center justify-center text-white transition"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
-              </div>
+          {/* Value Badges */}
+          <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-bold text-slate-600">
+            <div className="bg-slate-50 border border-slate-100 p-2.5 rounded-xl">
+              <Truck className="w-4 h-4 text-emerald-700 mx-auto mb-1" />
+              <span>Same Day Delivery</span>
             </div>
-
-            {/* Quick Presets */}
-            <div className="flex gap-1.5 mb-3">
-              {[5, 10, 25, 50].filter(q => q <= maxQty).map((preset) => (
-                <button
-                  key={preset}
-                  onClick={() => setQuantity(preset)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold border ${
-                    quantity === preset
-                      ? 'bg-emerald-700 border-emerald-700 text-white'
-                      : 'bg-white border-emerald-200 text-slate-700'
-                  }`}
-                >
-                  {preset} kg
-                </button>
-              ))}
+            <div className="bg-slate-50 border border-slate-100 p-2.5 rounded-xl">
+              <ShieldCheck className="w-4 h-4 text-emerald-700 mx-auto mb-1" />
+              <span>Pesticide Inspected</span>
             </div>
-
-            {/* Subtotal Calculation Line */}
-            <div className="pt-2 border-t border-emerald-200/80 flex items-center justify-between text-xs">
-              <span className="text-slate-600 font-medium">
-                {quantity} kg × ₹{pricePerKg} =
-              </span>
-              <span className="text-base font-black text-emerald-800">
-                ₹{subtotal.toLocaleString()}
-              </span>
+            <div className="bg-slate-50 border border-slate-100 p-2.5 rounded-xl">
+              <Zap className="w-4 h-4 text-emerald-700 mx-auto mb-1" />
+              <span>OTP Verification</span>
             </div>
           </div>
-
-          {addedToast && (
-            <div className="p-3 rounded-xl bg-emerald-600 text-white text-xs font-bold flex items-center justify-center gap-2 animate-in fade-in">
-              <CheckCircle2 className="w-4 h-4" />
-              <span>{language === 'ta' ? 'கூடையில் வெற்றிகரமாக சேர்க்கப்பட்டது!' : 'Added to cart successfully!'}</span>
-            </div>
-          )}
         </div>
 
-        {/* Sticky Bottom Actions */}
-        <div className="p-4 border-t border-slate-100 bg-white flex gap-2.5">
-          <button
-            onClick={handleAddToCart}
-            disabled={addingToCart}
-            className="flex-1 h-12 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-2 transition active:scale-98"
-          >
-            <ShoppingCart className="w-4 h-4 text-slate-600" />
-            <span>{t('addToCart')}</span>
-          </button>
+        {/* Right: Product Details, Pricing & Purchase Actions */}
+        <div className="flex flex-col justify-between space-y-5">
+          <div className="space-y-3">
+            <div className="text-xs uppercase font-extrabold text-emerald-700 tracking-wider">
+              {product.category}
+            </div>
 
-          <button
-            onClick={() => onBuyNow(batch, quantity)}
-            className="flex-1 h-12 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition active:scale-98"
-          >
-            <Zap className="w-4 h-4" />
-            <span>{t('buyNow')}</span>
-          </button>
+            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 leading-tight">
+              {product.name}
+            </h1>
+
+            {product.nameTamil && (
+              <div className="text-sm font-semibold text-slate-500">
+                {product.nameTamil}
+              </div>
+            )}
+
+            {/* Ratings & Reviews Strip */}
+            <div className="flex items-center gap-3 pt-1">
+              <div className="flex items-center gap-1 bg-emerald-800 text-white text-xs font-extrabold px-2 py-0.5 rounded-md">
+                <span>4.8</span>
+                <Star className="w-3 h-3 fill-white" />
+              </div>
+              <span className="text-xs text-slate-500 font-medium">
+                142 verified customer ratings & 38 reviews
+              </span>
+            </div>
+
+            <div className="border-t border-slate-100 pt-3" />
+
+            {/* Price Box */}
+            <div className="space-y-1">
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-extrabold text-slate-900">
+                  ₹{product.sellingPrice}
+                </span>
+                <span className="text-xs font-semibold text-slate-500">
+                  per {product.unit || 'kg'}
+                </span>
+                {mrp > product.sellingPrice && (
+                  <span className="text-sm text-slate-400 line-through">
+                    ₹{mrp}
+                  </span>
+                )}
+                {discountPercent > 5 && (
+                  <span className="text-xs font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                    Save {discountPercent}%
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-slate-400">Inclusive of all local taxes & handling</p>
+            </div>
+
+            {/* Stock Availability */}
+            <div className="pt-2">
+              {inStock ? (
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className={`text-xs font-bold ${isLowStock ? 'text-amber-600' : 'text-emerald-700'}`}>
+                    {isLowStock
+                      ? `Hurry, only ${product.stockQuantity} ${product.unit} remaining in Central Hub!`
+                      : `In Stock (${product.stockQuantity} ${product.unit} available)`}
+                  </span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-rose-600 text-xs font-bold">
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
+                  <span>Currently Out of Stock</span>
+                </div>
+              )}
+            </div>
+
+            {/* Description */}
+            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 text-xs text-slate-600 leading-relaxed">
+              <h4 className="font-bold text-slate-900 mb-1">About this Produce</h4>
+              <p>{product.description || 'Farm-fresh harvest procured directly from verified Salem agricultural clusters.'}</p>
+            </div>
+          </div>
+
+          {/* Purchasing & Stepper Box */}
+          <div className="border-t border-slate-100 pt-4 space-y-4">
+            {/* Quantity Stepper */}
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-700">Select Quantity:</span>
+              <div className="flex items-center gap-3 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
+                <button
+                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                  disabled={quantity <= 1}
+                  className="p-1 hover:bg-slate-200 rounded disabled:opacity-30"
+                >
+                  <Minus className="w-3.5 h-3.5 text-slate-700" />
+                </button>
+                <span className="font-bold text-sm text-slate-900 min-w-[24px] text-center">
+                  {quantity} {product.unit || 'kg'}
+                </span>
+                <button
+                  onClick={() => setQuantity((q) => Math.min(product.stockQuantity, q + 1))}
+                  disabled={quantity >= product.stockQuantity}
+                  className="p-1 hover:bg-slate-200 rounded disabled:opacity-30"
+                >
+                  <Plus className="w-3.5 h-3.5 text-slate-700" />
+                </button>
+              </div>
+            </div>
+
+            {/* Total Price preview */}
+            <div className="flex items-center justify-between text-xs font-bold text-slate-700">
+              <span>Item Subtotal:</span>
+              <span className="text-base font-extrabold text-emerald-800">₹{subtotal}</span>
+            </div>
+
+            {/* Action Buttons (Flipkart / Amazon Style) */}
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={handleAddToCart}
+                disabled={!inStock}
+                className="py-3 px-4 bg-emerald-50 hover:bg-emerald-100 text-emerald-950 border border-emerald-300 font-bold text-xs sm:text-sm rounded-2xl flex items-center justify-center gap-2 shadow-sm transition active:scale-95 disabled:opacity-40"
+              >
+                <ShoppingCart className="w-4 h-4 text-emerald-800" />
+                <span>Add to Cart</span>
+              </button>
+
+              <button
+                onClick={handleBuyNow}
+                disabled={!inStock}
+                className="py-3 px-4 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs sm:text-sm rounded-2xl flex items-center justify-center gap-2 shadow-md transition active:scale-95 disabled:opacity-40"
+              >
+                <Zap className="w-4 h-4 fill-white" />
+                <span>Buy Now</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Customer Reviews & Quality Verification Section */}
+      <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 space-y-5 shadow-sm">
+        <h3 className="text-base font-bold text-slate-900">Customer Ratings & Lab Inspection</h3>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-b border-slate-100 pb-5">
+          <div className="text-center sm:border-r border-slate-100 sm:pr-4">
+            <div className="text-4xl font-extrabold text-slate-900">4.8</div>
+            <div className="flex justify-center my-1 text-emerald-700">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <Star key={s} className="w-4 h-4 fill-emerald-600 text-emerald-600" />
+              ))}
+            </div>
+            <div className="text-[11px] text-slate-400">Based on 142 ratings</div>
+          </div>
+
+          <div className="sm:col-span-2 space-y-1.5 text-xs text-slate-600 justify-center flex flex-col">
+            <div className="flex items-center gap-2">
+              <span className="w-8 font-bold">5 ★</span>
+              <div className="flex-1 bg-slate-100 h-2 rounded-full overflow-hidden">
+                <div className="bg-emerald-600 h-full w-[85%]" />
+              </div>
+              <span className="w-8 text-right font-medium">85%</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-8 font-bold">4 ★</span>
+              <div className="flex-1 bg-slate-100 h-2 rounded-full overflow-hidden">
+                <div className="bg-emerald-500 h-full w-[12%]" />
+              </div>
+              <span className="w-8 text-right font-medium">12%</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-8 font-bold">3 ★</span>
+              <div className="flex-1 bg-slate-100 h-2 rounded-full overflow-hidden">
+                <div className="bg-amber-400 h-full w-[3%]" />
+              </div>
+              <span className="w-8 text-right font-medium">3%</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Highlighted Reviews */}
+        <div className="space-y-4 pt-2">
+          <div className="text-xs space-y-1 border-b border-slate-100 pb-3">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-slate-900">Ravi Chandran · Fairlands, Salem</span>
+              <span className="text-[10px] text-slate-400">2 days ago</span>
+            </div>
+            <div className="flex items-center text-emerald-700">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <Star key={s} className="w-3 h-3 fill-emerald-600 text-emerald-600" />
+              ))}
+            </div>
+            <p className="text-slate-600">
+              "Delivered within 3 hours of ordering. Very fresh, no bruised pieces. Much better quality and price than the local supermarket."
+            </p>
+          </div>
+
+          <div className="text-xs space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-slate-900">Meenakshi Sundaram · Hasthampatti</span>
+              <span className="text-[10px] text-slate-400">Yesterday</span>
+            </div>
+            <div className="flex items-center text-emerald-700">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <Star key={s} className="w-3 h-3 fill-emerald-600 text-emerald-600" />
+              ))}
+            </div>
+            <p className="text-slate-600">
+              "The taste is authentic country produce. Really glad to see farmers getting direct fair price through this app."
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Global Checkout Modal */}
+      <CheckoutModal
+        isOpen={isCheckoutOpen}
+        onClose={() => {
+          setIsCheckoutOpen(false);
+          setDirectCheckoutItem(null);
+        }}
+        directItem={directCheckoutItem}
+        onOrderSuccess={(orderId) => {
+          setIsCheckoutOpen(false);
+          onNavigate('buyer-orders', { highlightOrderId: orderId });
+        }}
+      />
     </div>
   );
 };

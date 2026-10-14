@@ -864,6 +864,19 @@ class ApiService {
     });
   }
 
+  public async adminAddProduct(data: any): Promise<{ message: string; product: any }> {
+    return this.request<any>('/admin/inventory/product', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  public async adminDeleteProduct(id: string): Promise<{ message: string }> {
+    return this.request<any>(`/admin/inventory/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   public async getAdminCustomerOrders(status?: string): Promise<any[]> {
     const qs = status && status !== 'ALL' ? `?status=${status}` : '';
     return this.request<any[]>(`/admin/customer-orders${qs}`);
