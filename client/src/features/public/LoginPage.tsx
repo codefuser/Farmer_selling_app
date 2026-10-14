@@ -135,7 +135,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
                 <Mail className="w-4 h-4 text-slate-400 mr-2 shrink-0" />
                 <input
                   type="email"
-                  placeholder="farmer@kisandirect.demo"
+                  placeholder="farmer@ulavar2ulagam.demo"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full text-xs bg-transparent text-slate-900 focus:outline-none font-medium"

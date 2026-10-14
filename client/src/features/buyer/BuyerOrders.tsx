@@ -3,38 +3,32 @@ import api from '../../services/api';
 import { Order } from '../../types';
 import { useLanguage } from '../../context/LanguageContext';
 import { useRealtime } from '../../context/RealtimeContext';
-import DeliveryMap from '../../components/common/DeliveryMap';
 import {
   Truck,
   CheckCircle2,
   Clock,
   ShieldCheck,
-  Star,
   RefreshCw,
   ChevronDown,
   ChevronUp,
-  CreditCard,
-  Users,
-  AlertCircle,
-  Play,
-  ArrowRight,
   XCircle,
-  Check,
-  MessageSquare,
+  Package,
+  ShoppingBag,
+  ArrowRight,
   Sparkles,
+  MapPin,
+  KeyRound,
+  Phone,
+  AlertCircle,
 } from 'lucide-react';
 
-const ORDER_STEPS = [
-  'ORDERED',
-  'ACCEPTED',
-  'PICKUP_SCHEDULED',
-  'COLLECTED',
-  'QUALITY_CHECKED',
+const ULAVAR_STEPS = [
+  'PENDING',
+  'CONFIRMED',
+  'PROCESSING',
   'PACKED',
-  'DISPATCHED',
+  'OUT_FOR_DELIVERY',
   'DELIVERED',
-  'PAYMENT_RELEASED',
-  'COMPLETED',
 ];
 
 interface BuyerOrdersProps {
@@ -49,41 +43,28 @@ export const BuyerOrders: React.FC<BuyerOrdersProps> = ({ highlightOrderId, onNa
   const [orders, setOrders] = useState<Order[]>([]);
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(highlightOrderId || null);
   const [loading, setLoading] = useState(true);
-  const [advancingStatus, setAdvancingStatus] = useState(false);
 
-  // Cancellation Modal State
+  // Cancellation Modal
   const [cancelModalOrder, setCancelModalOrder] = useState<Order | null>(null);
-  const [cancelReason, setCancelReason] = useState('Change of plan / requirements');
+  const [cancelReason, setCancelReason] = useState('Found another option / Need to change order items');
   const [isCancelling, setIsCancelling] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Delivery Confirmation State
-  const [confirmingDelivery, setConfirmingDelivery] = useState<string | null>(null);
-
-  // Multi-Dimensional Rating State
-  const [ratingModalOrder, setRatingModalOrder] = useState<Order | null>(null);
-  const [ratingScores, setRatingScores] = useState({
-    overall: 5,
-    quality: 5,
-    freshness: 5,
-    accuracy: 5,
-    communication: 5,
-  });
-  const [ratingComment, setRatingComment] = useState('');
-  const [isSubmittingRating, setIsSubmittingRating] = useState(false);
-  const [ratingSuccessToast, setRatingSuccessToast] = useState(false);
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
 
   const getStageLabel = (step: string) => {
     const map: Record<string, { en: string; ta: string }> = {
-      ORDERED: { en: 'Order Placed', ta: 'ஆர்டர் செய்யப்பட்டது' },
-      ACCEPTED: { en: 'Accepted by Farmer', ta: 'விவசாயியால் ஏற்கப்பட்டது' },
-      PICKUP_SCHEDULED: { en: 'Pickup Scheduled', ta: 'வாகனம் திட்டமிடப்பட்டது' },
-      COLLECTED: { en: 'Collected from Farm', ta: 'பண்ணையில் சேகரிக்கப்பட்டது' },
-      QUALITY_CHECKED: { en: 'Quality Verified', ta: 'தரச் சோதனை நிறைவு' },
-      PACKED: { en: 'Packed & Barcoded', ta: 'பொதியிடப்பட்டது' },
+      PENDING: { en: 'Order Placed', ta: 'ஆர்டர் பெறப்பட்டது' },
+      CONFIRMED: { en: 'Hub Confirmed', ta: 'மத்திய மையம் உறுதிசெய்தது' },
+      PROCESSING: { en: 'Hub Quality Check', ta: 'தர சோதனை & பேக்கிங்' },
+      PACKED: { en: 'Ready for Dispatch', ta: 'அனுப்ப தயார்' },
       DISPATCHED: { en: 'Dispatched', ta: 'வண்டியில் அனுப்பப்பட்டது' },
-      DELIVERED: { en: 'Delivered', ta: 'வழங்கப்பட்டது' },
-      PAYMENT_RELEASED: { en: 'Payment Released', ta: 'பணம் விடுவிக்கப்பட்டது' },
-      COMPLETED: { en: 'Completed', ta: 'முழுமை பெற்றது' },
+      OUT_FOR_DELIVERY: { en: 'Out for Delivery', ta: 'டெலிவரிக்கு புறப்பட்டது' },
+      DELIVERED: { en: 'Delivered', ta: 'வீட்டில் வழங்கப்பட்டது' },
+      COMPLETED: { en: 'Completed', ta: 'நிறைவு பெற்றது' },
       CANCELLED: { en: 'Cancelled', ta: 'ரத்து செய்யப்பட்டது' },
     };
     return language === 'ta' ? map[step]?.ta || step : map[step]?.en || step;
@@ -92,13 +73,13 @@ export const BuyerOrders: React.FC<BuyerOrdersProps> = ({ highlightOrderId, onNa
   const loadOrders = async () => {
     try {
       setLoading(true);
-      const res = await api.getBuyerOrders();
-      setOrders(res);
-      if (res.length > 0 && !expandedOrderId) {
+      const res = await api.getCustomerOrders();
+      setOrders(res || []);
+      if (res && res.length > 0 && !expandedOrderId) {
         setExpandedOrderId(res[0].id);
       }
     } catch (err) {
-      console.error('Error loading buyer orders:', err);
+      console.error('Error loading customer orders:', err);
     } finally {
       setLoading(false);
     }
@@ -108,10 +89,9 @@ export const BuyerOrders: React.FC<BuyerOrdersProps> = ({ highlightOrderId, onNa
     loadOrders();
   }, []);
 
-  // Listen to live order status updates via Realtime SSE!
+  // Listen to live realtime SSE updates
   useEffect(() => {
-    const unsubscribe = subscribe('order_status_update', (data: any) => {
-      console.log('Realtime order update received:', data);
+    const unsubscribe = subscribe('order_status_update', () => {
       loadOrders();
     });
     return () => unsubscribe();
@@ -123,30 +103,18 @@ export const BuyerOrders: React.FC<BuyerOrdersProps> = ({ highlightOrderId, onNa
     }
   }, [highlightOrderId]);
 
-  // Advance Order Status (Simulator for Demonstration)
-  const handleAdvanceOrder = async (order: Order) => {
-    const currentIndex = ORDER_STEPS.indexOf(order.status);
-    if (currentIndex < ORDER_STEPS.length - 1) {
-      const nextStatus = ORDER_STEPS[currentIndex + 1];
-      try {
-        setAdvancingStatus(true);
-        await api.updateOrderStatus(order.id, nextStatus);
-        await loadOrders();
-      } catch (err: any) {
-        alert(err.message || 'Failed to advance status');
-      } finally {
-        setAdvancingStatus(false);
-      }
-    }
-  };
-
-  // Cancel Order Handler
+  // Handle Cancel Order
   const handleCancelOrderSubmit = async () => {
     if (!cancelModalOrder) return;
     setIsCancelling(true);
     try {
-      await api.cancelOrder(cancelModalOrder.id, cancelReason);
+      await api.cancelCustomerOrder(cancelModalOrder.id, cancelReason);
       setCancelModalOrder(null);
+      showToast(
+        language === 'ta'
+          ? 'ஆர்டர் ரத்து செய்யப்பட்டு, சரக்ககத்தில் இருப்பு மீட்டமைக்கப்பட்டது.'
+          : 'Order cancelled successfully and stock restored to inventory.'
+      );
       await loadOrders();
     } catch (err: any) {
       alert(err.message || 'Failed to cancel order');
@@ -155,61 +123,26 @@ export const BuyerOrders: React.FC<BuyerOrdersProps> = ({ highlightOrderId, onNa
     }
   };
 
-  // Confirm Delivery & Release Escrow Handler
-  const handleConfirmDelivery = async (orderId: string) => {
-    setConfirmingDelivery(orderId);
-    try {
-      await api.confirmDelivery(orderId, { otp: 'VERIFIED_BY_BUYER' });
-      await loadOrders();
-      alert(
-        language === 'ta'
-          ? 'டெலிவரி உறுதி செய்யப்பட்டது! எஸ்க்ரோ கட்டணம் விவசாயிக்கு விடுவிக்கப்பட்டது.'
-          : 'Delivery confirmed! Escrow payout released to the farmer.'
-      );
-    } catch (err: any) {
-      alert(err.message || 'Failed to confirm delivery');
-    } finally {
-      setConfirmingDelivery(null);
-    }
-  };
-
-  // Submit Multi-Criteria Review
-  const handleSubmitReview = async () => {
-    if (!ratingModalOrder) return;
-    setIsSubmittingRating(true);
-    try {
-      await api.submitOrderReview(ratingModalOrder.id, {
-        score: ratingScores.overall,
-        qualityScore: ratingScores.quality,
-        freshnessScore: ratingScores.freshness,
-        accuracyScore: ratingScores.accuracy,
-        communicationScore: ratingScores.communication,
-        comment: ratingComment.trim() || undefined,
-      });
-
-      setRatingModalOrder(null);
-      setRatingSuccessToast(true);
-      setTimeout(() => setRatingSuccessToast(false), 3000);
-      await loadOrders();
-    } catch (err: any) {
-      alert(err.message || 'Failed to submit review');
-    } finally {
-      setIsSubmittingRating(false);
-    }
-  };
-
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      {/* Page Title */}
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed top-20 right-6 z-50 bg-slate-900 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-2xl border border-emerald-500/40 flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+          <Sparkles className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
+      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900">
-            {language === 'ta' ? 'ஆர்டர்கள் மற்றும் நேரடி கண்காணிப்பு' : 'Procurement Orders & Live Tracking'}
+            {language === 'ta' ? 'என் ஆர்டர்கள் & நேரடி டெலிவரி நிலை' : 'My Orders & Live Delivery Tracking'}
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
             {language === 'ta'
-              ? 'நேரடி பரிவர்த்தனை நிலை, GPS கண்காணிப்பு மற்றும் எஸ்க்ரோ பாதுகாப்பு'
-              : 'Real-time order lifecycle, GPS driver telemetry, and escrow milestone release'}
+              ? 'உழவர் to உலகம் மத்திய சரக்கக நேரடி பேக்கிங் மற்றும் OTP டெலிவரி பாதுகாப்பு'
+              : 'Direct Central Hub fulfillment, assigned driver tracking, and secure OTP verification'}
           </p>
         </div>
 
@@ -222,47 +155,35 @@ export const BuyerOrders: React.FC<BuyerOrdersProps> = ({ highlightOrderId, onNa
         </button>
       </div>
 
-      {ratingSuccessToast && (
-        <div className="p-3 bg-emerald-600 text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-2 shadow-md animate-in fade-in">
-          <CheckCircle2 className="w-4 h-4" />
-          <span>{language === 'ta' ? 'விவசாயிக்கான மதிப்பீடு பதிவு செய்யப்பட்டது! நன்றி.' : 'Review submitted! Farmer rating updated.'}</span>
-        </div>
-      )}
-
       {loading ? (
         <div className="py-16 text-center space-y-3">
           <div className="w-8 h-8 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-xs text-slate-400">
-            {language === 'ta' ? 'ஆர்டர்கள் பெறப்படுகின்றன...' : 'Loading orders...'}
-          </p>
+          <p className="text-xs text-slate-400">Loading your orders...</p>
         </div>
       ) : orders.length === 0 ? (
-        <div className="bg-white rounded-3xl p-12 text-center text-slate-500 border border-slate-200 max-w-md mx-auto space-y-3">
-          <Truck className="w-12 h-12 mx-auto text-slate-300" />
-          <h3 className="font-extrabold text-slate-800 text-sm">
-            {language === 'ta' ? 'ஆர்டர்கள் எதுவும் இல்லை' : 'No orders yet'}
-          </h3>
-          <p className="text-xs text-slate-500">
-            {language === 'ta'
-              ? 'புதிய காய்கறிகளை சந்தையில் வாங்குங்கள் அல்லது மொத்த தேவையை பதிவிடுங்கள்.'
-              : 'Explore the marketplace or post a bulk demand to place an order.'}
-          </p>
+        <div className="bg-white rounded-3xl p-12 text-center text-slate-500 border border-slate-200 max-w-md mx-auto space-y-4">
+          <ShoppingBag className="w-12 h-12 mx-auto text-slate-300" />
+          <div>
+            <h3 className="font-bold text-slate-900 text-sm">No Orders Placed Yet</h3>
+            <p className="text-xs text-slate-400 mt-1">
+              Browse our fresh produce store to order farm-fresh harvest directly to your home.
+            </p>
+          </div>
           <button
             onClick={() => onNavigate('buyer-marketplace')}
-            className="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-xs transition"
+            className="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-sm transition"
           >
-            {language === 'ta' ? 'சந்தைக்குச் செல்' : 'Go to Marketplace'}
+            Explore Fresh Store
           </button>
         </div>
       ) : (
-        <div className="space-y-4 sm:space-y-6">
-          {orders.map((order) => {
+        <div className="space-y-4">
+          {orders.map((order: any) => {
             const isExpanded = expandedOrderId === order.id;
-            const currentStepIdx = ORDER_STEPS.indexOf(order.status);
             const isCancelled = order.status === 'CANCELLED';
-            const canCancel = ['ORDERED', 'ACCEPTED'].includes(order.status);
-            const canConfirmDelivery = order.status === 'DISPATCHED';
-            const canReview = ['DELIVERED', 'PAYMENT_RELEASED', 'COMPLETED'].includes(order.status);
+            const canCancel = ['PENDING', 'CONFIRMED'].includes(order.status);
+            const currentStepIdx = ULAVAR_STEPS.indexOf(order.status);
+            const deliveryAssignment = order.deliveryAssignment;
 
             return (
               <div
@@ -271,7 +192,7 @@ export const BuyerOrders: React.FC<BuyerOrdersProps> = ({ highlightOrderId, onNa
                   isExpanded ? 'border-emerald-500 ring-2 ring-emerald-500/10' : 'border-slate-200'
                 }`}
               >
-                {/* Header Strip */}
+                {/* Header Summary */}
                 <div
                   className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 cursor-pointer select-none"
                   onClick={() => setExpandedOrderId(isExpanded ? null : order.id)}
@@ -281,18 +202,16 @@ export const BuyerOrders: React.FC<BuyerOrdersProps> = ({ highlightOrderId, onNa
                       <span className="font-mono text-xs font-bold text-slate-800 bg-slate-100 px-2.5 py-0.5 rounded-md border border-slate-200">
                         #{order.orderCode}
                       </span>
-                      {order.deliveryMethod && (
-                        <span className="text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200 px-2 py-0.5 rounded-full">
-                          {order.deliveryMethod.replace('_', ' ')}
-                        </span>
-                      )}
-                      {order.collectiveOrderId && (
-                        <span className="text-[10px] font-bold bg-indigo-50 text-indigo-800 border border-indigo-200 px-2 py-0.5 rounded-full">
-                          {language === 'ta' ? 'கூட்டு கொள்முதல்' : 'Collective Pool'}
-                        </span>
-                      )}
+                      <span className="text-[10px] text-slate-400">
+                        {new Date(order.createdAt).toLocaleDateString()} at{' '}
+                        {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                      <span className="text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-full">
+                        Central Hub Fulfillment
+                      </span>
                     </div>
-                    <h3 className="font-black text-sm sm:text-base text-slate-900">
+
+                    <h3 className="font-extrabold text-sm sm:text-base text-slate-900">
                       {order.totalQuantity} kg • ₹{order.totalAmount?.toLocaleString('en-IN')}
                     </h3>
                   </div>
@@ -302,7 +221,7 @@ export const BuyerOrders: React.FC<BuyerOrdersProps> = ({ highlightOrderId, onNa
                       className={`px-3 py-1 rounded-full text-[11px] font-extrabold uppercase ${
                         isCancelled
                           ? 'bg-rose-100 text-rose-800'
-                          : order.status === 'COMPLETED' || order.status === 'DELIVERED'
+                          : order.status === 'DELIVERED' || order.status === 'COMPLETED'
                           ? 'bg-emerald-100 text-emerald-800'
                           : 'bg-indigo-100 text-indigo-800'
                       }`}
@@ -315,13 +234,14 @@ export const BuyerOrders: React.FC<BuyerOrdersProps> = ({ highlightOrderId, onNa
                   </div>
                 </div>
 
-                {/* Progress Stepper (if not cancelled) */}
+                {/* 6-Stage Progress Stepper */}
                 {!isCancelled ? (
                   <div className="overflow-x-auto pt-2 pb-2 -mx-2 px-2 no-scrollbar">
-                    <div className="flex items-center min-w-[650px] justify-between relative px-2">
-                      {ORDER_STEPS.map((stepName, sIdx) => {
+                    <div className="flex items-center min-w-[550px] justify-between relative px-2">
+                      {ULAVAR_STEPS.map((stepName, sIdx) => {
                         const isDone = sIdx <= currentStepIdx;
                         const isCurrent = sIdx === currentStepIdx;
+
                         return (
                           <div key={sIdx} className="flex flex-col items-center relative z-10 flex-1">
                             <div
@@ -334,7 +254,7 @@ export const BuyerOrders: React.FC<BuyerOrdersProps> = ({ highlightOrderId, onNa
                               {isDone ? '✓' : sIdx + 1}
                             </div>
                             <span
-                              className={`text-[9px] font-semibold mt-1.5 text-center leading-tight max-w-[65px] ${
+                              className={`text-[10px] font-semibold mt-1.5 text-center leading-tight max-w-[70px] ${
                                 isCurrent
                                   ? 'text-emerald-800 font-extrabold'
                                   : isDone
@@ -350,176 +270,146 @@ export const BuyerOrders: React.FC<BuyerOrdersProps> = ({ highlightOrderId, onNa
                     </div>
                   </div>
                 ) : (
-                  <div className="p-3 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-800 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <XCircle className="w-4 h-4 text-rose-600" />
-                      <span>
-                        {language === 'ta' ? 'ஆர்டர் ரத்து செய்யப்பட்டது: ' : 'Order Cancelled: '}
-                        {order.cancellationReason || 'Cancelled before dispatch'}
-                      </span>
-                    </div>
-                    <span className="font-bold text-[10px] bg-rose-200/80 px-2 py-0.5 rounded-full">
-                      Refund Processed
+                  <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-800 flex items-center gap-2">
+                    <XCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                    <span>
+                      {language === 'ta' ? 'ரத்து செய்யப்பட்டது: ' : 'Order Cancelled: '}
+                      {order.cancellationReason || 'Cancelled before dispatch'}
                     </span>
                   </div>
                 )}
 
-                {/* Action Toolbar (Phase 2) */}
-                <div className="flex flex-wrap items-center gap-2 pt-1">
-                  {canConfirmDelivery && (
-                    <button
-                      onClick={() => handleConfirmDelivery(order.id)}
-                      disabled={confirmingDelivery === order.id}
-                      className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5 active:scale-95"
-                    >
-                      <Check className="w-3.5 h-3.5" />
-                      <span>{language === 'ta' ? 'டெலிவரி உறுதி செய் & பணம் விடுவி' : 'Confirm Delivery & Release Escrow'}</span>
-                    </button>
-                  )}
-
-                  {canReview && (
-                    <button
-                      onClick={() => {
-                        setRatingModalOrder(order);
-                        setRatingScores({ overall: 5, quality: 5, freshness: 5, accuracy: 5, communication: 5 });
-                        setRatingComment('');
-                      }}
-                      className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5 active:scale-95"
-                    >
-                      <Star className="w-3.5 h-3.5 fill-white" />
-                      <span>{language === 'ta' ? 'விவசாயிக்கு மதிப்புரை வழங்குக' : 'Rate & Review'}</span>
-                    </button>
-                  )}
-
-                  {canCancel && (
-                    <button
-                      onClick={() => setCancelModalOrder(order)}
-                      className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs rounded-xl transition flex items-center gap-1.5 active:scale-95"
-                    >
-                      <XCircle className="w-3.5 h-3.5" />
-                      <span>{language === 'ta' ? 'ஆர்டரை ரத்து செய்' : 'Cancel Order'}</span>
-                    </button>
-                  )}
-                </div>
-
-                {/* Expanded Details Section */}
+                {/* Expanded Details */}
                 {isExpanded && (
-                  <div className="pt-4 border-t border-slate-100 space-y-5 animate-in fade-in duration-200">
-                    {/* Simulator Stage Advancer */}
-                    {!isCancelled && (
-                      <div className="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 text-xs">
-                        <div className="flex items-center gap-2">
-                          <Play className="w-4 h-4 text-emerald-700 shrink-0" />
-                          <span className="font-semibold text-emerald-900">
-                            {language === 'ta'
-                              ? 'டெமோ நிலை மாற்றம்: அடுத்த கட்டத்திற்கு நகர்த்தவும்'
-                              : 'Workflow Simulator: Advance status in order state machine'}
-                          </span>
+                  <div className="pt-4 border-t border-slate-100 space-y-4 animate-in fade-in">
+                    {/* Delivery Partner & OTP Banner */}
+                    {deliveryAssignment && (
+                      <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-200 rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div className="space-y-1">
+                          <div className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-800 flex items-center gap-1.5">
+                            <Truck className="w-3.5 h-3.5" />
+                            <span>Assigned Delivery Partner</span>
+                          </div>
+                          <div className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                            <span>{deliveryAssignment.driver?.name || 'Karthik Murugan'}</span>
+                            <span className="text-xs text-slate-500 font-normal">
+                              ({deliveryAssignment.driver?.mobile || '+91 98765 43213'})
+                            </span>
+                          </div>
+                          <div className="text-xs text-slate-600">
+                            Logistics Status:{' '}
+                            <span className="font-bold text-emerald-800">
+                              {deliveryAssignment.status}
+                            </span>
+                          </div>
                         </div>
-                        <button
-                          onClick={() => handleAdvanceOrder(order)}
-                          disabled={advancingStatus || currentStepIdx >= ORDER_STEPS.length - 1}
-                          className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs rounded-xl shadow transition disabled:opacity-50 flex items-center gap-1.5 self-stretch sm:self-auto justify-center active:scale-95"
-                        >
-                          <span>
-                            {language === 'ta' ? 'அடுத்த நிலை' : 'Advance to'}{' '}
-                            {currentStepIdx < ORDER_STEPS.length - 1
-                              ? getStageLabel(ORDER_STEPS[currentStepIdx + 1])
-                              : (language === 'ta' ? 'முடிவடைந்தது' : 'Completed')}
-                          </span>
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </button>
+
+                        {/* Secure OTP Pill */}
+                        {deliveryAssignment.confirmationOtp && order.status !== 'DELIVERED' && (
+                          <div className="bg-white px-4 py-2.5 rounded-xl border-2 border-emerald-500 text-center shadow-md shrink-0">
+                            <div className="text-[10px] font-black uppercase text-emerald-800 flex items-center justify-center gap-1">
+                              <KeyRound className="w-3 h-3" />
+                              <span>Your Delivery OTP</span>
+                            </div>
+                            <div className="text-xl font-mono font-black text-slate-900 tracking-widest mt-0.5">
+                              {deliveryAssignment.confirmationOtp}
+                            </div>
+                            <div className="text-[9px] text-slate-500">
+                              Share with partner upon delivery
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
 
-                    {/* Contributing Farmers Breakdown */}
-                    <div>
-                      <h4 className="font-extrabold text-xs text-slate-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                        <Users className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>
-                          {language === 'ta' ? 'பங்கேற்கும் விவசாயிகளின் பங்கு விவரம்' : 'Participating Farmer Supply Breakdown'}
-                        </span>
+                    {/* Order Items Table */}
+                    <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-3">
+                      <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                        Purchased Items ({order.items?.length || 0})
                       </h4>
-                      <div className="bg-slate-50 rounded-2xl p-3 sm:p-4 border border-slate-200/80 overflow-x-auto">
-                        <table className="w-full text-left text-xs min-w-[420px]">
-                          <thead>
-                            <tr className="text-slate-400 border-b border-slate-200 pb-2">
-                              <th className="font-semibold pb-2">{language === 'ta' ? 'விவசாயி' : 'Farmer'}</th>
-                              <th className="font-semibold pb-2">{language === 'ta' ? 'தொகுதி எண்' : 'Batch Code'}</th>
-                              <th className="font-semibold pb-2">{language === 'ta' ? 'அளவு' : 'Quantity'}</th>
-                              <th className="font-semibold pb-2">{language === 'ta' ? 'விலை' : 'Price'}</th>
-                              <th className="font-semibold pb-2">{language === 'ta' ? 'விவசாயி பங்கு' : 'Farmer Payout'}</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-200/50 font-medium">
-                            {order.items?.map((item) => (
-                              <tr key={item.id}>
-                                <td className="py-2.5 font-bold text-slate-800">
-                                  {item.farmer?.user?.name || (language === 'ta' ? 'விவசாயி' : 'Farmer')}
-                                </td>
-                                <td className="py-2.5 font-mono text-slate-500">{item.batch?.batchCode}</td>
-                                <td className="py-2.5 font-bold text-emerald-700">{item.quantity} kg</td>
-                                <td className="py-2.5 text-slate-700">₹{item.pricePerKg}/kg</td>
-                                <td className="py-2.5 font-bold text-slate-900">
-                                  ₹{(item.total * 0.98).toFixed(0)}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                      <div className="divide-y divide-slate-200/60 text-xs">
+                        {order.items?.map((it: any) => (
+                          <div key={it.id} className="py-2.5 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-lg bg-white border border-slate-200 overflow-hidden shrink-0">
+                                <img
+                                  src={it.product?.images?.[0] || 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=200'}
+                                  alt={it.productName || it.product?.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                              <div>
+                                <div className="font-bold text-slate-900">
+                                  {it.productName || it.product?.name}
+                                </div>
+                                <div className="text-[11px] text-slate-500">
+                                  {it.quantity} {it.unit || 'kg'} @ ₹{it.pricePerKg}/{it.unit || 'kg'}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="font-bold text-slate-900">
+                              ₹{it.total}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Pricing Summary */}
+                      <div className="pt-3 border-t border-slate-200 space-y-1 text-xs">
+                        <div className="flex justify-between text-slate-600">
+                          <span>Subtotal</span>
+                          <span className="font-semibold text-slate-800">
+                            ₹{order.subtotal || order.totalAmount}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-slate-600">
+                          <span>Hub Packaging & Delivery</span>
+                          <span className="font-semibold text-slate-800">
+                            {order.deliveryFee === 0 ? 'FREE' : `₹${order.deliveryFee}`}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm font-black text-slate-900 pt-1 border-t border-slate-200">
+                          <span>Total Paid</span>
+                          <span className="text-emerald-800">₹{order.totalAmount}</span>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Live Logistics Route Map */}
-                    <div>
-                      <h4 className="font-extrabold text-xs text-slate-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                        <Truck className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>{language === 'ta' ? 'நேரடி வாகன வரைபடம்' : 'Logistics Telemetry & Delivery Map'}</span>
-                      </h4>
-                      <DeliveryMap
-                        orderCode={order.orderCode}
-                        status={order.status}
-                        destinationName={order.deliveryAddress}
-                      />
+                    {/* Delivery Address & Metadata */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                      <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-1">
+                        <div className="font-bold text-slate-700 flex items-center gap-1.5">
+                          <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Delivery Address</span>
+                        </div>
+                        <p className="text-slate-600 leading-relaxed">
+                          {order.deliveryAddress || 'Address on file'}
+                        </p>
+                      </div>
+
+                      <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-1">
+                        <div className="font-bold text-slate-700 flex items-center gap-1.5">
+                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Payment Status</span>
+                        </div>
+                        <p className="text-slate-600">
+                          Method: <strong>{order.paymentMethod || 'UPI Pre-paid'}</strong> · Status:{' '}
+                          <span className="text-emerald-700 font-bold">{order.paymentStatus || 'PAID'}</span>
+                        </p>
+                      </div>
                     </div>
 
-                    {/* Escrow Payment Summary */}
-                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5 text-xs">
-                      <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                        <span className="text-slate-400 text-[10px] block font-bold">
-                          {language === 'ta' ? 'பொருட்கள் மதிப்பு' : 'Items Subtotal'}
-                        </span>
-                        <span className="text-base font-black text-slate-900">
-                          ₹{(order.totalAmount - (order.deliveryFee || 0)).toLocaleString('en-IN')}
-                        </span>
+                    {/* Action Bar (Cancel Order if applicable) */}
+                    {canCancel && (
+                      <div className="pt-2 flex justify-end">
+                        <button
+                          onClick={() => setCancelModalOrder(order)}
+                          className="px-4 py-2 border border-rose-300 text-rose-700 hover:bg-rose-50 rounded-xl text-xs font-bold transition"
+                        >
+                          Cancel Order & Restore Stock
+                        </button>
                       </div>
-                      <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                        <span className="text-slate-400 text-[10px] block font-bold">
-                          {language === 'ta' ? 'டெலிவரி கட்டணம்' : 'Delivery Fee'}
-                        </span>
-                        <span className="text-base font-bold text-slate-700">
-                          ₹{order.deliveryFee || 0}
-                        </span>
-                      </div>
-                      <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                        <span className="text-slate-400 text-[10px] block font-bold">
-                          {language === 'ta' ? 'தளக் கட்டணம் (2%)' : 'Platform Fee (2%)'}
-                        </span>
-                        <span className="text-base font-bold text-slate-600">
-                          ₹{order.platformFee?.toLocaleString('en-IN')}
-                        </span>
-                      </div>
-                      <div className="bg-emerald-50 p-3 rounded-2xl border border-emerald-100">
-                        <span className="text-emerald-700 text-[10px] block font-bold">
-                          {language === 'ta' ? 'எஸ்க்ரோ நிலை' : 'Escrow Status'}
-                        </span>
-                        <span className="text-base font-black text-emerald-900">
-                          {['DELIVERED', 'PAYMENT_RELEASED', 'COMPLETED'].includes(order.status)
-                            ? (language === 'ta' ? 'விவசாயிக்கு வழங்கப்பட்டது ✓' : 'Released to Farmers ✓')
-                            : (language === 'ta' ? 'பாதுகாப்பாக உள்ளது 🔒' : 'Authorized in Escrow 🔒')}
-                        </span>
-                      </div>
-                    </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -530,141 +420,39 @@ export const BuyerOrders: React.FC<BuyerOrdersProps> = ({ highlightOrderId, onNa
 
       {/* Cancellation Modal */}
       {cancelModalOrder && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-5 sm:p-6 max-w-md w-full shadow-2xl space-y-4">
-            <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-              <XCircle className="w-5 h-5 text-rose-600" />
-              <span>{language === 'ta' ? 'ஆர்டரை ரத்து செய்தல்' : 'Cancel Order'} #{cancelModalOrder.orderCode}</span>
-            </h3>
-
-            <p className="text-xs text-slate-600">
-              {language === 'ta'
-                ? 'ஆர்டர் ரத்து செய்யப்பட்டால், விளைபொருட்கள் மீண்டும் விவசாயியின் கையிருப்புக்கு மாற்றப்பட்டு உங்கள் பணம் முழுமையாக திருப்பித் தரப்படும்.'
-                : 'Cancelling this order will restore the batch quantity for the farmer and immediately refund any authorized escrow payment.'}
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/50 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex items-center gap-2.5 text-rose-700">
+              <AlertCircle className="w-6 h-6" />
+              <h3 className="font-bold text-base text-slate-900">Cancel Order #{cancelModalOrder.orderCode}?</h3>
+            </div>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Cancelling will immediately restore all purchased produce items back to Ulavar2Ulagam Central Inventory so they are available for other households.
             </p>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">
-                {language === 'ta' ? 'ரத்து செய்வதற்கான காரணம்' : 'Reason for Cancellation'}
-              </label>
-              <select
+              <label className="text-xs font-semibold text-slate-700">Reason for cancellation</label>
+              <textarea
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-slate-200 text-xs font-medium bg-slate-50 focus:bg-white outline-none"
-              >
-                <option value="Change of plan / requirements">Change of plan / requirements</option>
-                <option value="Ordered wrong quantity">Ordered wrong quantity</option>
-                <option value="Alternative source arranged">Alternative source arranged</option>
-                <option value="Delivery address change">Delivery address change</option>
-                <option value="Other reason">Other reason</option>
-              </select>
-            </div>
-
-            <div className="flex gap-2.5 pt-2">
-              <button
-                type="button"
-                onClick={() => setCancelModalOrder(null)}
-                className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition"
-              >
-                {language === 'ta' ? 'பின்செல்' : 'Go Back'}
-              </button>
-              <button
-                type="button"
-                disabled={isCancelling}
-                onClick={handleCancelOrderSubmit}
-                className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow transition disabled:opacity-50"
-              >
-                {isCancelling ? 'Processing...' : (language === 'ta' ? 'உறுதி செய் & ரத்து செய்' : 'Confirm Cancellation')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Multi-Dimensional Rating Modal (Phase 2) */}
-      {ratingModalOrder && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-5 sm:p-6 max-w-md w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-amber-500" />
-              <span>{language === 'ta' ? 'விவசாயி தரம் மற்றும் மதிப்புரை' : 'Rate & Review Produce'}</span>
-            </h3>
-
-            <p className="text-xs text-slate-600">
-              {language === 'ta'
-                ? 'உங்கள் உண்மையான மதிப்பீடு விவசாயிகளுக்கு நியாயமான நன்மதிப்பை உருவாக்குகிறது.'
-                : 'Multi-criteria rating ensures transparency and directly impacts the farmer reputation score.'}
-            </p>
-
-            {/* Criteria Sliders/Buttons */}
-            <div className="space-y-3 pt-1">
-              {[
-                { key: 'overall', label: 'Overall Experience' },
-                { key: 'quality', label: 'Product Quality' },
-                { key: 'freshness', label: 'Freshness' },
-                { key: 'accuracy', label: 'Weight & Grading Accuracy' },
-                { key: 'communication', label: 'Farmer Communication' },
-              ].map((crit) => (
-                <div key={crit.key} className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-slate-700">{crit.label}</span>
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map((val) => (
-                      <button
-                        key={val}
-                        type="button"
-                        onClick={() =>
-                          setRatingScores((prev) => ({ ...prev, [crit.key]: val }))
-                        }
-                        className="p-1 focus:outline-none"
-                      >
-                        <Star
-                          className={`w-4 h-4 ${
-                            val <= (ratingScores as any)[crit.key]
-                              ? 'text-amber-400 fill-amber-400'
-                              : 'text-slate-200'
-                          }`}
-                        />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Written Comment */}
-            <div className="space-y-1.5 pt-2">
-              <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
-                {language === 'ta' ? 'உங்கள் கருத்து' : 'Review Comment'}
-              </label>
-              <textarea
                 rows={3}
-                value={ratingComment}
-                onChange={(e) => setRatingComment(e.target.value)}
-                placeholder={
-                  language === 'ta'
-                    ? 'விளைபொருளின் சுவை, புத்துணர்ச்சி பற்றி சுருக்கமாக எழுதவும்...'
-                    : 'Share details about produce freshness, packaging, and timely dispatch...'
-                }
-                className="w-full p-2.5 rounded-xl border border-slate-200 text-xs font-medium bg-slate-50 focus:bg-white outline-none resize-none"
+                className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:ring-1 focus:ring-rose-500"
               />
             </div>
 
-            <div className="flex gap-2.5 pt-2">
+            <div className="flex justify-end gap-2 pt-2">
               <button
-                type="button"
-                onClick={() => setRatingModalOrder(null)}
-                className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition"
+                onClick={() => setCancelModalOrder(null)}
+                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
               >
-                {language === 'ta' ? 'ரத்து' : 'Cancel'}
+                Keep Order
               </button>
               <button
-                type="button"
-                disabled={isSubmittingRating}
-                onClick={handleSubmitReview}
-                className="flex-1 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow transition disabled:opacity-50"
+                onClick={handleCancelOrderSubmit}
+                disabled={isCancelling}
+                className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-sm transition"
               >
-                {isSubmittingRating ? 'Submitting...' : (language === 'ta' ? 'சமர்ப்பி' : 'Submit Review')}
+                {isCancelling ? 'Cancelling...' : 'Confirm Cancellation'}
               </button>
             </div>
           </div>

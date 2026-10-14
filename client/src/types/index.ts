@@ -454,3 +454,127 @@ export interface MandiInfo {
   district: string;
 }
 
+export interface FarmerProduceSubmission {
+  id: string;
+  submissionCode: string;
+  farmerId: string;
+  produceName: string;
+  category: string;
+  quantity: number;
+  unit: string;
+  expectedPrice: number;
+  harvestDate?: string | null;
+  farmLocation: string;
+  district: string;
+  description?: string | null;
+  imageUrl?: string | null;
+  status: 'SUBMITTED' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED' | 'PURCHASED';
+  rejectionReason?: string | null;
+  adminNotes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  farmer?: {
+    id: string;
+    farmerId: string;
+    village: string;
+    district: string;
+    user?: {
+      id: string;
+      name: string;
+      mobile: string;
+      email: string;
+    };
+  };
+  procurement?: ProcurementTransaction | null;
+}
+
+export interface ProcurementTransaction {
+  id: string;
+  transactionCode: string;
+  submissionId: string;
+  farmerId: string;
+  productId?: string | null;
+  purchasedQuantity: number;
+  unit: string;
+  purchasePricePerUnit: number;
+  totalCost: number;
+  procurementDate: string;
+  procuredBy?: string | null;
+  qualityGrade: string;
+  notes?: string | null;
+  createdAt: string;
+  submission?: FarmerProduceSubmission;
+  farmer?: {
+    id: string;
+    farmerId: string;
+    village: string;
+    district: string;
+    user?: {
+      name: string;
+      mobile: string;
+      email: string;
+    };
+  };
+  product?: Product;
+}
+
+export interface CentralInventoryProduct extends Product {
+  stockQuantity: number;
+  reservedQuantity: number;
+  lowStockThreshold: number;
+  sellingPrice: number;
+  avgProcurementCost: number;
+  isPublished: boolean;
+  status: string;
+  description?: string | null;
+  images?: string[];
+  qualityGrade?: string;
+  originLocation?: string;
+  harvestDate?: string;
+  isOrganic?: boolean;
+  inventoryTransactions?: {
+    id: string;
+    type: string;
+    quantity: number;
+    balanceAfter: number;
+    referenceCode?: string;
+    notes?: string;
+    createdAt: string;
+  }[];
+}
+
+export interface DeliveryAssignment {
+  id: string;
+  orderId: string;
+  driverId: string;
+  status: 'ASSIGNED' | 'PICKED_UP' | 'OUT_FOR_DELIVERY' | 'DELIVERED' | 'FAILED';
+  pickupTime?: string | null;
+  deliveredTime?: string | null;
+  failureReason?: string | null;
+  notes?: string | null;
+  confirmationOtp?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  order?: any;
+  driver?: {
+    id: string;
+    name: string;
+    mobile: string;
+  };
+}
+
+export interface AdminMetrics {
+  totalFarmers: number;
+  pendingSubmissions: number;
+  approvedSubmissions: number;
+  completedProcurements: number;
+  totalProcurementSpend: number;
+  availableInventoryItems: number;
+  lowStockProducts: number;
+  totalCustomerOrders: number;
+  pendingOrders: number;
+  completedOrders: number;
+  totalSalesRevenue: number;
+  grossMargin: number;
+}
+

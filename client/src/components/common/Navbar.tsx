@@ -77,54 +77,50 @@ export const Navbar: React.FC<NavbarProps> = ({
 
     if (!user) {
       return [
-        { id: 'home-feed', label: language === 'ta' ? 'விவசாய முகப்பு' : 'Farm Feed' },
-        { id: 'landing', label: language === 'ta' ? 'அறிமுகம்' : 'About' },
+        { id: 'landing', label: language === 'ta' ? 'முகப்பு' : 'Home' },
+        { id: 'buyer-marketplace', label: language === 'ta' ? 'அங்காடி / பொருட்கள்' : 'Shop' },
+        { id: 'how-it-works', label: language === 'ta' ? 'செயல்முறை' : 'How It Works' },
         { id: 'market-rates', label: marketRatesLabel },
-        { id: 'buyer-marketplace', label: t('marketplace') },
       ];
     }
-
-    const homeFeedLink = { id: 'home-feed', label: language === 'ta' ? 'முகப்பு' : 'Home Feed' };
 
     switch (user.role) {
       case 'FARMER':
         return [
-          homeFeedLink,
-          { id: 'farmer-dashboard', label: t('dashboard') },
-          { id: 'farmer-produce', label: t('myProduce') },
-          { id: 'farmer-add-produce', label: t('addProduce') },
-          { id: 'farmer-offers', label: t('buyerOffers') },
-          { id: 'farmer-orders', label: t('myOrders') },
-          { id: 'farmer-collective', label: t('collectiveSelling') },
-          { id: 'farmer-earnings', label: t('myEarnings') },
+          { id: 'landing', label: language === 'ta' ? 'முகப்பு' : 'Home' },
+          { id: 'farmer-dashboard', label: language === 'ta' ? 'விவசாயி அறை' : 'Farmer Dashboard' },
+          { id: 'farmer-add-produce', label: language === 'ta' ? 'விளைபொருள் சமர்ப்பிக்க' : 'Submit Produce' },
+          { id: 'farmer-produce', label: language === 'ta' ? 'என் சமர்ப்பிப்புகள்' : 'My Submissions' },
+          { id: 'farmer-earnings', label: language === 'ta' ? 'கொள்முதல் வரலாறு' : 'Procurements' },
+          { id: 'buyer-marketplace', label: language === 'ta' ? 'அங்காடி' : 'Shop' },
         ];
       case 'BUYER':
+      case 'CUSTOMER' as any:
         return [
-          homeFeedLink,
-          { id: 'buyer-dashboard', label: t('dashboard') },
-          { id: 'buyer-marketplace', label: t('marketplace') },
-          { id: 'buyer-post-demand', label: t('postDemand') },
-          { id: 'buyer-smart-matches', label: t('smartMatches') },
-          { id: 'buyer-orders', label: t('myOrders') },
+          { id: 'landing', label: language === 'ta' ? 'முகப்பு' : 'Home' },
+          { id: 'buyer-marketplace', label: language === 'ta' ? 'அங்காடி' : 'Shop Products' },
+          { id: 'buyer-orders', label: language === 'ta' ? 'என் ஆர்டர்கள்' : 'My Orders' },
+          { id: 'how-it-works', label: language === 'ta' ? 'செயல்முறை' : 'How It Works' },
         ];
-      case 'COORDINATOR':
-        return [
-          homeFeedLink,
-          { id: 'coordinator-dashboard', label: language === 'ta' ? 'கிராம மையம்' : 'Village Hub' },
-          { id: 'market-rates', label: marketRatesLabel },
-        ];
+      case 'DELIVERY_PARTNER' as any:
       case 'LOGISTICS':
         return [
-          homeFeedLink,
-          { id: 'logistics-dashboard', label: language === 'ta' ? 'விநியோகம் & தரம்' : 'Logistics & Quality' },
+          { id: 'landing', label: language === 'ta' ? 'முகப்பு' : 'Home' },
+          { id: 'logistics-dashboard', label: language === 'ta' ? 'விநியோக மையம்' : 'Delivery Portal' },
+          { id: 'buyer-marketplace', label: language === 'ta' ? 'அங்காடி' : 'Shop' },
         ];
       case 'ADMIN':
         return [
-          homeFeedLink,
-          { id: 'admin-dashboard', label: language === 'ta' ? 'நிர்வாக புள்ளிவிவரம்' : 'Admin Analytics' },
+          { id: 'landing', label: language === 'ta' ? 'முகப்பு' : 'Home' },
+          { id: 'admin-dashboard', label: language === 'ta' ? 'நிர்வாக மையம்' : 'Admin Operations' },
+          { id: 'buyer-marketplace', label: language === 'ta' ? 'அங்காடி பார்வை' : 'Storefront View' },
+          { id: 'market-rates', label: marketRatesLabel },
         ];
       default:
-        return [homeFeedLink];
+        return [
+          { id: 'landing', label: language === 'ta' ? 'முகப்பு' : 'Home' },
+          { id: 'buyer-marketplace', label: language === 'ta' ? 'அங்காடி' : 'Shop' },
+        ];
     }
   };
 
@@ -198,7 +194,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
               <div>
                 <span className="font-bold text-base sm:text-lg tracking-tight text-slate-900 block leading-tight">
-                  KisanDirect
+                  {language === 'ta' ? 'உழவர் to உலகம்' : 'Ulavar2Ulagam'}
                 </span>
                 <span className="text-[10px] font-medium text-slate-500 hidden sm:block">
                   {t('appTagline')}

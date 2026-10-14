@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
+import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
-import { Product } from '../../types';
-import FairPriceGauge from '../../components/common/FairPriceGauge';
 import {
   CheckCircle2,
   ArrowRight,
-  ArrowLeft,
   Camera,
   Image as ImageIcon,
   Sparkles,
@@ -15,7 +13,10 @@ import {
   Calendar,
   Clock,
   Check,
-  RefreshCw,
+  MapPin,
+  TrendingUp,
+  Sprout,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface AddProduceProps {
@@ -24,44 +25,76 @@ interface AddProduceProps {
 
 export const AddProduce: React.FC<AddProduceProps> = ({ onNavigate }) => {
   const { language, t } = useLanguage();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const { user } = useAuth();
 
-  // Step flow: 1: Crop, 2: Photo, 3: Details & Price, 4: Preview, 5: Success
-  const [step, setStep] = useState(1);
-
-  // Listing Data
-  const [quantity, setQuantity] = useState('100');
-  const [qualityGrade, setQualityGrade] = useState<'A' | 'B' | 'C'>('A');
+  const [produceName, setProduceName] = useState('Fresh Farm Tomatoes');
+  const [category, setCategory] = useState('VEGETABLES');
+  const [quantity, setQuantity] = useState('250');
+  const [unit, setUnit] = useState('kg');
   const [expectedPrice, setExpectedPrice] = useState('22');
-  const [harvestTime, setHarvestTime] = useState(new Date().toISOString().slice(0, 16));
-  const [sellByHours, setSellByHours] = useState(12);
-  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [harvestDate, setHarvestDate] = useState(new Date().toISOString().slice(0, 10));
+  const [farmLocation, setFarmLocation] = useState('Omalur, Salem District');
+  const [district, setDistrict] = useState('Salem');
+  const [description, setDescription] = useState('Naturally cultivated country tomatoes. Uniform medium size, firm skin, harvest completed this morning.');
+  const [imageUrl, setImageUrl] = useState('https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=600');
   const [isUploadingImage, setIsUploadingImage] = useState(false);
-
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [createdBatch, setCreatedBatch] = useState<any>(null);
+  const [submittedResult, setSubmittedResult] = useState<any>(null);
 
-  const cameraInputRef = useRef<HTMLInputElement>(null);
-  const galleryInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    api.getFarmerProducts().then((res) => {
-      setProducts(res);
-      if (res.length > 0) {
-        setSelectedProduct(res[0]);
-        setExpectedPrice(String(res[0].referenceMinPrice + 2));
-      }
-    });
-  }, []);
+  const presetProduce = [
+    {
+      name: 'Country Tomatoes (நாட்டு தக்காளி)',
+      category: 'VEGETABLES',
+      unit: 'kg',
+      suggestedPrice: 22,
+      img: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=600',
+    },
+    {
+      name: 'Small Shallot Onions (சின்ன வெங்காயம்)',
+      category: 'VEGETABLES',
+      unit: 'kg',
+      suggestedPrice: 38,
+      img: 'https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?w=600',
+    },
+    {
+      name: 'Organic Moringa Drumsticks (முருங்கைக்காய்)',
+      category: 'VEGETABLES',
+      unit: 'kg',
+      suggestedPrice: 55,
+      img: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=600',
+    },
+    {
+      name: 'Yelakki Mountain Bananas (ஏலக்கி வாழை)',
+      category: 'FRUITS',
+      unit: 'kg',
+      suggestedPrice: 38,
+      img: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=600',
+    },
+    {
+      name: 'Fresh Siru Keerai Spinach (சிறுகீரை)',
+      category: 'GREENS',
+      unit: 'bunch',
+      suggestedPrice: 14,
+      img: 'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=600',
+    },
+    {
+      name: 'Traditional Ponni Paddy/Rice (பொன்னி அரிசி)',
+      category: 'GRAINS',
+      unit: 'kg',
+      suggestedPrice: 48,
+      img: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600',
+    },
+  ];
 
-  const handleProductSelect = (p: Product) => {
-    setSelectedProduct(p);
-    setExpectedPrice(String(p.referenceMinPrice + 2));
-    setSellByHours(p.defaultShelfHours || 12);
-    setStep(2);
+  const handleSelectPreset = (preset: typeof presetProduce[0]) => {
+    setProduceName(preset.name);
+    setCategory(preset.category);
+    setUnit(preset.unit);
+    setExpectedPrice(String(preset.suggestedPrice));
+    setImageUrl(preset.img);
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -71,103 +104,147 @@ export const AddProduce: React.FC<AddProduceProps> = ({ onNavigate }) => {
     try {
       setIsUploadingImage(true);
       setError(null);
-
-      // Local preview
       const reader = new FileReader();
       reader.onload = async () => {
-        const base64Data = reader.result as string;
-        setImagePreview(base64Data);
-
-        // Upload to server API
+        const base64 = reader.result as string;
         try {
-          const res = await api.uploadImage(base64Data, file.name);
-          setUploadedImageUrl(res.url);
-        } catch (uploadErr) {
-          // Fallback to base64 preview if backend upload has transient issues
-          setUploadedImageUrl(base64Data);
+          const res = await api.uploadImage(base64, file.name);
+          setImageUrl(res.url);
+        } catch {
+          setImageUrl(base64);
         } finally {
           setIsUploadingImage(false);
         }
       };
       reader.readAsDataURL(file);
     } catch (err: any) {
-      setError(err.message || 'Image upload failed');
+      setError(err.message || 'Image upload error');
       setIsUploadingImage(false);
     }
   };
 
-  const handlePublish = async () => {
-    if (!selectedProduct) return;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!produceName.trim()) {
+      setError('Please provide a produce name.');
+      return;
+    }
+    const qty = parseFloat(quantity);
+    const price = parseFloat(expectedPrice);
+    if (isNaN(qty) || qty <= 0) {
+      setError('Please enter a valid harvest quantity.');
+      return;
+    }
+    if (isNaN(price) || price <= 0) {
+      setError('Please enter a valid expected price.');
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       setError(null);
 
-      const harvestDate = new Date(harvestTime);
-      const sellByDate = new Date(harvestDate.getTime() + sellByHours * 3600 * 1000);
-
-      const res = await api.createFarmerBatch({
-        productId: selectedProduct.id,
-        quantity: parseFloat(quantity),
-        pricePerKg: parseFloat(expectedPrice),
-        qualityGrade,
-        harvestedAt: harvestDate.toISOString(),
-        sellBy: sellByDate.toISOString(),
-        imageUrl: uploadedImageUrl || selectedProduct.imageUrl,
-        notes: `Fresh ${selectedProduct.name} listed directly by farmer.`,
+      const res = await api.submitProduce({
+        produceName: produceName.trim(),
+        category,
+        quantity: qty,
+        unit,
+        expectedPrice: price,
+        harvestDate,
+        farmLocation: farmLocation.trim(),
+        district,
+        description: description.trim(),
+        imageUrl,
       });
 
-      setCreatedBatch(res.batch);
-      setStep(5); // Success step
+      setSubmittedResult(res.submission);
     } catch (err: any) {
-      setError(err.message || 'Failed to publish produce');
+      setError(err.message || 'Failed to submit produce');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Step 5: Success Screen
-  if (step === 5 && createdBatch) {
+  // Success view
+  if (submittedResult) {
     return (
-      <div className="min-h-[calc(100vh-8rem)] flex flex-col justify-center px-4 py-8 max-w-md mx-auto w-full text-center">
-        <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto mb-4 animate-in zoom-in-95">
+      <div className="max-w-lg mx-auto px-4 py-12 text-center space-y-5 animate-in fade-in zoom-in-95">
+        <div className="w-16 h-16 rounded-3xl bg-emerald-100 text-emerald-800 flex items-center justify-center mx-auto shadow-md">
           <CheckCircle2 className="w-9 h-9" />
         </div>
 
-        <h2 className="text-xl font-black text-slate-900 mb-1">
-          {t('batchPublishedSuccess')}
-        </h2>
+        <div>
+          <span className="text-[10px] font-bold tracking-widest text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+            SUBMISSION #{submittedResult.code}
+          </span>
+          <h2 className="text-2xl font-black text-slate-900 mt-2">
+            Produce Submitted Successfully!
+          </h2>
+          <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+            Your harvest details have been submitted to Ulavar2Ulagam Central Hub for quality review & procurement.
+          </p>
+        </div>
 
-        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 my-4 text-xs max-w-xs mx-auto">
-          <span className="text-slate-500 block mb-0.5">
-            {language === 'ta' ? 'பொருள் குறியீடு' : 'Batch Code'}
-          </span>
-          <span className="font-mono font-bold text-sm text-emerald-800">
-            {createdBatch.batchCode}
-          </span>
-          <div className="mt-2 text-slate-700 font-semibold">
-            {quantity} kg {language === 'ta' ? selectedProduct?.nameTamil : selectedProduct?.name} @ ₹{expectedPrice}/kg
+        {/* Submission Details Card */}
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 text-left text-xs space-y-3 shadow-sm">
+          <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+            <span className="text-slate-500">Status</span>
+            <span className="font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+              PENDING HUB REVIEW
+            </span>
+          </div>
+
+          <div className="flex justify-between">
+            <span className="text-slate-500">Crop / Produce</span>
+            <span className="font-bold text-slate-900">{submittedResult.produceName}</span>
+          </div>
+
+          <div className="flex justify-between">
+            <span className="text-slate-500">Quantity & Price</span>
+            <span className="font-bold text-slate-900">
+              {submittedResult.quantity} {submittedResult.unit} @ ₹{submittedResult.expectedPrice}/{submittedResult.unit}
+            </span>
+          </div>
+
+          <div className="flex justify-between">
+            <span className="text-slate-500">Total Expected Payout</span>
+            <span className="font-extrabold text-emerald-800 text-sm">
+              ₹{(submittedResult.quantity * submittedResult.expectedPrice).toLocaleString()}
+            </span>
+          </div>
+
+          <div className="flex justify-between pt-2 border-t border-slate-100 text-[11px]">
+            <span className="text-slate-500">Hub Location</span>
+            <span className="font-semibold text-slate-700">{submittedResult.farmLocation}</span>
           </div>
         </div>
 
-        <div className="space-y-2 pt-2">
+        {/* Process Next Steps */}
+        <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-200 text-left text-xs text-emerald-900 space-y-1.5">
+          <div className="font-bold flex items-center gap-1.5 text-emerald-950">
+            <ShieldCheck className="w-4 h-4 text-emerald-700" />
+            <span>Next Steps in Procurement:</span>
+          </div>
+          <p className="text-[11px] text-emerald-800 leading-relaxed">
+            1. Salem Central Hub admin will inspect your lot details.<br />
+            2. Once approved, the produce is received and transferred into Central Inventory.<br />
+            3. Guaranteed direct payout is issued with zero middlemen commission deductions.
+          </p>
+        </div>
+
+        <div className="flex gap-2 justify-center pt-2">
+          <button
+            onClick={() => setSubmittedResult(null)}
+            className="px-5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold"
+          >
+            Submit Another Produce
+          </button>
           <button
             onClick={() => onNavigate('farmer-produce')}
-            className="w-full h-12 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-2"
+            className="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm"
           >
-            <span>{language === 'ta' ? 'என் பொருட்களில் பார்க்க' : 'View in My Produce'}</span>
+            <span>View My Submissions</span>
             <ArrowRight className="w-4 h-4" />
-          </button>
-
-          <button
-            onClick={() => {
-              setStep(1);
-              setImagePreview(null);
-              setUploadedImageUrl(null);
-              setCreatedBatch(null);
-            }}
-            className="w-full h-12 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition"
-          >
-            {language === 'ta' ? '+ இன்னொரு பொருள் சேர்க்க' : '+ Add Another Produce'}
           </button>
         </div>
       </div>
@@ -175,403 +252,237 @@ export const AddProduce: React.FC<AddProduceProps> = ({ onNavigate }) => {
   }
 
   return (
-    <div className="min-h-[calc(100vh-8rem)] max-w-md sm:max-w-xl mx-auto px-4 py-5 space-y-4">
-      {/* Header & Steps Indicator */}
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      {/* Header */}
       <div>
-        <div className="flex items-center justify-between mb-1.5">
-          <h1 className="text-lg sm:text-xl font-black text-slate-900">
-            {t('addProduce')}
-          </h1>
-          <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-            {language === 'ta' ? `படி ${step} / 4` : `Step ${step} of 4`}
-          </span>
+        <div className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full text-xs font-bold text-emerald-800 mb-2">
+          <Sprout className="w-3.5 h-3.5 text-emerald-600" />
+          <span>Ulavar2Ulagam Farmer Procurement Portal</span>
         </div>
+        <h1 className="text-2xl font-black text-slate-900">
+          {language === 'ta' ? 'விளைபொருள் விற்பனைக்கு சமர்ப்பிக்க' : 'Submit Harvest for Central Procurement'}
+        </h1>
+        <p className="text-xs text-slate-500 mt-1">
+          {language === 'ta'
+            ? 'உங்கள் விளைபொருள் விவரங்களை சமர்ப்பிக்கவும். மத்திய சரக்ககம் ஆய்வு செய்து நியாயமான விலையில் கொள்முதல் செய்யும்.'
+            : 'Submit your harvest details. Ulavar2Ulagam evaluates quality and procures approved batches directly into Central Inventory.'}
+        </p>
+      </div>
 
-        <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-          <div
-            className="bg-emerald-600 h-full rounded-full transition-all duration-300"
-            style={{ width: `${(step / 4) * 100}%` }}
-          />
+      {error && (
+        <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-800 flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {/* Quick 1-Click Common Tamil Nadu Harvest Presets */}
+      <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/90 space-y-2">
+        <label className="text-xs font-bold text-slate-600 uppercase tracking-wider block">
+          Quick Harvest Presets (1-Click Fill)
+        </label>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {presetProduce.map((preset, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => handleSelectPreset(preset)}
+              className="p-2.5 bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-xl text-left transition flex items-center gap-2 group"
+            >
+              <img src={preset.img} alt="" className="w-7 h-7 rounded-lg object-cover shrink-0" />
+              <div className="min-w-0">
+                <div className="font-bold text-[11px] text-slate-800 truncate group-hover:text-emerald-900">
+                  {preset.name.split(' ')[0]}
+                </div>
+                <div className="text-[10px] text-emerald-700 font-semibold">
+                  ~₹{preset.suggestedPrice}/{preset.unit}
+                </div>
+              </div>
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Hidden File Inputs for Camera & Gallery */}
-      <input
-        ref={cameraInputRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        onChange={handleFileChange}
-        className="hidden"
-      />
-      <input
-        ref={galleryInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleFileChange}
-        className="hidden"
-      />
-
-      {/* Step 1: Visual Crop Selection */}
-      {step === 1 && (
-        <div className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/90 shadow-xs space-y-3 animate-in fade-in duration-150">
-          <h2 className="text-xs font-bold text-slate-600 uppercase tracking-wider">
-            {t('whatSelling')}
-          </h2>
-
-          <div className="grid grid-cols-3 gap-2.5">
-            {products.map((p) => {
-              const isSelected = selectedProduct?.id === p.id;
-              return (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => handleProductSelect(p)}
-                  className={`p-2.5 rounded-2xl border text-center transition flex flex-col items-center gap-1.5 active:scale-95 ${
-                    isSelected
-                      ? 'border-emerald-600 bg-emerald-50 text-emerald-900 font-bold shadow-xs'
-                      : 'border-slate-200 hover:border-slate-300 bg-slate-50/50'
-                  }`}
-                >
-                  <div className="w-12 h-12 rounded-xl overflow-hidden bg-white shadow-xs border border-slate-100">
-                    <img
-                      src={p.imageUrl}
-                      alt={p.name}
-                      className="w-full h-full object-cover"
-                      onError={(e: any) => {
-                        e.target.src = 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=150&q=80';
-                      }}
-                    />
-                  </div>
-                  <span className="text-xs leading-tight font-bold">
-                    {language === 'ta' ? p.nameTamil : p.name}
-                  </span>
-                  <span className="text-[10px] text-slate-500 font-medium">
-                    ₹{p.referenceMinPrice}–₹{p.referenceMaxPrice}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Step 2: Photo Upload */}
-      {step === 2 && selectedProduct && (
-        <div className="bg-white rounded-3xl p-5 border border-slate-200/90 shadow-xs space-y-4 animate-in fade-in duration-150">
-          <div>
-            <span className="text-[11px] font-bold text-emerald-700 uppercase block mb-0.5">
-              {language === 'ta' ? selectedProduct.nameTamil : selectedProduct.name}
-            </span>
-            <h2 className="text-base font-black text-slate-900">
-              {t('addPhotos')}
-            </h2>
-            <p className="text-xs text-slate-500">
-              {language === 'ta'
-                ? 'புகைப்படம் சேர்த்தால் வாங்குபவர்கள் விரைவாக வாங்குவர்'
-                : 'Produce with clear harvest photos receives 3x faster buyer orders'}
-            </p>
-          </div>
-
-          {/* Photo Preview or Default */}
-          <div className="w-full h-48 rounded-2xl bg-slate-100 overflow-hidden border-2 border-dashed border-slate-300 relative flex items-center justify-center">
-            {imagePreview || uploadedImageUrl ? (
-              <img
-                src={imagePreview || uploadedImageUrl!}
-                alt="Uploaded produce"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="text-center p-4">
-                <img
-                  src={selectedProduct.imageUrl}
-                  alt={selectedProduct.name}
-                  className="w-20 h-20 object-cover rounded-xl mx-auto mb-2 opacity-60"
-                />
-                <span className="text-xs text-slate-500 font-medium">
-                  {language === 'ta' ? 'இயல்புநிலை படம் காட்டப்படும்' : 'Default catalog image active'}
-                </span>
-              </div>
-            )}
-
-            {isUploadingImage && (
-              <div className="absolute inset-0 bg-slate-900/50 flex items-center justify-center text-white text-xs font-bold gap-2">
-                <RefreshCw className="w-4 h-4 animate-spin" />
-                <span>{language === 'ta' ? 'பதிவேற்றப்படுகிறது...' : 'Uploading image...'}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Touch Buttons: Camera & Gallery */}
-          <div className="grid grid-cols-2 gap-2.5">
-            <button
-              type="button"
-              onClick={() => cameraInputRef.current?.click()}
-              className="h-12 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-300/80 text-emerald-800 font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition"
-            >
-              <Camera className="w-4 h-4 text-emerald-700" />
-              <span>{t('takePhoto')}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => galleryInputRef.current?.click()}
-              className="h-12 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300/80 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition"
-            >
-              <ImageIcon className="w-4 h-4 text-slate-600" />
-              <span>{t('chooseGallery')}</span>
-            </button>
-          </div>
-
-          <div className="flex gap-2 pt-2">
-            <button
-              type="button"
-              onClick={() => setStep(1)}
-              className="h-12 px-4 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setStep(3)}
-              className="flex-1 h-12 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-2"
-            >
-              <span>{language === 'ta' ? 'அடுத்து (விவரங்கள்)' : 'Continue to Details'}</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Step 3: Quantity, Price, Grade & Shelf Life */}
-      {step === 3 && selectedProduct && (
-        <div className="bg-white rounded-3xl p-5 border border-slate-200/90 shadow-xs space-y-4 animate-in fade-in duration-150">
-          <div>
-            <span className="text-[11px] font-bold text-emerald-700 uppercase block mb-0.5">
-              {language === 'ta' ? selectedProduct.nameTamil : selectedProduct.name}
-            </span>
-            <h2 className="text-base font-black text-slate-900">
-              {language === 'ta' ? 'அளவு மற்றும் விலை விவரங்கள்' : 'Quantity & Price Details'}
-            </h2>
-          </div>
-
-          {/* Quantity Selector */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">
-              {t('cropQuantity')}
-            </label>
-            <div className="flex items-center rounded-xl border border-slate-200 overflow-hidden bg-slate-50/50">
-              <input
-                type="number"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-                className="w-full px-3.5 py-3 text-sm font-bold bg-transparent text-slate-900 focus:outline-none"
-              />
-              <span className="bg-slate-100 px-4 py-3 text-xs font-bold text-slate-600 border-l border-slate-200">
-                kg
-              </span>
-            </div>
-
-            {/* Quick Presets */}
-            <div className="flex gap-1.5 mt-2">
-              {['50', '100', '200', '500'].map((preset) => (
-                <button
-                  key={preset}
-                  type="button"
-                  onClick={() => setQuantity(preset)}
-                  className={`px-3 py-1 rounded-lg text-xs font-semibold border ${
-                    quantity === preset
-                      ? 'bg-emerald-100 border-emerald-400 text-emerald-800 font-bold'
-                      : 'bg-slate-50 border-slate-200 text-slate-600'
-                  }`}
-                >
-                  {preset} kg
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Price per kg with FairPriceGauge */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">
-              {t('expectedPriceKg')}
-            </label>
-            <div className="flex items-center rounded-xl border border-slate-200 overflow-hidden bg-slate-50/50">
-              <span className="bg-slate-100 px-4 py-3 text-xs font-bold text-slate-600 border-r border-slate-200">
-                ₹
-              </span>
-              <input
-                type="number"
-                value={expectedPrice}
-                onChange={(e) => setExpectedPrice(e.target.value)}
-                className="w-full px-3.5 py-3 text-sm font-bold bg-transparent text-slate-900 focus:outline-none"
-              />
-              <span className="bg-slate-100 px-4 py-3 text-xs font-bold text-slate-600 border-l border-slate-200">
-                / kg
-              </span>
-            </div>
-
-            {/* Fair Price Transparency Gauge */}
-            <FairPriceGauge
-              enteredPrice={parseFloat(expectedPrice) || 0}
-              minPrice={selectedProduct.referenceMinPrice}
-              maxPrice={selectedProduct.referenceMaxPrice}
-              modalPrice={Math.round((selectedProduct.referenceMinPrice + selectedProduct.referenceMaxPrice) / 2)}
-              productName={language === 'ta' ? selectedProduct.nameTamil : selectedProduct.name}
+      {/* Main Submission Form */}
+      <form onSubmit={handleSubmit} className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-5">
+        {/* Produce Name & Category */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-700">Produce Name / விளைபொருள்</label>
+            <input
+              type="text"
+              required
+              value={produceName}
+              onChange={(e) => setProduceName(e.target.value)}
+              placeholder="e.g. Country Tomatoes / நாட்டு தக்காளி"
+              className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
             />
           </div>
 
-          {/* Quality Grade Buttons */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">
-              {t('qualityGrade')}
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {(['A', 'B', 'C'] as const).map((grade) => (
-                <button
-                  key={grade}
-                  type="button"
-                  onClick={() => setQualityGrade(grade)}
-                  className={`py-2.5 rounded-xl border text-center transition ${
-                    qualityGrade === grade
-                      ? 'border-emerald-600 bg-emerald-50 text-emerald-900 font-black shadow-xs'
-                      : 'border-slate-200 text-slate-700 font-semibold hover:border-slate-300'
-                  }`}
-                >
-                  <span className="text-xs block">
-                    {language === 'ta' ? `தரம் ${grade}` : `Grade ${grade}`}
-                  </span>
-                  <span className="text-[10px] text-slate-500 block font-normal mt-0.5">
-                    {grade === 'A' ? (language === 'ta' ? 'உயர்தரம்' : 'Premium') : grade === 'B' ? (language === 'ta' ? 'நடுத்தரம்' : 'Standard') : (language === 'ta' ? 'சாதாரண' : 'Economy')}
-                  </span>
-                </button>
-              ))}
-            </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-700">Category / வகை</label>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+            >
+              <option value="VEGETABLES">Vegetables (காய்கறிகள்)</option>
+              <option value="FRUITS">Fruits (பழங்கள்)</option>
+              <option value="GREENS">Greens (கீரைகள்)</option>
+              <option value="GRAINS">Grains & Rice (தானியங்கள்)</option>
+              <option value="PULSES">Pulses (பருப்பு வகைகள்)</option>
+              <option value="SEASONAL">Seasonal Special</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Quantity, Unit & Expected Price */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-700">Quantity / அளவு</label>
+            <input
+              type="number"
+              required
+              min="1"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold"
+            />
           </div>
 
-          {/* Shelf Life Hours */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">
-              {language === 'ta' ? 'எத்தனை மணி நேரத்திற்குள் விற்க வேண்டும்?' : 'Sell-By Timeframe'}
-            </label>
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-700">Unit / அலகு</label>
             <select
-              value={sellByHours}
-              onChange={(e) => setSellByHours(parseInt(e.target.value))}
-              className="w-full px-3.5 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-xs font-bold focus:outline-none focus:border-emerald-600"
+              value={unit}
+              onChange={(e) => setUnit(e.target.value)}
+              className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
             >
-              <option value={8}>8 {language === 'ta' ? 'மணி நேரம் (அதிகாலை அறுவடை)' : 'Hours (Fresh Morning)'}</option>
-              <option value={12}>12 {language === 'ta' ? 'மணி நேரம் (இன்றே விற்க)' : 'Hours (Same Day)'}</option>
-              <option value={24}>24 {language === 'ta' ? 'மணி நேரம் (நாளைக்குள்)' : 'Hours (Next Day)'}</option>
-              <option value={48}>48 {language === 'ta' ? 'மணி நேரம்' : 'Hours'}</option>
+              <option value="kg">kg (கிலோ)</option>
+              <option value="bunch">bunch (கட்டு)</option>
+              <option value="quintal">quintal (குவிண்டால்)</option>
+              <option value="box">box (பெட்டி)</option>
             </select>
           </div>
 
-          <div className="flex gap-2 pt-2">
-            <button
-              type="button"
-              onClick={() => setStep(2)}
-              className="h-12 px-4 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setStep(4)}
-              className="flex-1 h-12 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-2"
-            >
-              <span>{language === 'ta' ? 'முன்னோட்டம் பார்க்க' : 'Preview Listing'}</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-700">
+              Expected Price (₹/{unit})
+            </label>
+            <input
+              type="number"
+              required
+              min="1"
+              step="0.5"
+              value={expectedPrice}
+              onChange={(e) => setExpectedPrice(e.target.value)}
+              className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-extrabold text-emerald-800"
+            />
           </div>
         </div>
-      )}
 
-      {/* Step 4: Preview Before Publish */}
-      {step === 4 && selectedProduct && (
-        <div className="bg-white rounded-3xl p-5 border border-slate-200/90 shadow-xs space-y-4 animate-in fade-in duration-150">
-          <div>
-            <h2 className="text-base font-black text-slate-900">
-              {t('previewListing')}
-            </h2>
-            <p className="text-xs text-slate-500">
-              {language === 'ta'
-                ? 'விவரங்களை உறுதி செய்து சந்தையில் வெளியிடவும்'
-                : 'Review details before publishing to the live marketplace'}
-            </p>
+        {/* Expected Total Payout Badge */}
+        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-between text-xs">
+          <span className="text-emerald-900 font-medium">Estimated Direct Procurement Value:</span>
+          <span className="font-extrabold text-emerald-900 text-sm">
+            ₹{(parseFloat(quantity || '0') * parseFloat(expectedPrice || '0')).toLocaleString()}
+          </span>
+        </div>
+
+        {/* Harvest Date & Farm Location */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-700">Harvest Date / அறுவடை நாள்</label>
+            <input
+              type="date"
+              required
+              value={harvestDate}
+              onChange={(e) => setHarvestDate(e.target.value)}
+              className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none font-medium"
+            />
           </div>
 
-          {/* Visual Preview Card */}
-          <div className="rounded-2xl border-2 border-emerald-500/80 overflow-hidden bg-emerald-50/40 p-3">
-            <div className="flex gap-3">
-              <div className="w-20 h-20 rounded-xl overflow-hidden bg-white shrink-0 border border-emerald-200">
-                <img
-                  src={imagePreview || uploadedImageUrl || selectedProduct.imageUrl}
-                  alt={selectedProduct.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <span className="inline-block bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full mb-1">
-                  {language === 'ta' ? 'புதிய அறுவடை' : 'Fresh Harvest'}
-                </span>
-                <h3 className="font-black text-sm text-slate-900 truncate">
-                  {language === 'ta' ? selectedProduct.nameTamil : selectedProduct.name}
-                </h3>
-                <div className="text-xs font-bold text-emerald-800 mt-0.5">
-                  ₹{expectedPrice} / kg
-                </div>
-                <div className="text-[11px] text-slate-600 mt-0.5">
-                  {quantity} kg · {language === 'ta' ? `தரம் ${qualityGrade}` : `Grade ${qualityGrade}`}
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-3 pt-3 border-t border-emerald-200/80 grid grid-cols-2 gap-2 text-[11px]">
-              <div>
-                <span className="text-slate-500 block">{language === 'ta' ? 'மொத்த மதிப்பு' : 'Total Value'}</span>
-                <span className="font-bold text-slate-900">₹{(parseFloat(quantity) * parseFloat(expectedPrice)).toLocaleString()}</span>
-              </div>
-              <div>
-                <span className="text-slate-500 block">{language === 'ta' ? 'விற்பனை அவகாசம்' : 'Sell By'}</span>
-                <span className="font-bold text-slate-900">{sellByHours} {language === 'ta' ? 'மணி நேரம்' : 'hours'}</span>
-              </div>
-            </div>
-          </div>
-
-          {error && (
-            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{error}</span>
-            </div>
-          )}
-
-          <div className="flex gap-2 pt-2">
-            <button
-              type="button"
-              onClick={() => setStep(3)}
-              className="h-12 px-4 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              disabled={isSubmitting}
-              onClick={handlePublish}
-              className="flex-1 h-12 rounded-xl bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md"
-            >
-              {isSubmitting ? (
-                <span>{language === 'ta' ? 'வெளியிடப்படுகிறது...' : 'Publishing...'}</span>
-              ) : (
-                <>
-                  <span>{t('publishBatch')}</span>
-                  <Check className="w-4 h-4" />
-                </>
-              )}
-            </button>
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-700">Farm Location & Village</label>
+            <input
+              type="text"
+              required
+              value={farmLocation}
+              onChange={(e) => setFarmLocation(e.target.value)}
+              placeholder="e.g. Omalur, Salem District"
+              className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none font-medium"
+            />
           </div>
         </div>
-      )}
+
+        {/* Description / Quality Notes */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-bold text-slate-700">Description & Quality Declaration</label>
+          <textarea
+            rows={2}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Describe produce condition, variety, packaging or harvest time..."
+            className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none font-medium"
+          />
+        </div>
+
+        {/* Photo Upload / Preview */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-bold text-slate-700">Produce Photo</label>
+          <div className="flex items-center gap-4">
+            <div className="w-20 h-20 rounded-2xl border border-slate-200 overflow-hidden bg-slate-100 shrink-0">
+              <img src={imageUrl} alt="" className="w-full h-full object-cover" />
+            </div>
+
+            <div className="space-y-1.5 flex-1">
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploadingImage}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl transition flex items-center gap-1.5"
+              >
+                <Camera className="w-3.5 h-3.5" />
+                <span>{isUploadingImage ? 'Uploading...' : 'Upload Farm Photo'}</span>
+              </button>
+              <p className="text-[10px] text-slate-400">
+                Or enter image URL below
+              </p>
+              <input
+                type="url"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="https://images.unsplash.com/..."
+                className="w-full text-[11px] p-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-600 focus:outline-none"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Submit Button */}
+        <div className="pt-2">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full py-3.5 rounded-2xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-sm shadow-md transition flex items-center justify-center gap-2 active:scale-98"
+          >
+            {isSubmitting ? (
+              <span>Submitting to Central Hub...</span>
+            ) : (
+              <>
+                <span>Submit Produce for Hub Procurement</span>
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
+          </button>
+        </div>
+      </form>
     </div>
   );
 };

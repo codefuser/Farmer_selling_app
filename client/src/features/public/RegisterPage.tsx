@@ -98,7 +98,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
 
       const cleanMobile = mobile.replace(/\D/g, '');
       const formattedMobile = mobile.startsWith('+91') ? mobile : `+91${cleanMobile}`;
-      const fallbackEmail = email.trim() || `${cleanMobile}@kisandirect.local`;
+      const fallbackEmail = email.trim() || `${cleanMobile}@ulavar2ulagam.local`;
 
       await register({
         name: name.trim(),
@@ -139,8 +139,8 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
         </h2>
         <p className="text-xs text-slate-600 mb-6 max-w-xs mx-auto">
           {language === 'ta'
-            ? 'உங்கள் கணக்கு உருவாக்கப்பட்டது. நேரடியாக சந்தை பதிவுகள் மற்றும் விளைபொருட்களை பார்வையிடுங்கள்.'
-            : 'Your account is active. Welcome to KisanDirect social marketplace.'}
+            ? 'உங்கள் கணக்கு உருவாக்கப்பட்டது. உழவர் to உலகம் தளத்திற்கு நல்வரவு!'
+            : 'Your account is active. Welcome to Ulavar2Ulagam.'}
         </p>
         <button
           onClick={() => onNavigate('home-feed')}
@@ -161,7 +161,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
           <Sprout className="w-6 h-6 text-emerald-100" />
         </div>
         <h1 className="text-xl font-black text-slate-900 tracking-tight">
-          {language === 'ta' ? 'புதிய கணக்கு பதிவு' : 'Create KisanDirect Account'}
+          {language === 'ta' ? 'புதிய கணக்கு பதிவு' : 'Create Ulavar2Ulagam Account'}
         </h1>
         <p className="text-xs text-slate-500">
           {language === 'ta'

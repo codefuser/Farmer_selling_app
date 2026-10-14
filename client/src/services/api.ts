@@ -762,6 +762,200 @@ class ApiService {
       method: 'PATCH',
     });
   }
+
+  // ==========================================
+  // ULAVAR2ULAGAM CLIENT API SUITE
+  // ==========================================
+
+  // Farmer Portal APIs
+  public async getFarmerSubmissions(): Promise<any[]> {
+    return this.request<any[]>('/farmers/submissions');
+  }
+
+  public async submitProduce(produceData: {
+    produceName: string;
+    category: string;
+    quantity: number;
+    unit: string;
+    expectedPrice: number;
+    harvestDate?: string;
+    farmLocation: string;
+    district?: string;
+    description?: string;
+    imageUrl?: string;
+  }): Promise<{ message: string; submission: any }> {
+    return this.request<any>('/farmers/submissions', {
+      method: 'POST',
+      body: JSON.stringify(produceData),
+    });
+  }
+
+  public async getFarmerProcurements(): Promise<any[]> {
+    return this.request<any[]>('/farmers/procurements');
+  }
+
+  public async getFarmerPortalStats(): Promise<any> {
+    return this.request<any>('/farmers/portal-stats');
+  }
+
+  // Admin Portal APIs
+  public async getAdminMetrics(): Promise<any> {
+    return this.request<any>('/admin/metrics');
+  }
+
+  public async getAdminSubmissions(status?: string, category?: string): Promise<any[]> {
+    const query = new URLSearchParams();
+    if (status && status !== 'ALL') query.append('status', status);
+    if (category && category !== 'ALL') query.append('category', category);
+    const qs = query.toString() ? `?${query.toString()}` : '';
+    return this.request<any[]>(`/admin/submissions${qs}`);
+  }
+
+  public async reviewAdminSubmission(
+    id: string,
+    status: string,
+    adminNotes?: string,
+    rejectionReason?: string
+  ): Promise<{ message: string; submission: any }> {
+    return this.request<any>(`/admin/submissions/${id}/review`, {
+      method: 'PUT',
+      body: JSON.stringify({ status, adminNotes, rejectionReason }),
+    });
+  }
+
+  public async recordProcurement(procurementData: {
+    submissionId: string;
+    purchasedQuantity: number;
+    purchasePricePerUnit: number;
+    sellingPrice?: number;
+    qualityGrade?: string;
+    notes?: string;
+  }): Promise<{ message: string; procurement: any; product: any }> {
+    return this.request<any>('/admin/procurements', {
+      method: 'POST',
+      body: JSON.stringify(procurementData),
+    });
+  }
+
+  public async getAdminProcurements(): Promise<any[]> {
+    return this.request<any[]>('/admin/procurements');
+  }
+
+  public async getAdminInventory(): Promise<any[]> {
+    return this.request<any[]>('/admin/inventory');
+  }
+
+  public async updateAdminInventory(id: string, data: any): Promise<{ message: string; product: any }> {
+    return this.request<any>(`/admin/inventory/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  public async adjustAdminStock(data: {
+    productId: string;
+    adjustmentQuantity: number;
+    type?: string;
+    notes?: string;
+  }): Promise<{ message: string; product: any }> {
+    return this.request<any>('/admin/inventory/adjust', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  public async getAdminCustomerOrders(status?: string): Promise<any[]> {
+    const qs = status && status !== 'ALL' ? `?status=${status}` : '';
+    return this.request<any[]>(`/admin/customer-orders${qs}`);
+  }
+
+  public async getCustomerOrdersAdmin(status?: string): Promise<any[]> {
+    return this.getAdminCustomerOrders(status);
+  }
+
+  public async updateAdminOrderStatus(id: string, status: string, notes?: string): Promise<any> {
+    return this.request<any>(`/admin/orders/${id}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status, notes }),
+    });
+  }
+
+  public async updateOrderStatusAdmin(id: string, status: string, notes?: string): Promise<any> {
+    return this.updateAdminOrderStatus(id, status, notes);
+  }
+
+  public async assignDeliveryPartner(id: string, driverId: string, notes?: string): Promise<any> {
+    return this.request<any>(`/admin/orders/${id}/assign-delivery`, {
+      method: 'POST',
+      body: JSON.stringify({ driverId, notes }),
+    });
+  }
+
+  public async getDeliveryPartners(): Promise<any[]> {
+    return this.request<any[]>('/admin/delivery-partners');
+  }
+
+  public async getAdminReports(): Promise<any> {
+    return this.request<any>('/admin/reports');
+  }
+
+  // Customer Central Inventory Storefront & Orders
+  public async getStoreProducts(params?: { category?: string; search?: string; sort?: string; limit?: number }): Promise<any[]> {
+    const query = new URLSearchParams();
+    if (params?.category && params.category !== 'ALL') query.append('category', params.category);
+    if (params?.search) query.append('search', params.search);
+    if (params?.sort) query.append('sort', params.sort);
+    if (params?.limit) query.append('limit', String(params.limit));
+    const qs = query.toString() ? `?${query.toString()}` : '';
+    return this.request<any[]>(`/market/products${qs}`);
+  }
+
+  public async getStoreProductDetail(id: string): Promise<any> {
+    return this.request<any>(`/market/products/${id}`);
+  }
+
+  public async checkoutCentralOrder(orderPayload: {
+    items: { productId: string; quantity: number }[];
+    deliveryAddress: string;
+    customerName?: string;
+    customerPhone?: string;
+    paymentMethod?: string;
+    notes?: string;
+  }): Promise<{ message: string; order: any }> {
+    return this.request<any>('/orders/checkout', {
+      method: 'POST',
+      body: JSON.stringify(orderPayload),
+    });
+  }
+
+  public async getCustomerOrders(): Promise<any[]> {
+    return this.request<any[]>('/orders/my-orders');
+  }
+
+  public async cancelCustomerOrder(id: string, reason?: string): Promise<any> {
+    return this.request<any>(`/orders/${id}/cancel-customer`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+  }
+
+  // Delivery Partner Portal
+  public async getMyDeliveryAssignments(): Promise<any[]> {
+    return this.request<any[]>('/logistics/my-assignments');
+  }
+
+  public async updateAssignmentStatus(
+    id: string,
+    status: string,
+    confirmationOtp?: string,
+    failureReason?: string,
+    notes?: string
+  ): Promise<any> {
+    return this.request<any>(`/logistics/assignments/${id}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status, confirmationOtp, failureReason, notes }),
+    });
+  }
 }
 
 export const api = new ApiService();

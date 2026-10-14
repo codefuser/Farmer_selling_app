@@ -276,7 +276,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
       </div>
 
       <div className="text-center text-[10px] text-slate-400 pt-2">
-        KisanDirect · SIH 2026 Problem ID: SIH26033 · v1.0.0
+        Ulavar2Ulagam · "From Farmers to Your Family, Directly." · v2.0.0
       </div>
     </div>
   );

@@ -63,9 +63,9 @@ app.use('/api/price-alerts', priceAlertRoutes);
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'online',
-    product: 'KisanDirect',
-    problemStatementId: 'SIH26033',
-    version: '1.0.0',
+    product: 'Ulavar2Ulagam',
+    tagline: 'From Farmers to Your Family, Directly.',
+    version: '2.0.0',
     timestamp: new Date().toISOString(),
   });
 });
@@ -81,8 +81,8 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 const PORT = ENV.PORT;
 app.listen(PORT, () => {
   console.log(`====================================================`);
-  console.log(`🚀 KisanDirect API Server running on port ${PORT}`);
-  console.log(`🌾 SIH 2026 Problem Statement ID: SIH26033`);
+  console.log(`🚀 Ulavar2Ulagam API Server running on port ${PORT}`);
+  console.log(`🌾 Tagline: From Farmers to Your Family, Directly.`);
   console.log(`🔗 Health Check: http://localhost:${PORT}/api/health`);
   console.log(`====================================================`);
 });

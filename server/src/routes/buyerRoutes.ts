@@ -345,8 +345,14 @@ router.get('/orders', async (req: AuthenticatedRequest, res: Response): Promise<
       include: {
         items: {
           include: {
+            product: true,
             farmer: { include: { user: true } },
             batch: { include: { product: true } },
+          },
+        },
+        deliveryAssignment: {
+          include: {
+            driver: { select: { id: true, name: true, mobile: true } },
           },
         },
         deliveries: { include: { vehicle: true } },

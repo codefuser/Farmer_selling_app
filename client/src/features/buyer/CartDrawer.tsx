@@ -98,8 +98,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         ) : (
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {cartItems.map((item) => {
-              const productName = language === 'ta' ? item.batch?.product?.nameTamil : item.batch?.product?.name;
-              const farmerName = item.batch?.farmer?.user?.name || (language === 'ta' ? 'விவசாயி' : 'Farmer');
+              const productName = language === 'ta' && item.nameTamil ? item.nameTamil : item.name;
+              const unit = item.unit || 'kg';
+              const price = item.price || 0;
+              const img = item.imageUrl || 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=300';
 
               return (
                 <div
@@ -108,24 +110,24 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 >
                   <div className="w-16 h-16 rounded-xl overflow-hidden bg-white shrink-0 border border-slate-200">
                     <img
-                      src={item.batch?.imageUrl || item.batch?.product?.imageUrl}
+                      src={img}
                       alt={productName}
                       className="w-full h-full object-cover"
                       onError={(e: any) => {
-                        e.target.src = 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=200&q=80';
+                        e.target.src = 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=300';
                       }}
                     />
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-black text-xs text-slate-900 truncate">
+                    <h4 className="font-bold text-xs text-slate-900 truncate">
                       {productName}
                     </h4>
                     <div className="text-[11px] text-slate-500 truncate">
-                      {farmerName} · {item.batch?.village || 'Salem'}
+                      {item.category || 'Fresh Farm'} · Hub Verified
                     </div>
-                    <div className="text-xs font-bold text-emerald-800 mt-1">
-                      ₹{item.batch?.pricePerKg} / kg
+                    <div className="text-xs font-extrabold text-emerald-800 mt-1">
+                      ₹{price} / {unit}
                     </div>
                   </div>
 

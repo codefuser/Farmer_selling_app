@@ -11,18 +11,18 @@ interface LanguageContextType {
 const translations: Record<Language, Record<string, string>> = {
   en: {
     // Brand & App Shell
-    appName: 'KisanDirect',
-    appTagline: 'Harvester to Buyer Direct Marketplace',
-    heroTitle: 'From Soil To Store · No Middlemen, Fair Prices Guaranteed',
-    heroSubtitle: 'Direct agricultural marketplace connecting smallholder farmers with commercial kitchens, supermarkets, and wholesale buyers.',
+    appName: 'Ulavar2Ulagam',
+    appTagline: 'From Farmers to Your Family, Directly.',
+    heroTitle: 'Fresh From Farms. Carefully Delivered to Your Home.',
+    heroSubtitle: 'Discover fresh agricultural produce sourced directly from farmers and delivered through our managed supply and distribution network.',
     locationSalem: 'Salem, Tamil Nadu',
     dailyMandiRates: 'Daily Mandi Rates',
     allTowns: 'All Markets',
     demoControls: 'Demo Controls',
 
     // Onboarding
-    welcomeToApp: 'Welcome to KisanDirect',
-    onboardingTagline: 'Empowering Farmers. Delivering Freshness.',
+    welcomeToApp: 'Welcome to Ulavar2Ulagam',
+    onboardingTagline: 'From Farmers to Your Family, Directly.',
     slide1Title: 'Fresh from Farmers',
     slide1Desc: 'Harvested fresh this morning and directly dispatched within hours.',
     slide2Title: 'Guaranteed Fair Prices',
@@ -197,18 +197,18 @@ const translations: Record<Language, Record<string, string>> = {
 
   ta: {
     // Brand & App Shell
-    appName: 'கிசான் டைரக்ட்',
-    appTagline: 'விவசாயியிடம் இருந்து நேரடியாக வாங்குபவருக்கு',
-    heroTitle: 'மண்ணில் இருந்து சந்தைக்கு · இடைத்தரகர்கள் இல்லை, நியாய விலை உறுதி',
-    heroSubtitle: 'சிறு விவசாயிகளை வணிக விடுதிகள், உணவகங்கள் மற்றும் பல்பொருள் அங்காடிகளுடன் நேரடியாக இணைக்கும் வேளாண் தளம்.',
+    appName: 'உழவர் to உலகம்',
+    appTagline: 'விவசாயிகளிடமிருந்து உங்கள் குடும்பத்திற்கு நேரடியாக.',
+    heroTitle: 'விவசாய பண்ணைகளிலிருந்து உங்கள் இல்லத்திற்கு நேரடியாக.',
+    heroSubtitle: 'விவசாயிகளிடம் நேரடியாக கொள்முதல் செய்யப்பட்டு, எங்களின் நேரடி விநியோகம் மூலம் புத்தம் புதிதாக உங்கள் இல்லத்திற்கே சேர்க்கப்படுகிறது.',
     locationSalem: 'சேலம், தமிழ்நாடு',
     dailyMandiRates: 'தினசரி மண்டி விலை',
     allTowns: 'அனைத்து சந்தைகள்',
     demoControls: 'டெமோ கட்டுப்பாடுகள்',
 
     // Onboarding
-    welcomeToApp: 'கிசான் டைரக்ட்டிற்கு நல்வரவு',
-    onboardingTagline: 'விவசாயிகளை உயர்த்துவோம். நுகர்வோருக்கு புதியதை வழங்குவோம்.',
+    welcomeToApp: 'உழவர் to உலகம் தளத்திற்கு நல்வரவு',
+    onboardingTagline: 'விவசாயிகளிடமிருந்து உங்கள் குடும்பத்திற்கு நேரடியாக.',
     slide1Title: 'விவசாயிகளிடமிருந்து புதியவை',
     slide1Desc: 'இன்று அதிகாலை தோட்டத்தில் அறுவடை செய்யப்பட்டு சில மணி நேரங்களில் நேரடியாக உங்கள் கைக்கு வருகிறது.',
     slide2Title: 'உறுதியான நியாய விலை',

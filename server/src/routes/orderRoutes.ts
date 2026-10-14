@@ -682,4 +682,287 @@ router.post('/:id/dispute', async (req: AuthenticatedRequest, res: Response): Pr
   }
 });
 
+// ==========================================
+// ULAVAR2ULAGAM CUSTOMER CHECKOUT & ORDERS
+// ==========================================
+
+// Safe Central Inventory Checkout
+router.post('/checkout', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    let buyer = await prisma.buyerProfile.findUnique({ where: { userId } });
+    if (!buyer) {
+      buyer = await prisma.buyerProfile.create({
+        data: {
+          userId,
+          businessName: req.user!.name || 'Customer Residence',
+          ownerName: req.user!.name || 'Customer',
+          businessType: 'INDIVIDUAL',
+          consumerType: 'INDIVIDUAL',
+          address: req.body.deliveryAddress || 'Salem, Tamil Nadu',
+          district: 'Salem',
+        },
+      });
+    }
+
+    const {
+      items,
+      deliveryAddress,
+      customerName = req.user!.name,
+      customerPhone,
+      paymentMethod = 'DEMO_UPI',
+      notes,
+    } = req.body;
+
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      res.status(400).json({ error: 'At least one item is required in the cart to place an order.' });
+      return;
+    }
+
+    if (!deliveryAddress) {
+      res.status(400).json({ error: 'Delivery address is required.' });
+      return;
+    }
+
+    const orderResult = await prisma.$transaction(async (tx) => {
+      let subtotal = 0;
+      let totalQty = 0;
+      const orderItemsData: any[] = [];
+
+      // Find fallback batch & farmer for backward compatibility relation
+      const fallbackBatch = await tx.produceBatch.findFirst({
+        include: { farmer: true },
+      });
+
+      if (!fallbackBatch) {
+        throw new Error('No baseline batch found. Please seed the database.');
+      }
+
+      for (const item of items) {
+        const product = await tx.product.findUnique({
+          where: { id: item.productId },
+        });
+
+        if (!product) {
+          throw new Error(`Product with ID ${item.productId} was not found.`);
+        }
+
+        const qty = parseFloat(String(item.quantity));
+        if (isNaN(qty) || qty <= 0) {
+          throw new Error(`Invalid quantity for ${product.name}.`);
+        }
+
+        if (product.stockQuantity < qty) {
+          throw new Error(
+            `Insufficient stock for "${product.name}". Requested: ${qty} ${product.unit}, Available: ${product.stockQuantity} ${product.unit}.`
+          );
+        }
+
+        const itemTotal = Math.round(qty * product.sellingPrice * 100) / 100;
+        subtotal += itemTotal;
+        totalQty += qty;
+
+        // Decrement product stock safely
+        const remainingStock = product.stockQuantity - qty;
+        await tx.product.update({
+          where: { id: product.id },
+          data: {
+            stockQuantity: remainingStock,
+            status: remainingStock === 0 ? 'OUT_OF_STOCK' : remainingStock <= product.lowStockThreshold ? 'LOW_STOCK' : 'IN_STOCK',
+          },
+        });
+
+        orderItemsData.push({
+          productId: product.id,
+          productName: product.name,
+          quantity: qty,
+          unit: product.unit || 'kg',
+          pricePerKg: product.sellingPrice,
+          total: itemTotal,
+          farmerId: fallbackBatch.farmerId,
+          batchId: fallbackBatch.id,
+        });
+      }
+
+      // Delivery fee rule: Free above ₹500, else ₹30
+      const deliveryFee = subtotal >= 500 ? 0 : 30;
+      const totalAmount = subtotal + deliveryFee;
+      const orderCode = `ORD-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+
+      // Create Order
+      const newOrder = await tx.order.create({
+        data: {
+          orderCode,
+          buyerId: buyer.id,
+          totalQuantity: totalQty,
+          subtotal,
+          deliveryFee,
+          totalAmount,
+          platformFee: 0,
+          farmerPayout: subtotal * 0.8,
+          status: 'PENDING',
+          paymentMethod,
+          paymentStatus: 'PAID',
+          customerName: customerName || req.user!.name,
+          customerPhone: customerPhone || (req.user as any)?.mobile || '9876543210',
+          deliveryAddress,
+        },
+      });
+
+      // Create OrderItems
+      for (const itemData of orderItemsData) {
+        await tx.orderItem.create({
+          data: {
+            orderId: newOrder.id,
+            productId: itemData.productId,
+            productName: itemData.productName,
+            quantity: itemData.quantity,
+            unit: itemData.unit,
+            pricePerKg: itemData.pricePerKg,
+            total: itemData.total,
+            farmerId: itemData.farmerId,
+            batchId: itemData.batchId,
+          },
+        });
+
+        // Record Inventory Outflow Transaction
+        const updatedProd = await tx.product.findUnique({ where: { id: itemData.productId } });
+        await tx.inventoryTransaction.create({
+          data: {
+            productId: itemData.productId,
+            type: 'ORDER_OUTFLOW',
+            quantity: -itemData.quantity,
+            balanceAfter: updatedProd?.stockQuantity || 0,
+            referenceCode: orderCode,
+            notes: `Purchased by ${customerName} in order ${orderCode}`,
+          },
+        });
+      }
+
+      // Create initial payment record
+      await tx.payment.create({
+        data: {
+          paymentCode: `PAY-${Date.now().toString().slice(-6)}`,
+          orderId: newOrder.id,
+          buyerId: buyer.id,
+          amount: totalAmount,
+          status: 'AUTHORIZED',
+          paymentMethod,
+          transactionRef: `TXN-${Math.floor(100000 + Math.random() * 900000)}`,
+        },
+      });
+
+      return newOrder;
+    });
+
+    res.status(201).json({
+      message: 'Order placed successfully! Inventory reserved and our team is processing it.',
+      order: orderResult,
+    });
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Customer My Orders
+router.get('/my-orders', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const buyer = await prisma.buyerProfile.findUnique({ where: { userId } });
+
+    if (!buyer) {
+      res.json([]);
+      return;
+    }
+
+    const orders = await prisma.order.findMany({
+      where: { buyerId: buyer.id },
+      include: {
+        items: { include: { product: true } },
+        deliveryAssignment: { include: { driver: { select: { name: true, mobile: true } } } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json(orders);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Customer Cancel Order
+router.post('/:id/cancel-customer', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+    const userId = req.user!.id;
+
+    const buyer = await prisma.buyerProfile.findUnique({ where: { userId } });
+    const order = await prisma.order.findUnique({
+      where: { id },
+      include: { items: true },
+    });
+
+    if (!order) {
+      res.status(404).json({ error: 'Order not found.' });
+      return;
+    }
+
+    if (buyer && order.buyerId !== buyer.id && req.user!.role !== 'ADMIN') {
+      res.status(403).json({ error: 'Unauthorized: You did not place this order.' });
+      return;
+    }
+
+    if (!['PENDING', 'CONFIRMED'].includes(order.status)) {
+      res.status(400).json({
+        error: `Cannot cancel an order that is already in "${order.status}" stage. Please contact support.`,
+      });
+      return;
+    }
+
+    // Restore stock and cancel
+    const result = await prisma.$transaction(async (tx) => {
+      for (const item of order.items) {
+        if (item.productId) {
+          const product = await tx.product.findUnique({ where: { id: item.productId } });
+          if (product) {
+            const restored = product.stockQuantity + item.quantity;
+            await tx.product.update({
+              where: { id: item.productId },
+              data: {
+                stockQuantity: restored,
+                status: 'IN_STOCK',
+              },
+            });
+
+            await tx.inventoryTransaction.create({
+              data: {
+                productId: item.productId,
+                type: 'ORDER_RESTORE',
+                quantity: item.quantity,
+                balanceAfter: restored,
+                referenceCode: order.orderCode,
+                notes: `Customer cancelled order ${order.orderCode}. Stock restored.`,
+              },
+            });
+          }
+        }
+      }
+
+      return await tx.order.update({
+        where: { id },
+        data: {
+          status: 'CANCELLED',
+          cancelledAt: new Date(),
+          cancellationReason: reason || 'Cancelled by customer before processing',
+        },
+      });
+    });
+
+    res.json({ message: 'Order cancelled successfully and stock restored to inventory.', order: result });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;

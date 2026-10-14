@@ -9,8 +9,8 @@
     "start": "node dist/index.js",
     "prisma:generate": "npx prisma generate",
     "prisma:push": "prisma db push",
-    "prisma:seed": "tsx prisma/seed.ts",
-    "seed": "tsx prisma/seed.ts"
+    "prisma:seed": "tsx prisma/seed_ulavar.ts",
+    "seed": "tsx prisma/seed_ulavar.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.4.1",

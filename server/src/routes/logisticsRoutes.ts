@@ -168,4 +168,108 @@ router.get('/collection-centers', async (req: AuthenticatedRequest, res: Respons
   }
 });
 
+// ==========================================
+// ULAVAR2ULAGAM DELIVERY PARTNER PORTAL
+// ==========================================
+
+// Get Assigned Deliveries for logged-in Driver
+router.get('/my-assignments', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const isSpecialist = req.user!.role === 'LOGISTICS' || req.user!.role === 'ADMIN' || req.user!.role === 'DELIVERY_PARTNER';
+
+    const where: any = {};
+    if (!isSpecialist || req.user!.role !== 'ADMIN') {
+      where.driverId = userId;
+    }
+
+    const assignments = await prisma.deliveryAssignment.findMany({
+      where,
+      include: {
+        order: {
+          include: {
+            buyer: { include: { user: true } },
+            items: { include: { product: true } },
+          },
+        },
+        driver: { select: { id: true, name: true, mobile: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json(assignments);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update Assignment Status (PICKED_UP -> OUT_FOR_DELIVERY -> DELIVERED)
+router.put('/assignments/:id/status', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { status, confirmationOtp, failureReason, notes } = req.body;
+
+    const validStatuses = ['ASSIGNED', 'PICKED_UP', 'OUT_FOR_DELIVERY', 'DELIVERED', 'FAILED'];
+    if (!validStatuses.includes(status)) {
+      res.status(400).json({ error: `Invalid delivery status. Allowed: ${validStatuses.join(', ')}` });
+      return;
+    }
+
+    const assignment = await prisma.deliveryAssignment.findUnique({
+      where: { id },
+      include: { order: true },
+    });
+
+    if (!assignment) {
+      res.status(404).json({ error: 'Delivery assignment not found.' });
+      return;
+    }
+
+    const updateData: any = { status };
+    if (status === 'PICKED_UP') {
+      updateData.pickupTime = new Date();
+    }
+    if (status === 'DELIVERED') {
+      // Validate OTP if provided
+      if (confirmationOtp && assignment.confirmationOtp && confirmationOtp !== assignment.confirmationOtp) {
+        res.status(400).json({ error: 'Incorrect delivery confirmation OTP. Please check with customer.' });
+        return;
+      }
+      updateData.deliveredTime = new Date();
+      updateData.notes = notes || 'Delivered to customer successfully.';
+    }
+    if (status === 'FAILED') {
+      updateData.failureReason = failureReason || 'Customer unreachable / address not found';
+    }
+
+    const updated = await prisma.$transaction(async (tx) => {
+      const resAssignment = await tx.deliveryAssignment.update({
+        where: { id },
+        data: updateData,
+        include: { driver: true },
+      });
+
+      // Synchronize with Order status
+      let orderStatus = assignment.order.status;
+      if (status === 'PICKED_UP') orderStatus = 'PACKED';
+      else if (status === 'OUT_FOR_DELIVERY') orderStatus = 'OUT_FOR_DELIVERY';
+      else if (status === 'DELIVERED') orderStatus = 'DELIVERED';
+
+      await tx.order.update({
+        where: { id: assignment.orderId },
+        data: {
+          status: orderStatus,
+          ...(status === 'DELIVERED' ? { deliveredAt: new Date() } : {}),
+        },
+      });
+
+      return resAssignment;
+    });
+
+    res.json({ message: `Delivery status updated to ${status}`, assignment: updated });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;

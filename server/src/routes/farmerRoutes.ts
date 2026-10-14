@@ -805,4 +805,172 @@ router.post('/:id/unfollow', async (req: AuthenticatedRequest, res: Response): P
   }
 });
 
+// ==========================================
+// ULAVAR2ULAGAM PRODUCE SUBMISSIONS & PROCUREMENTS
+// ==========================================
+
+// Create new produce submission
+router.post('/submissions', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const farmer = await getFarmerProfile(req.user!.id);
+    if (!farmer) {
+      res.status(404).json({ error: 'Farmer profile not found. Please register as a farmer.' });
+      return;
+    }
+
+    const {
+      produceName,
+      category,
+      quantity,
+      unit = 'kg',
+      expectedPrice,
+      harvestDate,
+      farmLocation,
+      district = 'Salem',
+      description,
+      imageUrl,
+    } = req.body;
+
+    if (!produceName || !category || !quantity || !expectedPrice || !farmLocation) {
+      res.status(400).json({ error: 'Produce name, category, quantity, expected price, and farm location are required.' });
+      return;
+    }
+
+    const qty = parseFloat(String(quantity));
+    const price = parseFloat(String(expectedPrice));
+    if (isNaN(qty) || qty <= 0) {
+      res.status(400).json({ error: 'Quantity must be a positive number.' });
+      return;
+    }
+    if (isNaN(price) || price <= 0) {
+      res.status(400).json({ error: 'Expected price must be a positive number.' });
+      return;
+    }
+
+    const submissionCode = `SUB-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const submission = await prisma.farmerProduceSubmission.create({
+      data: {
+        submissionCode,
+        farmerId: farmer.id,
+        produceName: produceName.trim(),
+        category: category.toUpperCase(),
+        quantity: qty,
+        unit: unit || 'kg',
+        expectedPrice: price,
+        harvestDate: harvestDate ? new Date(harvestDate) : null,
+        farmLocation: farmLocation.trim(),
+        district: district || 'Salem',
+        description: description?.trim() || null,
+        imageUrl: imageUrl || null,
+        status: 'SUBMITTED',
+      },
+    });
+
+    res.status(201).json({
+      message: 'Produce submitted successfully! Our procurement team will review your submission.',
+      submission,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get farmer's submissions
+router.get('/submissions', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const farmer = await getFarmerProfile(req.user!.id);
+    if (!farmer) {
+      res.status(404).json({ error: 'Farmer profile not found.' });
+      return;
+    }
+
+    const submissions = await prisma.farmerProduceSubmission.findMany({
+      where: { farmerId: farmer.id },
+      include: { procurement: true },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json(submissions);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get farmer's procurement history
+router.get('/procurements', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const farmer = await getFarmerProfile(req.user!.id);
+    if (!farmer) {
+      res.status(404).json({ error: 'Farmer profile not found.' });
+      return;
+    }
+
+    const procurements = await prisma.procurementTransaction.findMany({
+      where: { farmerId: farmer.id },
+      include: {
+        submission: true,
+        product: true,
+      },
+      orderBy: { procurementDate: 'desc' },
+    });
+
+    res.json(procurements);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get farmer portal KPI overview
+router.get('/portal-stats', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const farmer = await getFarmerProfile(req.user!.id);
+    if (!farmer) {
+      res.status(404).json({ error: 'Farmer profile not found.' });
+      return;
+    }
+
+    const totalSubmissions = await prisma.farmerProduceSubmission.count({
+      where: { farmerId: farmer.id },
+    });
+    const pendingReview = await prisma.farmerProduceSubmission.count({
+      where: {
+        farmerId: farmer.id,
+        status: { in: ['SUBMITTED', 'UNDER_REVIEW'] },
+      },
+    });
+    const approvedSubmissions = await prisma.farmerProduceSubmission.count({
+      where: {
+        farmerId: farmer.id,
+        status: 'APPROVED',
+      },
+    });
+    const purchasedSubmissions = await prisma.farmerProduceSubmission.count({
+      where: {
+        farmerId: farmer.id,
+        status: 'PURCHASED',
+      },
+    });
+
+    const procurements = await prisma.procurementTransaction.findMany({
+      where: { farmerId: farmer.id },
+      select: { totalCost: true, purchasedQuantity: true },
+    });
+
+    const totalEarnings = procurements.reduce((sum, p) => sum + p.totalCost, 0);
+    const totalQtySold = procurements.reduce((sum, p) => sum + p.purchasedQuantity, 0);
+
+    res.json({
+      totalSubmissions,
+      pendingReview,
+      approvedSubmissions,
+      purchasedSubmissions,
+      totalEarnings,
+      totalQtySold,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;

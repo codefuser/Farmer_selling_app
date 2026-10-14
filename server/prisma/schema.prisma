@@ -3,9 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -41,6 +40,7 @@ model User {
   priceAlerts       PriceAlert[]
   searchHistory     SearchHistory[]
   orderCancellations OrderCancellation[]
+  deliveryAssignments DeliveryAssignment[]
 }
 
 model FarmerProfile {
@@ -72,6 +72,8 @@ model FarmerProfile {
   posts                      Post[]
   costs                      FarmerCost[]
   followers                  FarmerFollow[] @relation("FarmerFollowed")
+  produceSubmissions         FarmerProduceSubmission[]
+  procurements               ProcurementTransaction[]
 }
 
 model BuyerProfile {
@@ -119,14 +121,25 @@ model Product {
   referenceMinPrice Float           // Reference market price range (Fair Price)
   referenceMaxPrice Float
   imageUrl          String
+  description       String?
+  stockQuantity     Float           @default(0)
+  reservedQuantity  Float           @default(0)
+  lowStockThreshold Float           @default(20)
+  sellingPrice      Float           @default(30)
+  avgProcurementCost Float          @default(20)
+  isPublished       Boolean         @default(true)
+  status            String          @default("IN_STOCK") // IN_STOCK, LOW_STOCK, OUT_OF_STOCK
   createdAt         DateTime        @default(now())
 
-  batches           ProduceBatch[]
-  demands           BuyerDemand[]
-  freshnessRules    FreshnessRule[]
-  marketPrices      MarketPrice[]
-  wishlistItems     Wishlist[]
-  priceAlerts       PriceAlert[]
+  batches               ProduceBatch[]
+  demands               BuyerDemand[]
+  freshnessRules        FreshnessRule[]
+  marketPrices          MarketPrice[]
+  wishlistItems         Wishlist[]
+  priceAlerts           PriceAlert[]
+  procurements          ProcurementTransaction[]
+  inventoryTransactions InventoryTransaction[]
+  orderItemsDirect      OrderItem[]
 }
 
 model FreshnessRule {
@@ -308,20 +321,30 @@ model Order {
   disputes            Dispute[]
   cancellation        OrderCancellation?
   refunds             Refund[]
+  customerName        String?
+  customerPhone       String?
+  subtotal            Float?         @default(0)
+  paymentMethod       String?        @default("DEMO_UPI")
+  paymentStatus       String?        @default("PAID")
+  deliveryAssignment  DeliveryAssignment?
 }
 
 model OrderItem {
-  id         String        @id @default(cuid())
-  orderId    String
-  farmerId   String
-  batchId    String
-  quantity   Float
-  pricePerKg Float
-  total      Float
+  id          String        @id @default(cuid())
+  orderId     String
+  farmerId    String
+  batchId     String
+  productId   String?
+  productName String?
+  unit        String        @default("kg")
+  quantity    Float
+  pricePerKg  Float
+  total       Float
 
-  order      Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  farmer     FarmerProfile @relation(fields: [farmerId], references: [id], onDelete: Cascade)
-  batch      ProduceBatch  @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  order       Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  farmer      FarmerProfile @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  batch       ProduceBatch  @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  product     Product?      @relation(fields: [productId], references: [id], onDelete: SetNull)
 }
 
 model CollectionCenter {
@@ -795,5 +818,92 @@ model Refund {
 
   @@index([orderId])
   @@index([paymentId])
+}
+
+model FarmerProduceSubmission {
+  id              String                  @id @default(cuid())
+  submissionCode  String                  @unique // e.g. SUB-2026-001
+  farmerId        String
+  produceName     String                  // e.g. Country Tomato, Small Onion, etc.
+  category        String                  // VEGETABLES, FRUITS, GRAINS, PULSES, GREENS, SEASONAL
+  quantity        Float
+  unit            String                  @default("kg") // kg, bunch, piece, sack
+  expectedPrice   Float                   // Farmer requested price per unit
+  harvestDate     DateTime?
+  farmLocation    String
+  district        String                  @default("Salem")
+  description     String?
+  imageUrl        String?
+  status          String                  @default("SUBMITTED") // SUBMITTED, UNDER_REVIEW, APPROVED, REJECTED, PURCHASED
+  rejectionReason String?
+  adminNotes      String?
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  farmer          FarmerProfile           @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  procurement     ProcurementTransaction?
+
+  @@index([farmerId])
+  @@index([status])
+}
+
+model ProcurementTransaction {
+  id                   String                  @id @default(cuid())
+  transactionCode      String                  @unique // e.g. PROC-2026-001
+  submissionId         String                  @unique
+  farmerId             String
+  productId            String?
+  purchasedQuantity    Float
+  unit                 String                  @default("kg")
+  purchasePricePerUnit Float
+  totalCost            Float
+  procurementDate      DateTime                @default(now())
+  procuredBy           String?                 // Admin user ID
+  qualityGrade         String                  @default("A") // A, B, C
+  notes                String?
+  createdAt            DateTime                @default(now())
+
+  submission           FarmerProduceSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  farmer               FarmerProfile           @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  product              Product?                @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([farmerId])
+  @@index([productId])
+}
+
+model InventoryTransaction {
+  id            String   @id @default(cuid())
+  productId     String
+  type          String   // PROCUREMENT_INFLOW, ORDER_OUTFLOW, ORDER_RESTORE, ADJUSTMENT, DAMAGE_EXPIRY
+  quantity      Float
+  balanceAfter  Float
+  referenceCode String?  // PROC-..., ORD-...
+  notes         String?
+  createdAt     DateTime @default(now())
+
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([createdAt])
+}
+
+model DeliveryAssignment {
+  id              String    @id @default(cuid())
+  orderId         String    @unique
+  driverId        String    // User ID
+  status          String    @default("ASSIGNED") // ASSIGNED, PICKED_UP, OUT_FOR_DELIVERY, DELIVERED, FAILED
+  pickupTime      DateTime?
+  deliveredTime   DateTime?
+  failureReason   String?
+  notes           String?
+  confirmationOtp String?   @default("1234")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  order           Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  driver          User      @relation(fields: [driverId], references: [id], onDelete: Cascade)
+
+  @@index([driverId])
+  @@index([status])
 }
 

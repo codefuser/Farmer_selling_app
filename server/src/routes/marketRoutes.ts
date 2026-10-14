@@ -227,4 +227,74 @@ router.get('/batches/:id', async (req: AuthenticatedRequest, res: Response): Pro
   }
 });
 
+// ==========================================
+// ULAVAR2ULAGAM CENTRAL INVENTORY STOREFRONT
+// ==========================================
+
+// Get Ulavar2Ulagam Central Inventory Products for Shop
+router.get('/products', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { category, search, sort } = req.query;
+    const where: any = { isPublished: true };
+
+    if (category && category !== 'ALL') {
+      where.category = String(category).toUpperCase();
+    }
+
+    if (search && String(search).trim() !== '') {
+      const q = String(search).trim();
+      where.OR = [
+        { name: { contains: q } },
+        { nameTamil: { contains: q } },
+        { description: { contains: q } },
+      ];
+    }
+
+    let orderBy: any = { name: 'asc' };
+    if (sort === 'price_asc') orderBy = { sellingPrice: 'asc' };
+    else if (sort === 'price_desc') orderBy = { sellingPrice: 'desc' };
+    else if (sort === 'stock_desc') orderBy = { stockQuantity: 'desc' };
+
+    const products = await prisma.product.findMany({
+      where,
+      orderBy,
+      include: {
+        marketPrices: {
+          orderBy: { date: 'desc' },
+          take: 1,
+        },
+      },
+    });
+
+    res.json(products);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get single product detail
+router.get('/products/:id', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const product = await prisma.product.findUnique({
+      where: { id },
+      include: {
+        marketPrices: {
+          orderBy: { date: 'desc' },
+          take: 1,
+        },
+      },
+    });
+
+    if (!product) {
+      res.status(404).json({ error: 'Product not found' });
+      return;
+    }
+
+    res.json(product);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;

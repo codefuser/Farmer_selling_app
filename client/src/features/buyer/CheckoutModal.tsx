@@ -21,7 +21,8 @@ import {
 } from 'lucide-react';
 
 export interface DirectCheckoutItem {
-  batchId: string;
+  productId?: string;
+  batchId?: string;
   quantity: number;
   title: string;
   pricePerUnit: number;
@@ -56,7 +57,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     [user?.farmerProfile?.village, user?.farmerProfile?.district, user?.farmerProfile?.state]
       .filter(Boolean)
       .join(', ') ||
-    'Salem Central Market, Tamil Nadu';
+    '142 Anna Nagar, Salem, Tamil Nadu';
   const initialPhone = user?.mobile || '+91 98765 43210';
 
   const [address, setAddress] = useState(initialAddress);
@@ -69,34 +70,36 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Determine items
+  // Determine items from Central Inventory or Direct Buy
   const isDirectBuy = !!directItem;
   const items = isDirectBuy
     ? [
         {
+          productId: directItem.productId || directItem.batchId || '',
           batchId: directItem.batchId,
           quantity: directItem.quantity,
           title: directItem.title,
           pricePerUnit: directItem.pricePerUnit,
           unit: directItem.unit,
           imageUrl: directItem.imageUrl,
-          farmerName: directItem.farmerName,
-          village: directItem.village,
-          district: directItem.district,
+          farmerName: directItem.farmerName || 'Ulavar2Ulagam Central Hub',
+          village: directItem.village || 'Salem Hub',
+          district: directItem.district || 'Salem',
           itemTotal: directItem.quantity * directItem.pricePerUnit,
         },
       ]
     : cartItems.map((ci) => ({
-        batchId: ci.batchId,
+        productId: ci.productId || ci.id,
+        batchId: (ci as any).batchId,
         quantity: ci.quantity,
-        title: ci.batch?.product?.nameTamil || ci.batch?.cropName || 'விளைபொருள்',
-        pricePerUnit: ci.batch?.pricePerKg || ci.batch?.pricePerUnit || 0,
-        unit: ci.batch?.product?.unit || ci.batch?.unit || 'kg',
-        imageUrl: ci.batch?.imageUrl || ci.batch?.images?.[0]?.imageUrl,
-        farmerName: ci.batch?.farmer?.user?.name || ci.batch?.farmer?.businessName,
-        village: ci.batch?.village,
-        district: ci.batch?.district,
-        itemTotal: ci.quantity * (ci.batch?.pricePerKg || ci.batch?.pricePerUnit || 0),
+        title: language === 'ta' && ci.nameTamil ? ci.nameTamil : ci.name,
+        pricePerUnit: ci.price,
+        unit: ci.unit || 'kg',
+        imageUrl: ci.imageUrl,
+        farmerName: 'Ulavar2Ulagam Central Hub',
+        village: 'Salem Hub',
+        district: 'Salem',
+        itemTotal: ci.quantity * ci.price,
       }));
 
   const subtotal = isDirectBuy ? directItem.quantity * directItem.pricePerUnit : cartSubtotal;
@@ -173,16 +176,17 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     try {
       const payload = {
         items: items.map((it) => ({
-          batchId: it.batchId,
+          productId: it.productId,
           quantity: it.quantity,
         })),
         deliveryAddress: `${address} (Phone: ${phone})`,
-        deliveryMethod,
-        paymentMethod: paymentMethod === 'ESCROW' ? 'MOCK_UPI' : paymentMethod,
+        customerName: user?.name || 'Customer Priya',
+        customerPhone: phone,
+        paymentMethod: paymentMethod === 'COD' ? 'COD' : 'UPI',
         notes: notes.trim() || undefined,
       };
 
-      const res = await api.checkout(payload);
+      const res = await api.checkoutCentralOrder(payload);
 
       if (!isDirectBuy) {
         await clearCart();
@@ -489,8 +493,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 {language === 'ta' ? '100% பாதுகாப்பான வர்த்தகம்: ' : '100% Escrow Protection: '}
               </span>
               {language === 'ta'
-                ? 'விவசாயி பொருட்களை வாகனத்தில் அனுப்பி நீங்கள் தரத்தை சரிபார்க்கும் வரை உங்கள் பணம் எஸ்க்ரோ கணக்கில் பாதுகாப்பாக வைக்கப்படும்.'
-                : 'Funds remain secured in KisanDirect Escrow until you inspect and verify the harvest upon delivery.'}
+                ? 'உழவர் to உலகம் மத்திய சரக்ககம் மூலம் தரமான விளைபொருட்கள் நேரடியாக உங்கள் வீட்டுக்கு டெலிவரி செய்யப்பட்டு OTP மூலம் உறுதி செய்யப்படும்.'
+                : 'Ulavar2Ulagam Central Hub Guarantee: Inspected freshness, exact weight, and verified home delivery via secure OTP.'}
             </div>
           </div>
 

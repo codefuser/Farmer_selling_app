@@ -1,9 +1,21 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import api from '../services/api';
 import { useAuth } from './AuthContext';
 
+export interface CartProductItem {
+  id: string; // product id or cart item id
+  productId: string;
+  name: string;
+  nameTamil?: string;
+  category?: string;
+  price: number;
+  unit: string;
+  quantity: number;
+  imageUrl?: string;
+  stockQuantity: number;
+}
+
 interface CartContextType {
-  cartItems: any[];
+  cartItems: CartProductItem[];
   cartCount: number;
   subtotal: number;
   deliveryFee: number;
@@ -12,9 +24,10 @@ interface CartContextType {
   openCart: () => void;
   closeCart: () => void;
   refreshCart: () => Promise<void>;
-  addToCart: (batchId: string, quantity?: number) => Promise<boolean>;
-  updateQuantity: (cartItemId: string, quantity: number) => Promise<void>;
-  removeItem: (cartItemId: string) => Promise<void>;
+  addToCart: (productIdOrItem: any, quantity?: number) => Promise<boolean>;
+  addStoreProduct: (product: any, quantity?: number) => boolean;
+  updateQuantity: (productId: string, quantity: number) => Promise<void>;
+  removeItem: (productId: string) => Promise<void>;
   clearCart: () => Promise<void>;
 }
 
@@ -22,75 +35,112 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
-  const [cartItems, setCartItems] = useState<any[]>([]);
-  const [subtotal, setSubtotal] = useState(0);
-  const [deliveryFee, setDeliveryFee] = useState(0);
-  const [total, setTotal] = useState(0);
+  const [cartItems, setCartItems] = useState<CartProductItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('ulavar_cart_v2');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
   const [isOpen, setIsOpen] = useState(false);
 
-  const refreshCart = async () => {
-    if (!user) {
-      setCartItems([]);
-      setSubtotal(0);
-      setDeliveryFee(0);
-      setTotal(0);
-      return;
-    }
+  // Sync to local storage
+  useEffect(() => {
     try {
-      const res = await api.getCart();
-      setCartItems(res.items || []);
-      setSubtotal(res.subtotal || 0);
-      setDeliveryFee(res.deliveryFee || 0);
-      setTotal(res.total || 0);
+      localStorage.setItem('ulavar_cart_v2', JSON.stringify(cartItems));
     } catch (e) {
-      // Cart might not exist or error, set empty
-      setCartItems([]);
+      console.warn('Failed to save cart to localStorage', e);
     }
+  }, [cartItems]);
+
+  const subtotal = Math.round(
+    cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0) * 100
+  ) / 100;
+
+  // Delivery fee rule: Free if subtotal >= 500 or cart is empty, else ₹30
+  const deliveryFee = subtotal === 0 || subtotal >= 500 ? 0 : 30;
+  const total = Math.round((subtotal + deliveryFee) * 100) / 100;
+  const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+
+  const refreshCart = async () => {
+    // Local persistence is authoritative for immediate client responsiveness
   };
 
-  useEffect(() => {
-    if (user) {
-      refreshCart();
-    } else {
-      setCartItems([]);
-    }
-  }, [user]);
+  const addStoreProduct = (product: any, quantity: number = 1): boolean => {
+    if (!product || !product.id) return false;
 
-  const addToCart = async (batchId: string, quantity: number = 1): Promise<boolean> => {
-    try {
-      await api.addToCart(batchId, quantity);
-      await refreshCart();
-      return true;
-    } catch (err: any) {
-      alert(err.message || 'Failed to add item to cart');
+    const availableStock = product.stockQuantity !== undefined ? product.stockQuantity : 999;
+    if (availableStock <= 0) {
+      alert(`Sorry, "${product.name}" is currently out of stock.`);
       return false;
     }
+
+    setCartItems((prev) => {
+      const existing = prev.find((item) => item.productId === product.id);
+      if (existing) {
+        const newQty = Math.min(existing.quantity + quantity, availableStock);
+        return prev.map((item) =>
+          item.productId === product.id ? { ...item, quantity: newQty } : item
+        );
+      } else {
+        const newItem: CartProductItem = {
+          id: product.id,
+          productId: product.id,
+          name: product.name,
+          nameTamil: product.nameTamil || product.name,
+          category: product.category,
+          price: product.sellingPrice || product.pricePerKg || product.price || 30,
+          unit: product.unit || 'kg',
+          quantity: Math.min(quantity, availableStock),
+          imageUrl: product.imageUrl,
+          stockQuantity: availableStock,
+        };
+        return [...prev, newItem];
+      }
+    });
+
+    setIsOpen(true);
+    return true;
   };
 
-  const updateQuantity = async (cartItemId: string, quantity: number) => {
-    try {
-      await api.updateCartItem(cartItemId, quantity);
-      await refreshCart();
-    } catch (err: any) {
-      alert(err.message || 'Failed to update quantity');
+  const addToCart = async (productIdOrItem: any, quantity: number = 1): Promise<boolean> => {
+    if (typeof productIdOrItem === 'object') {
+      return addStoreProduct(productIdOrItem, quantity);
     }
+    // If string ID is passed, create placeholder or handle gracefully
+    addStoreProduct({ id: productIdOrItem, name: 'Produce Item', sellingPrice: 30, stockQuantity: 50 }, quantity);
+    return true;
   };
 
-  const removeItem = async (cartItemId: string) => {
-    try {
-      await api.removeFromCart(cartItemId);
-      await refreshCart();
-    } catch (err: any) {
-      console.error(err);
+  const updateQuantity = async (productId: string, quantity: number) => {
+    if (quantity <= 0) {
+      await removeItem(productId);
+      return;
     }
+
+    setCartItems((prev) =>
+      prev.map((item) => {
+        if (item.productId === productId || item.id === productId) {
+          const maxAllowed = item.stockQuantity || 999;
+          return { ...item, quantity: Math.min(quantity, maxAllowed) };
+        }
+        return item;
+      })
+    );
+  };
+
+  const removeItem = async (productId: string) => {
+    setCartItems((prev) => prev.filter((item) => item.productId !== productId && item.id !== productId));
   };
 
   const clearCart = async () => {
+    setCartItems([]);
     try {
-      await api.clearCart();
-      await refreshCart();
-    } catch (err: any) {
-      console.error(err);
+      localStorage.removeItem('ulavar_cart_v2');
+    } catch (e) {
+      // ignore
     }
   };
 
@@ -98,7 +148,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <CartContext.Provider
       value={{
         cartItems,
-        cartCount: cartItems.length,
+        cartCount,
         subtotal,
         deliveryFee,
         total,
@@ -107,6 +157,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         closeCart: () => setIsOpen(false),
         refreshCart,
         addToCart,
+        addStoreProduct,
         updateQuantity,
         removeItem,
         clearCart,

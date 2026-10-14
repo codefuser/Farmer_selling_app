@@ -230,22 +230,32 @@ router.post('/verify-otp', async (req: Request, res: Response): Promise<void> =>
 router.post('/demo-switch', async (req: Request, res: Response): Promise<void> => {
   try {
     const { role } = req.body;
-    let targetEmail = 'farmer@kisandirect.demo';
+    let targetEmails: string[] = ['farmer@ulavar2ulagam.demo', 'farmer@kisandirect.demo'];
 
-    if (role === 'FARMER') targetEmail = 'farmer@kisandirect.demo';
-    else if (role === 'BUYER') targetEmail = 'buyer@kisandirect.demo';
-    else if (role === 'COORDINATOR') targetEmail = 'coordinator@kisandirect.demo';
-    else if (role === 'LOGISTICS') targetEmail = 'logistics@kisandirect.demo';
-    else if (role === 'ADMIN') targetEmail = 'admin@kisandirect.demo';
+    if (role === 'FARMER') {
+      targetEmails = ['farmer@ulavar2ulagam.demo', 'farmer@kisandirect.demo'];
+    } else if (role === 'CUSTOMER' || role === 'BUYER') {
+      targetEmails = ['customer@ulavar2ulagam.demo', 'buyer@kisandirect.demo'];
+    } else if (role === 'DELIVERY_PARTNER' || role === 'LOGISTICS') {
+      targetEmails = ['delivery@ulavar2ulagam.demo', 'logistics@kisandirect.demo'];
+    } else if (role === 'ADMIN') {
+      targetEmails = ['admin@ulavar2ulagam.demo', 'admin@kisandirect.demo'];
+    } else if (role === 'COORDINATOR') {
+      targetEmails = ['coordinator@kisandirect.demo'];
+    }
 
-    const user = await prisma.user.findUnique({
-      where: { email: targetEmail },
-      include: {
-        farmerProfile: true,
-        buyerProfile: true,
-        coordinatorProfile: true,
-      },
-    });
+    let user = null;
+    for (const email of targetEmails) {
+      user = await prisma.user.findUnique({
+        where: { email },
+        include: {
+          farmerProfile: true,
+          buyerProfile: true,
+          coordinatorProfile: true,
+        },
+      });
+      if (user) break;
+    }
 
     if (!user) {
       res.status(404).json({ error: 'Demo user not seeded yet' });

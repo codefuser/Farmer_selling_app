@@ -71,11 +71,19 @@ const AppContent: React.FC = () => {
   // Global Checkout Modal state from CartDrawer
   const [isGlobalCheckoutOpen, setIsGlobalCheckoutOpen] = useState(false);
 
-  // Sync initial view to home-feed if authenticated
+  // Sync initial view to role-specific dashboard if authenticated
   useEffect(() => {
     if (user) {
       if (currentView === 'landing' || currentView === 'login' || currentView === 'register') {
-        setCurrentView('home-feed');
+        if (user.role === 'ADMIN') {
+          setCurrentView('admin-dashboard');
+        } else if (user.role === 'FARMER') {
+          setCurrentView('farmer-dashboard');
+        } else if ((user.role as string) === 'DELIVERY_PARTNER' || user.role === 'LOGISTICS') {
+          setCurrentView('logistics-dashboard');
+        } else {
+          setCurrentView('buyer-marketplace');
+        }
       }
     }
   }, [user]);
@@ -253,6 +261,7 @@ const AppContent: React.FC = () => {
 
       {/* Top Demo Presentation Bar */}
       <DemoScenarioBar
+        onNavigate={navigate}
         onTriggerScenario1={handleTriggerScenario1}
         onTriggerScenario2={handleTriggerScenario2}
         onTriggerScenario3={handleTriggerScenario3}
@@ -324,9 +333,9 @@ const AppContent: React.FC = () => {
       <footer className="bg-slate-900 text-slate-400 py-8 px-4 sm:px-6 lg:px-8 border-t border-slate-800 text-xs">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
           <div>
-            <span className="font-extrabold text-slate-200 text-sm">KisanDirect</span> · Community-Powered Direct Agricultural Marketplace
-            <div className="text-[11px] text-slate-500 mt-0.5">
-              Smart India Hackathon 2026 · Problem Statement ID: SIH26033
+            <span className="font-extrabold text-white text-sm">Ulavar2Ulagam</span> · "From Farmers to Your Family, Directly."
+            <div className="text-[11px] text-slate-400 mt-0.5">
+              Salem Central Procurement & Distribution Hub · Tamil Nadu
             </div>
           </div>
           <div className="text-slate-500 text-[11px] text-center sm:text-right">

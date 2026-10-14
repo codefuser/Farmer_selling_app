@@ -36,13 +36,13 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
         </div>
 
         <h1 className="text-2xl font-black tracking-tight text-white mb-1.5">
-          KisanDirect
+          {language === 'ta' ? 'உழவர் to உலகம்' : 'Ulavar2Ulagam'}
         </h1>
 
         <p className="text-xs font-semibold text-emerald-300 mb-6">
           {language === 'ta'
-            ? 'விவசாயியிடமிருந்து நேரடியாக உங்கள் வாங்குபவரிடம்'
-            : 'Direct Harvester to Buyer Marketplace'}
+            ? 'விவசாயிகளிடமிருந்து உங்கள் குடும்பத்திற்கு நேரடியாக'
+            : 'From Farmers to Your Family, Directly.'}
         </p>
 
         {/* Minimal Progress Line */}
